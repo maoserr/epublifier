@@ -1,17 +1,11 @@
 import os
-from urllib.request import Request, urlopen
 import requests
 
 from bs4 import BeautifulSoup
-import pdfkit
 from ebooklib import epub
 
 
 def downloadFile(URL=None):
-    #req = Request(
-    #    URL,
-    #    headers={'User-Agent': 'Mozilla/5.0'})
-    #data = urlopen(req).read()
     headers = {
         'USER-AGENT': 'Mozilla/5.0 (iPad; U; CPU OS 3_2_1 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Mobile/7B405'}
 
@@ -182,7 +176,7 @@ def tubosquid():
     "http://turb0translation.blogspot.my/2015/11/kumo-desu-ga-nani-ka-oni-vs-oni-2.html"
     ]
 
-    out = r'C:\Users\Maoserr\Desktop\Out'
+    out = r'C:\Users\Maoserr\Desktop\Out\Turbo'
     out_htmls = []
     for i in range(0,len(files)-1):
         base_name = os.path.splitext(os.path.basename(files[i]))[0]
@@ -197,22 +191,18 @@ def tubosquid():
         with open(curr_html,'wb') as f:
             f.write(body[0].encode("utf-8"))
 
-    options = {
-        'encoding': "UTF-8"
-    }
-    #res = pdfkit.from_file(out_htmls,os.path.join(out,"Kumo_Tubo.pdf"),options=options)
-
-
     book = epub.EpubBook()
 
     # set metadata
     book.set_identifier('id123456')
-    book.set_title('Kumo Desu Ga')
+    book.set_title('Kumo Desu Ga (Chap 150-214)')
     book.set_language('en')
 
-    book.add_author('Author')
+    book.add_author('Baba Okina')
+    book.set_cover("image.jpg", open(r'bookcover\kumoturbo.jpeg', 'rb').read())
 
     spine = ['nav']
+    toc = []
     for i in range(0,len(out_htmls)-1):
         base_name = os.path.splitext(os.path.basename(out_htmls[i]))[0]
         # create chapter
@@ -220,6 +210,7 @@ def tubosquid():
         with open(out_htmls[i],'rb') as f:
             c1.content=f.read()
         spine.append(c1)
+        toc.append(c1)
 
         # add chapter
         book.add_item(c1)
@@ -227,6 +218,7 @@ def tubosquid():
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
     book.spine = spine
+    book.toc = toc
     # write to the file
     epub.write_epub(os.path.join(out,"Kumo_Tubo.epub"), book, {})
 
@@ -678,12 +670,13 @@ def raisedead():
 
     # set metadata
     book.set_identifier('id121234')
-    book.set_title('Kumo Desu Ga (RAD)')
+    book.set_title('Kumo Desu Ga (Chap 213+)')
     book.set_language('en')
-
-    book.add_author('Author')
+    book.set_cover("image.jpg", open(r'bookcover\kumorad.jpg', 'rb').read())
+    book.add_author('Baba Okina')
 
     spine = ['nav']
+    toc = []
     for i in range(0,len(out_htmls)-1):
         base_name = os.path.splitext(os.path.basename(out_htmls[i]))[0].replace("%","_")
         # create chapter
@@ -691,14 +684,20 @@ def raisedead():
         with open(out_htmls[i],'rb') as f:
             c1.content=f.read()
         spine.append(c1)
-
+        toc.append(c1)
         # add chapter
         book.add_item(c1)
 
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
     book.spine = spine
+    book.toc = (toc)
     # write to the file
     epub.write_epub(os.path.join(out,"Kumo_RAD.epub"), book, {})
 
+def original():
+    base_url = r'http://ncode.syosetu.com/'
+    ind = 'n7975cr'
+
+tubosquid()
 raisedead()
