@@ -1,8 +1,11 @@
 import os
 import requests
+import html
 
 from bs4 import BeautifulSoup
 from ebooklib import epub
+from PIL import Image,ImageDraw,ImageFont
+from io import BytesIO
 
 
 def downloadFile(URL=None):
@@ -723,7 +726,7 @@ def tubosquid():
     for i in range(0,len(out_htmls)-1):
         base_name = os.path.splitext(os.path.basename(out_htmls[i]))[0]
         # create chapter
-        c1 = epub.EpubHtml(title=out_titles[i], file_name=base_name+".xhtml")
+        c1 = epub.EpubHtml(title=html.unescape(out_titles[i]), file_name=base_name+".xhtml")
         with open(out_htmls[i],'rb') as f:
             c1.content=f.read()
         spine.append(c1)
@@ -1214,6 +1217,27 @@ def raisedead():
     # write to the file
     epub.write_epub(os.path.join(out,"Kumo_RAD.epub"), book, {})
 
+def start_book(series):
+    book = epub.EpubBook()
+    book.set_identifier('id1234534' + str(series))
+    book.set_title('蜘蛛ですが、なにか？ ' + str(series))
+    book.set_language('jp')
+    img = Image.open(r'bookcover\kumorad.jpg')
+    draw = ImageDraw.Draw(img)
+    draw.text((0, 0), str(series), (255, 255, 255), font=ImageFont.truetype("arial.ttf", 200))
+    img_file = BytesIO()
+    img.save(img_file, 'jpeg')
+    book.set_cover("image.jpg", img_file.getvalue())
+    book.add_author('馬場翁')
+    return book
+
+def end_book(book,series, spine, toc, outdir):
+    book.add_item(epub.EpubNcx())
+    book.add_item(epub.EpubNav())
+    book.spine = spine
+    book.toc = (toc)
+    epub.write_epub(os.path.join(outdir, "Kumo_Desuka_%s.epub" % str(series)), book, {})
+
 def original():
     base_url = r'http://ncode.syosetu.com/'
     ind = 'n7975cr'
@@ -1229,17 +1253,20 @@ def original():
     chaps = get_chaps()
     out_htmls = []
     out_titles = []
-    book = epub.EpubBook()
 
-    # set metadata
-    book.set_identifier('id1234534')
-    book.set_title('蜘蛛ですが、なにか？')
-    book.set_language('jp')
-    book.set_cover("image.jpg", open(r'bookcover\kumorad.jpg', 'rb').read())
-    book.add_author('馬場翁')
+    series = 1
+    book = start_book(series)
     spine = ['nav']
     toc = []
+    cnt = 0
     for c in chaps:
+        if (cnt % 100)==99:
+            end_book(book,series, spine,toc,outdir)
+            series+=1
+            book = start_book(series)
+            spine = ['nav']
+            toc = []
+            cnt = 0
         print("Chapter "+c['title']+" "+c['href'])
         base_name = c['href'].split("/")[-2]
         curr_html = os.path.join(outdir,base_name+".html")
@@ -1255,16 +1282,13 @@ def original():
         c_tags = BeautifulSoup(txt,'html.parser')
         body = c_tags.find(id="novel_honbun")
         echap = epub.EpubHtml(title=c['title'],file_name=base_name+".xhtml")
-        echap.content = body.decode_contents()
+        echap.content = "<strong>%s</strong>\n" % c['title']+body.decode_contents()
         spine.append(echap)
         toc.append(echap)
         book.add_item(echap)
-    book.add_item(epub.EpubNcx())
-    book.add_item(epub.EpubNav())
-    book.spine = spine
-    book.toc = (toc)
-    epub.write_epub(os.path.join(outdir,"Kumo_Desuka.epub"), book, {})
+        cnt+=1
+    end_book(book,series, spine,toc,outdir)
 
 #tubosquid()
-raisedead()
-#original()
+#raisedead()
+original()
