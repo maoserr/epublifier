@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        width: 600px;
+      }
+      button {
+        height: 30px;
+        outline: none;
+      }
+      input {
+        width: 450px;
+      }
+    </style>
+  </head>
+  <body>
+    <label for="url">Page URL:</label>
+    <input type="text" id="url" readonly />
+    <br />
+    <label for="type">Source Type:</label>
+    <select id="type">
+      <option value="novel_updates">Novel Updates</option>
+      <option value="syotsu">Syotsu</option>
+    </select>
+    <br />
+    <button id="get_chapters">Get Chapters</button>
+    <span id="info">Nothing</span>
+    <script src="popup.js"></script>
+  </body>
+</html>
