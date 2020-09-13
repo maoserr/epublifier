@@ -1,3 +1,6 @@
+import 'jszip/dist/jszip';
+import jEpub from 'jepub/dist/jepub';
+
 if ("runtime" in chrome && "onMessage" in chrome.runtime) {
   function getChaps(dom_str) {
     let parser = new DOMParser();
@@ -52,9 +55,8 @@ if ("runtime" in chrome && "onMessage" in chrome.runtime) {
       }
     );
   }
+  window.onload = onWindowLoad;
 }
-
-window.onload = onWindowLoad;
 
 function parse_results(arr) {
   let chaps = [];

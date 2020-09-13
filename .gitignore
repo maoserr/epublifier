@@ -2,7 +2,7 @@
 
 # compiled output
 .firebase/
-#dist
+dist
 src/popup/build
 # dependencies
 node_modules

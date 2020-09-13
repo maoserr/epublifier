@@ -2,9 +2,11 @@
   "name": "epublifier",
   "version": "1.0.0",
   "description": "Converts Web Novels to Epub",
-  "main": "popup.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "develop": "webpack --mode development --watch",
+    "build": "webpack --mode production"
   },
   "repository": {
     "type": "git",
@@ -18,7 +20,13 @@
   },
   "homepage": "https://github.com/maoserr/web_novel_to_epub#readme",
   "devDependencies": {
+    "copy-webpack-plugin": "^6.1.0",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "file-saver": "^2.0.2",
+    "jepub": "^2.1.4",
+    "jszip": "^3.5.0"
   }
 }
