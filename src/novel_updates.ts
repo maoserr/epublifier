@@ -1,4 +1,3 @@
-import 'jszip/dist/jszip';
 import jEpub from 'jepub/dist/jepub';
 
 if ("runtime" in chrome && "onMessage" in chrome.runtime) {
