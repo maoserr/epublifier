@@ -1,0 +1,27 @@
+{
+  "manifest_version": 2,
+  "name": "Chrome Extension with React and Typescript Starter Pack",
+  "short_name": "React & Typescript based Chrome Extension",
+  "version": "1.0.0",
+  "description": "Chrome Extension with React and Typescript Starter Pack",
+  "permissions": ["tabs", "activeTab", "storage"],
+  "browser_action": {
+    "default_popup": "popup/index.html",
+    "default_title": "React Chrome Extension Starter"
+  },
+  "icons": {
+    "128": "./assets/icon.png"
+  },
+  "content_scripts": [
+    {
+      "js": ["contentscript.js"],
+      "css": ["contentscript.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_security_policy": "script-src 'self' 'unsafe-eval' 'sha256-...='; object-src 'self'"
+}

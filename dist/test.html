@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="profile" href="http://gmpg.org/xfn/11">
+<link rel="pingback" href="https://kktranslates.home.blog/xmlrpc.php">
+<title>GUEE &#8211; CH1 &#8211; KKTranslates</title>
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.remove(); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[i].remove();
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+						+ '//' + window.location.hostname;
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly9ra3RyYW5zbGF0ZXMuaG9tZS5ibG9n"
+		+ "&wpcomid=161405259"
+		+ "&time=1599881761";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//kktranslateshome.wordpress.com' />
+<link rel='dns-prefetch' href='//wordpress.com' />
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel='dns-prefetch' href='//s.pubmine.com' />
+<link rel='dns-prefetch' href='//x.bidswitch.net' />
+<link rel='dns-prefetch' href='//static.criteo.net' />
+<link rel='dns-prefetch' href='//ib.adnxs.com' />
+<link rel='dns-prefetch' href='//aax.amazon-adsystem.com' />
+<link rel='dns-prefetch' href='//bidder.criteo.com' />
+<link rel='dns-prefetch' href='//cas.criteo.com' />
+<link rel='dns-prefetch' href='//gum.criteo.com' />
+<link rel='dns-prefetch' href='//ads.pubmatic.com' />
+<link rel='dns-prefetch' href='//gads.pubmatic.com' />
+<link rel='dns-prefetch' href='//tpc.googlesyndication.com' />
+<link rel='dns-prefetch' href='//ad.doubleclick.net' />
+<link rel='dns-prefetch' href='//googleads.g.doubleclick.net' />
+<link rel='dns-prefetch' href='//www.googletagservices.com' />
+<link rel='dns-prefetch' href='//cdn.switchadhub.com' />
+<link rel='dns-prefetch' href='//delivery.g.switchadhub.com' />
+<link rel='dns-prefetch' href='//delivery.swid.switchadhub.com' />
+<link rel='dns-prefetch' href='//a.teads.tv' />
+<link rel='dns-prefetch' href='//prebid.media.net' />
+<link rel='dns-prefetch' href='//adserver-us.adtech.advertising.com' />
+<link rel='dns-prefetch' href='//fastlane.rubiconproject.com' />
+<link rel='dns-prefetch' href='//prebid-server.rubiconproject.com' />
+<link rel='dns-prefetch' href='//hb-api.omnitagjs.com' />
+<link rel='dns-prefetch' href='//mtrx.go.sonobi.com' />
+<link rel='dns-prefetch' href='//apex.go.sonobi.com' />
+<link rel='dns-prefetch' href='//u.openx.net' />
+<link rel="alternate" type="application/rss+xml" title="KKTranslates &raquo; Feed" href="https://kktranslates.home.blog/feed/" />
+<link rel="alternate" type="application/rss+xml" title="KKTranslates &raquo; Comments Feed" href="https://kktranslates.home.blog/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="KKTranslates &raquo; GUEE &#8211; CH1 Comments Feed" href="https://kktranslates.home.blog/2019/11/18/guee-ch1/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1596548281h&ver=5.5-wpcom-48929"}};
+			!function(e,a,t){var r,n,o,i,p=a.createElement("canvas"),s=p.getContext&&p.getContext("2d");function c(e,t){var a=String.fromCharCode;s.clearRect(0,0,p.width,p.height),s.fillText(a.apply(this,e),0,0);var r=p.toDataURL();return s.clearRect(0,0,p.width,p.height),s.fillText(a.apply(this,t),0,0),r===p.toDataURL()}function l(e){if(!s||!s.fillText)return!1;switch(s.textBaseline="top",s.font="600 32px Arial",e){case"flag":return!c([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])&&(!c([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!c([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]));case"emoji":return!c([55357,56424,8205,55356,57212],[55357,56424,8203,55356,57212])}return!1}function d(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(i=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},o=0;o<i.length;o++)t.supports[i[o]]=l(i[o]),t.supports.everything=t.supports.everything&&t.supports[i[o]],"flag"!==i[o]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[i[o]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(r=t.source||{}).concatemoji?d(r.concatemoji):r.wpemoji&&r.twemoji&&(d(r.twemoji),d(r.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJydklFuwyAMhi80x8qqTsvDtLNAsBgNBISN0tx+JO2qrJ2yaUJC2PyfbYxxStDHUWgUDAWSL9aNjFPqYwAOztN8ZzU98xNuMO2jvYFB5YHEjRa0ylil3z378BSzUYbR+qiVf9Bu6svklZCBFFnurD3Mu4EYTyRJ9QOs1oP8S2tLNTVlW28y4WvTNQfUxXmzFL3iOqs8I8vs6Q9hVmqTXc2xCNjszH9DZLX0lX/B+3jFnpu60DiWmw9+RjctWx5f/SEpWRSBjFPkKVTZHjY5Y6l+zTIBlzMInfeRdcq0TpmYoe7BlQDyUXOtv/Qe3tpj1x27l0Pbnj4B6KsGEg==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+</style>
+<style id='global-styles-inline-css'>
+:root {
+	--wp--preset--color--black: #000000;
+	--wp--preset--color--cyan-bluish-gray: #abb8c3;
+	--wp--preset--color--light-green-cyan: #7bdcb5;
+	--wp--preset--color--luminous-vivid-amber: #fcb900;
+	--wp--preset--color--luminous-vivid-orange: #ff6900;
+	--wp--preset--color--pale-cyan-blue: #8ed1fc;
+	--wp--preset--color--pale-pink: #f78da7;
+	--wp--preset--color--vivid-cyan-blue: #0693e3;
+	--wp--preset--color--vivid-green-cyan: #00d084;
+	--wp--preset--color--vivid-purple: #9b51e0;
+	--wp--preset--color--vivid-red: #cf2e2e;
+	--wp--preset--color--white: #ffffff;
+	--wp--preset--font-size--small: 13;
+	--wp--preset--font-size--normal: 16;
+	--wp--preset--font-size--medium: 20;
+	--wp--preset--font-size--large: 36;
+	--wp--preset--font-size--huge: 48;
+	--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);
+	--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);
+	--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);
+	--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);
+	--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);
+	--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);
+	--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);
+	--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);
+	--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);
+	--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);
+	--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);
+	--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);
+}
+
+</style>
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??-eJxdjNsOQDAQRH9IbVyCF/EtyKJ0t03apr9vkYh4mzmTOZCcmi0H5AAUlTNx1exhtkSClNEHSvM/kgvJQAPboOXt3/AMH2fYkMTg4gTOjIy3a5FRjQm9JbweA/VFXTVtV5VdsZ8PqDXU?cssminify=yes' type='text/css' media='all' />
+<link crossorigin="anonymous" rel='stylesheet' id='plane-fonts-css'  href='https://fonts.googleapis.com/css?family=Raleway%3A400%2C500%2C700%2C900%7CNoto+Serif%3A400%2C700%2C400italic%2C700italic&#038;subset=latin%2Clatin-ext&#038;ver=5.5-wpcom-48929' media='all' />
+<link rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/_static/??-eJx9jUEOwjAMBD9EMEUqKgfEW9LghoBjR42jiN8T1EsRqDevdnYMNRknrMgKeseIGVIZIZFlhKwvwr3LeQdbWGC3oKYmJ/FnEItJVHzgDDXcPGoGLK2VZ0BDtoJibCZt0v8fVwKPYkic1SD8FcxENsxb0xlHEt9OD41axc/oGi9dfz50p/44DI83NPJngA==?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-5-1' href='https://s0.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-6-1' href='https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?m=1560469195h&cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link rel='stylesheet' id='all-css-8-1' href='https://s0.wp.com/_static/??-eJxti8sKgCAQAH8oW6KHdoi+xcTUWF1pjX4/OnSIOg0DM3BmYSgVmwrEQ2Q8XEgMmbiIFXXYgb3eQ3IPa8Ncwf/FZIJGgeToLZ+peBstg+/AIS0a72COU9OPUg69atV2AWWKN+I=?cssminify=yes' type='text/css' media='all' />
+<script id='jetpack_related-posts-js-extra'>
+var related_posts_js_options = {"post_heading":"h4"};
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??/wp-includes/js/jquery/jquery.js,/wp-content/js/mobile-useragent-info.js,/wp-content/mu-plugins/related-posts/related-posts.js?m=1591626894j'></script>
+<link rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1530132353h&cssminify=yes' type='text/css' media='all' />
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='highlander-comments-ie7-css'  href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style-ie7.css?m=1351637563h&#038;ver=20110606' media='all' />
+<![endif]-->
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://kktranslateshome.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s0.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Global University Entrance Examination by&nbsp;木苏里' href='https://kktranslates.home.blog/2019/11/18/global-university-entrance-examination-by-%e6%9c%a8%e8%8b%8f%e9%87%8c/' />
+<link rel='next' title='KTCSG &#8211; CH95&nbsp;(Extra)' href='https://kktranslates.home.blog/2019/11/19/ktcsg-ch95-extra/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://kktranslates.home.blog/2019/11/18/guee-ch1/" />
+<link rel='shortlink' href='https://wp.me/paVeSD-A2' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fkktranslates.home.blog%2F2019%2F11%2F18%2Fguee-ch1%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fkktranslates.home.blog%2F2019%2F11%2F18%2Fguee-ch1%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GUEE &#8211; CH1" />
+<meta property="og:url" content="https://kktranslates.home.blog/2019/11/18/guee-ch1/" />
+<meta property="og:description" content="Visit the post for more." />
+<meta property="article:published_time" content="2019-11-18T10:28:00+00:00" />
+<meta property="article:modified_time" content="2020-05-23T12:14:57+00:00" />
+<meta property="og:site_name" content="KKTranslates" />
+<meta property="og:image" content="https://s0.wp.com/i/blank.jpg" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GUEE &#8211; CH1" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:description" content="Visit the post for more." />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://s0.wp.com/i/favicon.ico" sizes="16x16 24x24 32x32 48x48" />
+<link rel="icon" type="image/x-icon" href="https://s0.wp.com/i/favicon.ico" sizes="16x16 24x24 32x32 48x48" />
+<link rel="apple-touch-icon" href="https://s0.wp.com/i/webclip.png" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://kktranslates.home.blog/osd.xml" title="KKTranslates" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+<meta name="application-name" content="KKTranslates" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Noob Chinese BL translations" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://kktranslates.home.blog/feed/;icon-uri=https://s0.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s0.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s0.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s0.wp.com/i/favicon.ico" /><meta name="description" content="Notice:&nbsp;Please DO NOT retranslate or repost my translation of this novel anywhere else! KK: Hi all! This was a novel that has been sitting in my “Potentially Translate” list for quite a long time and, despite feeling a little hesitant, I’ve finally decided to give it a go. The main reason why I was hesitant&hellip;" />
+		<script type="text/javascript">
+
+			window.doNotSellCallback = function() {
+
+				var linkElements = [
+					'a[href="https://wordpress.com/?ref=footer_blog"]',
+					'a[href="https://wordpress.com/?ref=footer_website"]',
+					'a[href="https://wordpress.com/?ref=vertical_footer"]',
+					'a[href^="https://wordpress.com/?ref=footer_segment_"]',
+				].join(',');
+
+				var dnsLink = document.createElement( 'a' );
+				dnsLink.href = 'https://wordpress.com/advertising-program-optout';
+				dnsLink.classList.add( 'do-not-sell-link' );
+				dnsLink.rel = 'nofollow';
+				dnsLink.style.marginLeft = '0.5em';
+				dnsLink.textContent = 'Do Not Sell My Personal Information';
+
+				var creditLinks = document.querySelectorAll( linkElements );
+
+				if ( 0 === creditLinks.length ) {
+					return false;
+				}
+
+				Array.prototype.forEach.call( creditLinks, function( el ) {
+					el.insertAdjacentElement( 'afterend', dnsLink );
+				});
+
+				return true;
+			};
+
+		</script>
+				<script type="text/javascript">
+		function __ATA_CC() {var v = document.cookie.match('(^|;) ?personalized-ads-consent=([^;]*)(;|$)');return v ? 1 : 0;}
+		var __ATA_PP = { pt: 1, ht: 0, tn: 'plane', amp: false, siteid: 8982, blogid: 161405259, consent: __ATA_CC() };
+		var __ATA = __ATA || {};
+		__ATA.cmd = __ATA.cmd || [];
+		__ATA.criteo = __ATA.criteo || {};
+		__ATA.criteo.cmd = __ATA.criteo.cmd || [];
+		</script>
+		<script type="text/javascript">
+		(function(){var g=Date.now||function(){return+new Date};function h(a,b){a:{for(var c=a.length,d="string"==typeof a?a.split(""):a,e=0;e<c;e++)if(e in d&&b.call(void 0,d[e],e,a)){b=e;break a}b=-1}return 0>b?null:"string"==typeof a?a.charAt(b):a[b]};function k(a,b,c){c=null!=c?"="+encodeURIComponent(String(c)):"";if(b+=c){c=a.indexOf("#");0>c&&(c=a.length);var d=a.indexOf("?");if(0>d||d>c){d=c;var e=""}else e=a.substring(d+1,c);a=[a.substr(0,d),e,a.substr(c)];c=a[1];a[1]=b?c?c+"&"+b:b:c;a=a[0]+(a[1]?"?"+a[1]:"")+a[2]}return a};var l=0;function m(a,b){var c=document.createElement("script");c.src=a;c.onload=function(){b&&b(void 0)};c.onerror=function(){b("error")};a=document.getElementsByTagName("head");var d;a&&0!==a.length?d=a[0]:d=document.documentElement;d.appendChild(c)}function n(a){var b=void 0===b?document.cookie:b;return(b=h(b.split("; "),function(c){return-1!=c.indexOf(a+"=")}))?b.split("=")[1]:""}function p(a){return"string"==typeof a&&0<a.length}
+		function r(a,b,c){b=void 0===b?"":b;c=void 0===c?".":c;var d=[];Object.keys(a).forEach(function(e){var f=a[e],q=typeof f;"object"==q&&null!=f||"function"==q?d.push(r(f,b+e+c)):null!==f&&void 0!==f&&(e=encodeURIComponent(b+e),d.push(e+"="+encodeURIComponent(f)))});return d.filter(p).join("&")}function t(a,b){a||((window.__ATA||{}).config=b.c,m(b.url))}var u=Math.floor(1E13*Math.random()),v=window.__ATA||{};window.__ATA=v;v.rid=u;v.createdAt=g();var w=window.__ATA||{},x="s.pubmine.com";
+		w&&w.serverDomain&&(x=w.serverDomain);var y="//"+x+"/conf",z=window.top===window,A=window.__ATA_PP&&window.__ATA_PP.gdpr_applies,B="boolean"===typeof A?Number(A):null,C=window.__ATA_PP||null,D=z?document.referrer?document.referrer:null:null,E=z?window.location.href:document.referrer?document.referrer:null,F,G=n("__ATA_tuuid");F=G?G:null;var H=window.innerWidth+"x"+window.innerHeight,I=n("usprivacy"),J=r({gdpr:B,pp:C,rid:u,src:D,ref:E,tuuid:F,vp:H,us_privacy:I?I:null},"",".");
+		(function(a){var b=void 0===b?"cb":b;l++;var c="callback__"+g().toString(36)+"_"+l.toString(36);a=k(a,b,c);window[c]=function(d){t(void 0,d)};m(a,function(d){d&&t(d)})})(y+"?"+J);}).call(this);
+		</script><link rel="amphtml" href="https://kktranslates.home.blog/2019/11/18/guee-ch1/amp/"><script type="text/javascript">
+	window.google_analytics_uacct = "UA-52447-2";
+</script>
+
+<script type="text/javascript">
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount', 'UA-52447-2']);
+	_gaq.push(['_gat._anonymizeIp']);
+	_gaq.push(['_setDomainName', 'none']);
+	_gaq.push(['_setAllowLinker', true]);
+	_gaq.push(['_initData']);
+	_gaq.push(['_trackPageview']);
+
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ga);
+	})();
+</script>
+</head>
+
+<body class="post-template-default single single-post postid-2234 single-format-standard customizer-styles-applied has-marketing-bar highlander-enabled highlander-light">
+	<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+
+	<div class="site-top">
+		<div class="content-wrapper">
+			<nav id="site-navigation" class="main-navigation" role="navigation">
+				<button class="menu-toggle" aria-controls="menu" aria-expanded="false"><span class="screen-reader-text">Primary Menu</span></button>
+				<div class="nav-menu"><ul id="menu-primary" class="menu"><li id="menu-item-6" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-6"><a href="/">Home</a></li>
+<li id="menu-item-40" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-40"><a href="https://kktranslates.home.blog/about/">About</a></li>
+<li id="menu-item-255" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-255"><a href="https://kktranslates.home.blog/my-projects/">My Projects</a></li>
+<li id="menu-item-1854" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1854"><a href="https://kktranslates.home.blog/faq/">FAQ</a></li>
+<li id="menu-item-7" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-7"><a href="https://kktranslates.home.blog/contact/">Contact</a></li>
+</ul></div>			</nav><!-- #site-navigation -->
+
+			<div class="site-search">
+				<button class="search-toggle"><span class="screen-reader-text">Search</span></button>
+				<div class="search-expand">
+					<div class="search-expand-inner">
+						<form role="search" method="get" class="search-form" action="https://kktranslates.home.blog/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" />
+				</label>
+				<input type="submit" class="search-submit" value="Search" />
+			</form>					</div>
+				</div>
+			</div><!-- .site-search -->
+    	</div>
+	</div><!-- .site-top -->
+
+	<header class="site-header" role="banner">
+			<div class="site-branding">
+				<a href="https://kktranslates.home.blog/" class="site-logo-link" rel="home" itemprop="url"></a>				<h1 class="site-title"><a href="https://kktranslates.home.blog/" rel="home">KKTranslates</a></h1>
+				<h2 class="site-description">Noob Chinese BL translations</h2>
+			</div><!-- .site-branding -->
+	</header><!-- .site-header -->
+
+	<div id="content" class="site-content">
+	<div id="primary" class="content-area">
+		<main id="main" class="site-main" role="main">
+
+		
+			
+<article id="post-2234" class="post-2234 post type-post status-publish format-standard hentry category-global-university-entrance-examination tag-bl tag-bl-novel tag-bl-novel-translation tag-bl-webnovel tag-chinese-bl tag-danmei tag-guee tag-shounen-ai">
+	<header class="entry-header">
+
+		<h2 class="entry-title"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/" rel="bookmark">GUEE &#8211; CH1</a></h2>
+					<div class="entry-meta">
+				<span class="posted-on"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/" rel="bookmark"><time class="entry-date published" datetime="2019-11-18T21:28:00+11:00">18th November 2019</time><time class="updated" datetime="2020-05-23T22:14:57+10:00">23rd May 2020</time></a></span><span class="byline"><span class="author vcard"><a class="url fn n" href="https://kktranslates.home.blog/author/kktranslates13/">KK</a></span></span>			</div><!-- .entry-meta -->
+		
+	</header><!-- .entry-header -->
+
+	
+		<div class="entry-content">
+			
+<span id="more-2234"></span>
+
+
+
+<p class="has-vivid-red-color has-text-color"><strong>Notice:</strong>&nbsp;Please DO NOT retranslate or repost my translation of this novel anywhere else!</p>
+
+
+
+<p class="has-small-font-size"><strong>KK:</strong> Hi all! This was a novel that has been sitting in my “Potentially Translate” list for quite a long time and, despite feeling a little hesitant, I’ve finally decided to give it a go. The main reason why I was hesitant over picking this up was because I wasn’t sure if I would be able to translate the novel well enough to give it justice. For anyone who can read Chinese, PLEASE read the raw version. The author has this amazing way with her words that is sometimes difficult to carry over when translating it to English. (Chinese is a very beautiful language that can carry so many meanings with just a few words……)</p>
+
+
+
+<p class="has-small-font-size">Anyway! The novel starts off a little slow and picks up when history between MC and ML is slowly revealed (about 1/3 of the way in). Just keep in mind that the focus of this novel is the PLOT. Small details are hidden throughout so READ CAREFULLY. There are heaps of mysteries and unanswered questions but don&#8217;t worry, they&#8217;ll be answered eventually! I really loved the couple dynamic here so hopefully you’ll enjoy it as much as I did~</p>
+
+
+
+<p class="has-small-font-size">Happy reading ❤</p>
+
+
+
+<hr class="wp-block-separator" />
+
+
+
+<p class="has-text-align-center"> For those who are new to my translations, please read <a href="https://kktranslates.home.blog/about/">this </a>first! </p>
+
+
+
+<hr class="wp-block-separator" />
+
+
+
+<p><strong>The Last Supper</strong><br><strong>Chapter 1: Death Question</strong></p>
+
+
+
+<p>The snow fell for four hours. It didn’t show any signs of
+stopping.</p>
+
+
+
+<p>This place is a barren mountain cabin. Various hunting tools hung from the walls and a long wooden table gnawed away by termites sat in the centre. Around the table sat a group of people. Male, female, young and old, they were all present. There was even a foreigner amongst them.</p>
+
+
+
+<p>The room was very cold. Everyone present shivered with a
+solemn expression on their faces but no one moved to start a fire. The old
+radio sitting on the table was speaking.</p>
+
+
+
+<p>【It is currently 17:30 Beijing time.】<br>【There are still 30 minutes until the exam starts. Examinees, please quickly head to the examination centre.】</p>
+
+
+
+<p>The radio sounds were scratchy and there were also static
+noises one would typically hear in the background of radio broadcasts from the
+1950s. It tirelessly buzzed.</p>
+
+
+
+<p>This was already the second broadcast. The first broadcast was three hours ago. It said 【Welcome to  examination centre 003712.】 which immediately caused an old lady to faint and even now she had not yet recovered.</p>
+
+
+
+<p>Another person didn’t listen to its instructions and
+attempted to destroy the radio……. After removing the batteries, he ran out of
+the room like he was possessed. Five minutes later his body fell from the roof
+together with a pile of snow.</p>
+
+
+
+<p>Since then, no one dared to touch it.</p>
+
+
+
+<p>【Please
+enter the centre as soon as possible and avoid loitering outside.】<br>
+This sentence was repeated three times. The room was deathly silent.</p>
+
+
+
+<p>After a long time, someone sitting at the head of the table
+muttered irritably: “So who hasn’t entered yet?”</p>
+
+
+
+<p>This person had a yellow head of slightly permed hair. His figure was lean, and he was average in height. Both his arms were tattooed with a sleeve of animals. Despite being unable to tell whether it was a dog or camel, it looked quite intimidating. </p>
+
+
+
+<p>The person sitting next to him shrank back a little and
+answered: “Old Yu.”</p>
+
+
+
+<p>“Who is Old Yu?”</p>
+
+
+
+<p>“The drunkard who vomited the moment he entered through the
+door. The one who brought along his son and nephew.”</p>
+
+
+
+<p>The person who answered pointed towards the wall using his
+lips and then carefully made a “quiet” gesture.</p>
+
+
+
+<p>Lying on the beaten sofa by the wall was the nephew. </p>
+
+
+
+<p>It was a 27 or 28-year-old young man. He had a tall figure and his appearance was very extraordinary. When he held the doorframe and lowered his head to enter the cabin, the picturesque mountain pines covered in snow behind him paled in comparison. However, ever since he entered, he constantly maintained a dull expression. He seemed to be a little aloof.</p>
+
+
+
+<p>According to Old Yu who rambled incessantly, his nephews name
+is You Huo.</p>
+
+
+
+<p>“He had only returned for two months and came to Harbin to
+find me during the National Day holidays. I was originally supposed to take him
+to the airport tomorrow morning. Sigh…….It’s all my fault! Useless!”</p>
+
+
+
+<p>Old Yu had drunk until he was completely intoxicated. During the night where there were few people around, he stumbled around. </p>
+
+
+
+<p>On the sidewalk in front of the children’s hospital, someone had left a bunch of joss paper<sup>1</sup>. Old Yu stumbled around and wasn’t able to regain his balance. With one foot stepping onto the joss paper, everything spun and himself, his son and his nephew were all sent here.</p>
+
+
+
+<p>When they entered the cabin, he had not yet recovered from
+the dizziness. No longer able to hold himself back, he vomited all over You
+Huo. Old Yu sobered up from his drunken state after vomiting but he was too
+scared to say anything to You Huo.</p>
+
+
+
+<p>The people who came here were all caught unexpectedly and
+were completely unprepared. Only the foreigner called Mike had a set of clean clothes
+in his bag.</p>
+
+
+
+<p>After You Huo changed, he remained distant from the others
+and laid on the sofa without a word. He appeared to have fallen asleep.</p>
+
+
+
+<p>Through the arm that covered his face, you could see a stud
+earring on his right ear. It reflected the light coming from the oil lamp and
+appeared very dazzling.</p>
+
+
+
+<p>·</p>
+
+
+
+<p>The sky should have darkened but every part of the mountain
+was covered in snow and it was still bright outside.</p>
+
+
+
+<p>A pregnant woman looked towards the cabinet in panic. The
+time on their phones had become erratic and they could only rely on the clock
+sitting above the cabinet to tell the time: “It’s almost six. Could Old Yu
+have……….”</p>
+
+
+
+<p>Bang, bang, bang!</p>
+
+
+
+<p>Before she could finish her sentence, the sound of something
+smacking against the door was heard.</p>
+
+
+
+<p>Everyone was shocked. They looked over with fearful eyes.
+The snow piled up on the window was pushed aside and Old Yu’s face appeared
+through the glass. With exaggerated mouthing, he said: “It’s me. Open the
+door.”</p>
+
+
+
+<p>Everyone was relieved.</p>
+
+
+
+<p>Fortunately, he had returned before 6 o’clock and didn’t
+die.</p>
+
+
+
+<p>The two snow covered men entering the house was Old Yu and
+his son Yu Wen.</p>
+
+
+
+<p>“How is it outside?” Everyone hurriedly asked.</p>
+
+
+
+<p>Old Yu shivered in place for a moment before slapping his face forcefully. He then slapped his son. When they finally warmed up a little, he said: “I went around everywhere but it was useless! No matter where I went, in no more than ten minutes I would see the cabin again. We can’t get out!”</p>
+
+
+
+<p>“Were there other people? Or houses even?”<br>
+Old Yu spoke frustratedly: “No, don’t count on it.”<br>
+Everyone’s expression fell into despair.</p>
+
+
+
+<p>There was no signal on the phone and the time on it had become erratic. The trees all looked the same so it was hard to tell which direction was north, south, east or west. There was absolutely nothing.</p>
+
+
+
+<p>This was their current predicament.</p>
+
+
+
+<p>Oh, there was also an old radio that noisily reminded them about the exam.<br>Exam your mum.</p>
+
+
+
+<p>The moment Old Yu stepped in, the radio started to make static sounds.<br>Just being around it for the entire afternoon was enough for the people present to develop a conditioned reflex. They immediately quietened down and looked at the radio.</p>
+
+
+
+<p>【All
+examinees have been admitted. The exam rules are as follows.】</p>
+
+
+
+<p>Old Yu and Yu Wen who had just entered the examination centre gulped.</p>
+
+
+
+<p>【The exam is conducted within a set period of time.】<br>【After the exam officially starts, examinees cannot enter the examination centre. You may not leave the centre during the exam without permission. If there is an emergency, you must follow the instructions and leave with the invigilator.】<br> 【Apart from open book exams, you cannot use mobile devices or other communication tools. Please be considerate and turn them off.】<br> 【The exam is point-based. Examinees must write their answer on the designated answer sheet (except in special circumstances) or the answer is invalid.】</p>
+
+
+
+<p>When the radio finished speaking, everything once again
+turned silent.</p>
+
+
+
+<p>After a while, the room suddenly started to fall into
+discussion.</p>
+
+
+
+<p>“Who is the invigilator?”<br>“There are open-book exams?”<br>“What’s an answer sheet?”</p>
+
+
+
+<p>“To think that you’re discussing it. You all must be crazy.”
+The tattooed man played with his swiss army knife. You couldn’t tell what he was
+thinking.</p>
+
+
+
+<p>“Then what should we do?” The eyes of the pregnant woman were still swollen from crying. She said quietly: “Don’t forget about that…..”</p>
+
+
+
+<p>&nbsp;She pointed to the
+roof.</p>
+
+
+
+<p>&nbsp;The tattooed man
+thought of the body and his face also paled. He stiffened for a moment before
+finally accepting the situation. Holding the swiss army knife, he waved it in a
+particular direction: “Little brat.”</p>
+
+
+
+<p>Yu Wen looked left and right and then pointed at himself:
+“You……mean me?”</p>
+
+
+
+<p>“Yes, you. Come, sit here.” The tattooed man patted the seat
+closest to him.”</p>
+
+
+
+<p>“I, uh……..” Yu Wen turned around to look at his brother only
+to see his brother still lying on the sofa like he was dead. He suppressed the
+curses inside him and said: “I’m 18.”</p>
+
+
+
+<p>What’s more, the tattooed man is at most 25 or 26-years-old. How dare he call him little brat.</p>
+
+
+
+<p>“It doesn’t matter how I call you!” The tattooed man was impatient, “Come here. Let me ask you. Are you a student?”<br>Yu Wen: “I guess so.”<br>The tattooed man frowned: “Can you do exams?”<br>Old Yu reflexively said: “He can! He grew up doing exams!”<br>“You can shut up.” Yu Wen said rudely to his drunkard old man.</p>
+
+
+
+<p>But after he scolded his father and turned around, he saw
+that everyone in the room was staring at him.</p>
+
+
+
+<p>Yu Wen: “…………….”</p>
+
+
+
+<p>He thought about his words and said: “I just finished the University Entrance Examination in June and I have been playing like crazy for the past three months. I’ve already………Yeah, I can’t do them very well anymore.”</p>
+
+
+
+<p>The pregnant woman had panicked for the entire afternoon.
+She smiled with great effort: “That is still better than us. It was only three
+months for you. We have long forgotten now.”</p>
+
+
+
+<p>“No.” Yu Wen found the situation a little absurd and even forgot about his fear, “Don’t you guys read novels or watch movies? Would it truly be an exam in this horror kind of setting? It’s probably just a cover!”<br>“Cover for what?”<br> Yu Wen rolled his eyes: “How would I know? Anyway, people just die everywhere in horror movies. Who the hell would suddenly come and test you on maths and physics? Is this cabin built by the Ministry of Education?”</p>
+
+
+
+<p>He still didn’t feel like he had said enough. He added at the end: “Hah.”<br>His cousin who was lying on the sofa like a dead pig was finally awakened by his “hah”.</p>
+
+
+
+<p>Yu Wen turned around to look at him.<br>He saw You Huo sit up and look at the group of people through half-open eyes. You Huo then kneaded the back of his neck. The legs resting on the old wooden floor were long, making the sofa appear even smaller.</p>
+
+
+
+<p>The timing seemed to have been calculated and the moment he lowered his hand, the clock above the cabinet started to ring to signal that it was 6 o’clock.</p>
+
+
+
+<p>Static sounds were emitted through the radio again.<br>
+【It is
+currently 18:00 Beijing time. The exam has officially begun.】<br>
+【As
+another reminder, examinees are not allowed to enter the centre after the exam
+has started and you cannot leave without authorisation during the duration of
+the exam or you will be punished.】<br>
+【The other
+examination rules are as per the standard.】</p>
+
+
+
+<p>After it threw out a threat in passing, it paused for two
+seconds and said:<br>
+【Exam
+duration: 48 hours.】<br>
+【Subject:
+Physics.】</p>
+
+
+
+<p>Yu Wen: “…………..”</p>
+
+
+
+<p>【We will
+now be distributing the exam papers and the answer sheets. I wish you all the
+best.】</p>
+
+
+
+<p>After the radio was done, it once again died off. </p>
+
+
+
+<p>Yu Wen: “…………….”</p>
+
+
+
+<p>Goddammit, shouldn’t the exam paper and answer sheet be
+distributed first???</p>
+
+
+
+<p>The pregnant women cried out in panic: “That wall!”</p>
+
+
+
+<p>She was referring to the wall above the fire stove. The
+empty wall that was covered in several knife marks now had a few more words
+&#8212;&#8212;&#8211;</p>
+
+
+
+<p>Topic: A group of travellers came to a snow mountain…….<br>Exam details: The response will be collected every 6 hours. If no points are earned within 6 hours, you lose qualification to participate and will be evicted.</p>
+
+
+
+<p>Below that was a large blank area. It was like the response
+area in a test paper for answers to be written in. </p>
+
+
+
+<p>What question is this? What is it asking? What do we answer?</p>
+
+
+
+<p>Everyone was confused.</p>
+
+
+
+<p>Not to mention 6 hours, even if you gave them 600 hours they
+didn’t know how to earn the points.</p>
+
+
+
+<p>At this moment, a gust of cold wind that carried small beads
+of snow rushed into the room causing everyone to shiver. </p>
+
+
+
+<p>They looked over at the source of the wind and saw that You
+Huo had walked over to the window and had opened half of it.</p>
+
+
+
+<p>“What are you doing?!” The tattooed man was furious.</p>
+
+
+
+<p>You Huo had one hand in his trouser pocket and his other
+hand was about to reach out. Hearing the yell, he glanced back. However,
+perhaps it was because the look was so fleeting, it looked cold and arrogant.</p>
+
+
+
+<p>The tattooed man was even more enraged: “Don’t you know to
+say something before opening the window? What are you going to do if something
+goes wrong?”</p>
+
+
+
+<p>“Who are you?”</p>
+
+
+
+<p>You Huo threw out those three words and no longer paid him
+any attention. He again stretched out his left hand.</p>
+
+
+
+<p>Old Yu could no longer hold back. He urged his son and
+whispered: “You ask.”</p>
+
+
+
+<p>For some reason, Old Yu had always seemed to be afraid of this nephew of his.</p>
+
+
+
+<p>Yu Wen shouted: “Brother, what are you doing?”</p>
+
+
+
+<p>You Huo retracted his left hand and waved at him. Finally,
+he gave them his answer: “Testing out the consequence of leaving the
+examination centre.” </p>
+
+
+
+<p>Everyone present gasped. Crimson red blood flowed down his
+fingers onto his palm. With his pale skin, it looked even more shocking.</p>
+
+
+
+<p>He casually rubbed it off and once again fiddled around with
+the windowsill. He picked up a rusty tin can and threw it out the window. </p>
+
+
+
+<p>Under everyone’s gaze, the tin can was smashed into
+smithereens and it scattered across the snow.</p>
+
+
+
+<p>When they once again looked at the “Exam Details”,
+everyone’s eyes were filled with panic.</p>
+
+
+
+<p>By the wall, You Huo once again closed the window. His eyes
+swept past each and every one of their backs.</p>
+
+
+
+<p>As for Yu Wen who had some experience with exams…….You Huo understood him well.</p>
+
+
+
+<p>During the three years of high school, this high school student messed around with love and the wrong group of friends. He would often skip class to play games at internet cafes and he suffered from a strong case of eighth-grade syndrome<sup>2</sup>. Even now, he had not yet escaped that dangerous period.</p>
+
+
+
+<p>It would be better to rely on a dog than him.</p>
+
+
+
+<p>As for the others….</p>
+
+
+
+<p>Old, frail, sick, pregnant, and even a thug.<br>All five deadly poisons are present.</p>
+
+
+
+<p>The opening question is a death question<sup>3</sup>.</p>
+
+
+
+<p style="font-size: 12px; text-align: center;" class="wp-block-block">Please support the translator and read this from  <br>kktranslates(.)home(.)blog </p>
+
+
+
+<hr class="wp-block-separator" />
+
+
+
+<ol><li> Joss Paper: Paper money  or crafts that people burn as offerings to the dead.</li><li>Eighth-Grade Syndrome: Chuunibyou in Japanese. </li><li>Death Question ( 送命题 ): A question that will lead to ones death/does not have a correct answer/cannot be answered</li></ol>
+
+
+
+<hr class="wp-block-separator" />
+
+
+
+<p class="has-text-align-center">&lt;<a href="https://kktranslates.home.blog/2019/11/18/global-university-entrance-examination-by-%e6%9c%a8%e8%8b%8f%e9%87%8c/">Table of Contents</a>&gt; &lt;<a href="https://kktranslates.home.blog/2019/11/25/guee-ch2/">Chapter 2</a>&gt;</p>
+
+
+
+<figure class="wp-block-image is-resized wp-block-block"><a href="https://ko-fi.com/Q5Q1ULPZ" target="_blank" rel="noreferrer noopener"><img src="https://az743702.vo.msecnd.net/cdn/kofi4.png?v=2" alt="Buy Me a Coffee at ko-fi.com" width="259" height="65"></a></figure>
+
+
+
+<p><strong>KK has something to say:</strong><br>FYI You Huo is the MC and shou <br>Also, feel free to add tags to this listing on NU (I&#8217;ve only added the very basic tags) &#8211; I&#8217;m forgetful and I hate doing that part the most&#8230;&#8230;</p>
+<div id="atatags-370373-5f5c42215c488">
+        <script type="text/javascript">
+            __ATA.cmd.push(function() {
+                __ATA.initVideoSlot('atatags-370373-5f5c42215c488', {
+                    sectionId: '370373',
+                    format: 'inread'
+                });
+            });
+        </script>
+    </div><div id="jp-post-flair" class="sharedaddy sd-like-enabled sd-sharing-enabled"><div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-icon-text sd-sharing"><h3 class="sd-title">Share this:</h3><div class="sd-content"><ul><li class="share-twitter"><a rel="nofollow noopener noreferrer" data-shared="sharing-twitter-2234" class="share-twitter sd-button share-icon" href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?share=twitter" target="_blank" title="Click to share on Twitter"><span>Twitter</span></a></li><li class="share-facebook"><a rel="nofollow noopener noreferrer" data-shared="sharing-facebook-2234" class="share-facebook sd-button share-icon" href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?share=facebook" target="_blank" title="Click to share on Facebook"><span>Facebook</span></a></li><li class="share-end"></li></ul></div></div></div><div class='sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded' id='like-post-wrapper-161405259-2234-5f5c42215ce25' data-src='//widgets.wp.com/likes/index.html?ver=20200826#blog_id=161405259&amp;post_id=2234&amp;origin=kktranslateshome.wordpress.com&amp;obj_id=161405259-2234-5f5c42215ce25&amp;domain=kktranslates.home.blog' data-name='like-post-frame-161405259-2234-5f5c42215ce25'><h3 class='sd-title'>Like this:</h3><div class='likes-widget-placeholder post-likes-widget-placeholder' style='height: 55px;'><span class='button'><span>Like</span></span> <span class="loading">Loading...</span></div><span class='sd-text-color'></span><a class='sd-link-color'></a></div>
+<div id='jp-relatedposts' class='jp-relatedposts' >
+	<h3 class="jp-relatedposts-headline"><em>Related</em></h3>
+</div></div>					</div><!-- .entry-content -->
+
+	
+	<footer class="entry-meta entry-footer">
+		<span class="cat-links"><a href="https://kktranslates.home.blog/category/global-university-entrance-examination/" rel="category tag">Global University Entrance Examination</a></span><span class="tags-links"><a href="https://kktranslates.home.blog/tag/bl/" rel="tag">BL</a>, <a href="https://kktranslates.home.blog/tag/bl-novel/" rel="tag">BL Novel</a>, <a href="https://kktranslates.home.blog/tag/bl-novel-translation/" rel="tag">BL novel translation</a>, <a href="https://kktranslates.home.blog/tag/bl-webnovel/" rel="tag">bl webnovel</a>, <a href="https://kktranslates.home.blog/tag/chinese-bl/" rel="tag">Chinese BL</a>, <a href="https://kktranslates.home.blog/tag/danmei/" rel="tag">danmei</a>, <a href="https://kktranslates.home.blog/tag/guee/" rel="tag">GUEE</a>, <a href="https://kktranslates.home.blog/tag/shounen-ai/" rel="tag">shounen ai</a></span>	</footer><!-- .entry-footer -->
+</article><!-- #post-2234 -->
+				<nav id="nav-below" class="post-navigation clear" role="navigation">
+	
+		<div class="nav-previous"><a href="https://kktranslates.home.blog/2019/11/18/global-university-entrance-examination-by-%e6%9c%a8%e8%8b%8f%e9%87%8c/" rel="prev"><span class="meta-nav">Previous Article</span> Global University Entrance Examination by&nbsp;木苏里</a></div>		<div class="nav-next"><a href="https://kktranslates.home.blog/2019/11/19/ktcsg-ch95-extra/" rel="next"><span class="meta-nav">Next Article</span> KTCSG &#8211; CH95&nbsp;(Extra)</a></div>
+	
+	</nav><!-- #nav-below -->
+	
+			
+<div id="comments" class="comments-area">
+
+			<h3 class="widget-title comments-title">
+			15 thoughts on &ldquo;<span>GUEE &#8211; CH1</span>&rdquo;		</h3>
+
+		<ol class="commentlist">
+			
+	<li id="comment-3372" class="comment even thread-even depth-1 highlander-comment">
+		<article id="div-comment-3372" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://1.gravatar.com/avatar/7c0472be0d3493c45ea7fb0ea1869488?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn">Sion</cite></strong>				<span class="comment-date">18th November 2019 / 11:42 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>Thanks for translating this novel! I’ve heard about and apparently it’s pretty good? Looking forward to the next chapters! 😀</p>
+<p id="comment-like-3372" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3372&#038;_wpnonce=53ba0838c9" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3372" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=3372#respond' data-commentid="3372" data-postid="2234" data-belowelement="div-comment-3372" data-respondelement="respond" data-replyto="Reply to Sion" aria-label='Reply to Sion'>Reply</a></span>			</div>
+		</article><!-- #div-comment-3372 -->
+
+	</li><!-- #comment-## -->
+
+	<li id="comment-3373" class="comment odd alt thread-odd thread-alt depth-1 parent highlander-comment">
+		<article id="div-comment-3373" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://1.gravatar.com/avatar/46b572df9429de7ba99b7fde85fda94e?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn">Eiko</cite></strong>				<span class="comment-date">19th November 2019 / 1:07 am</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>Hello, my Name is Eiko.<br />
+I like your translation so I want aku your permission. May I translate your translation into Indonesian language?<br />
+Thank you</p>
+<p id="comment-like-3373" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3373&#038;_wpnonce=172ae38579" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3373" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=3373#respond' data-commentid="3373" data-postid="2234" data-belowelement="div-comment-3373" data-respondelement="respond" data-replyto="Reply to Eiko" aria-label='Reply to Eiko'>Reply</a></span>			</div>
+		</article><!-- #div-comment-3373 -->
+
+	<ul class="children">
+
+	<li id="comment-3376" class="comment byuser comment-author-kktranslates13 bypostauthor even depth-2 parent highlander-comment">
+		<article id="div-comment-3376" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://1.gravatar.com/avatar/720f6e68a9c05ac5bbb2e29764e92b69?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn"><a href='https://kktranslateshome.wordpress.com' rel='external nofollow ugc' class='url'>KK</a></cite></strong>				<span class="comment-date">19th November 2019 / 5:25 am</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>Hi there. Due to various reasons, I don&#8217;t wish for my translations of this novel to be translated into another language. If you wish to translate this novel please use the raws instead &#8211; so much meaning is lost if you translate it again from mine&#8230; Sorry about this and thanks!</p>
+<p id="comment-like-3376" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3376&#038;_wpnonce=54e94d5b88" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3376" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=3376#respond' data-commentid="3376" data-postid="2234" data-belowelement="div-comment-3376" data-respondelement="respond" data-replyto="Reply to KK" aria-label='Reply to KK'>Reply</a></span>			</div>
+		</article><!-- #div-comment-3376 -->
+
+	<ul class="children">
+
+	<li id="comment-3536" class="comment odd alt depth-3 highlander-comment">
+		<article id="div-comment-3536" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://1.gravatar.com/avatar/46b572df9429de7ba99b7fde85fda94e?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn">Eiko</cite></strong>				<span class="comment-date">26th November 2019 / 12:42 am</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>Its okay, dont say sorry 😁 Keep spirit up to translate it I really like the story</p>
+<p id="comment-like-3536" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3536&#038;_wpnonce=755d5df0e9" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3536" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+											</div>
+		</article><!-- #div-comment-3536 -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+	<li id="comment-3378" class="comment byuser comment-author-badgal1590 even thread-even depth-1 highlander-comment">
+		<article id="div-comment-3378" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://1.gravatar.com/avatar/af7aa2c91f175a5f4e3fcd928860ef41?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn">wayne</cite></strong>				<span class="comment-date">19th November 2019 / 7:45 am</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>if i was in that instance i&#8217;ll be dead already lol.</p>
+<p id="comment-like-3378" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3378&#038;_wpnonce=74490b2934" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3378" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=3378#respond' data-commentid="3378" data-postid="2234" data-belowelement="div-comment-3378" data-respondelement="respond" data-replyto="Reply to wayne" aria-label='Reply to wayne'>Reply</a></span>			</div>
+		</article><!-- #div-comment-3378 -->
+
+	</li><!-- #comment-## -->
+
+	<li id="comment-3385" class="comment byuser comment-author-zoarai odd alt thread-odd thread-alt depth-1 highlander-comment">
+		<article id="div-comment-3385" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://2.gravatar.com/avatar/268213512a68a7e27f5e67dc8dfbb4b4?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn"><a href='http://arainzhome.wordpress.com' rel='external nofollow ugc' class='url'>Zo Arai</a></cite></strong>				<span class="comment-date">19th November 2019 / 2:40 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>So much &#8230;<br />
+No wonder you didn&#8217;t want anyone to re-translate this story.<br />
+It&#8217;s quite challenging.<br />
+I dislike horror and thriller, but Idk.<br />
+I might try reading this.</p>
+<p>Thanks for the translation ❤️</p>
+<p id="comment-like-3385" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3385&#038;_wpnonce=8c7d1c2cd7" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3385" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=3385#respond' data-commentid="3385" data-postid="2234" data-belowelement="div-comment-3385" data-respondelement="respond" data-replyto="Reply to Zo Arai" aria-label='Reply to Zo Arai'>Reply</a></span>			</div>
+		</article><!-- #div-comment-3385 -->
+
+	</li><!-- #comment-## -->
+
+	<li id="comment-3393" class="comment byuser comment-author-matchalatte19 even thread-even depth-1 highlander-comment">
+		<article id="div-comment-3393" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://0.gravatar.com/avatar/f312d73d4ec7155aec89b877211258ae?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn"><a href='http://coldmatchalatte.wordpress.com' rel='external nofollow ugc' class='url'>MatchaLatte19</a></cite></strong>				<span class="comment-date">19th November 2019 / 6:00 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>Thank you for the chapter❤</p>
+<p id="comment-like-3393" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3393&#038;_wpnonce=c13e1fe054" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3393" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=3393#respond' data-commentid="3393" data-postid="2234" data-belowelement="div-comment-3393" data-respondelement="respond" data-replyto="Reply to MatchaLatte19" aria-label='Reply to MatchaLatte19'>Reply</a></span>			</div>
+		</article><!-- #div-comment-3393 -->
+
+	</li><!-- #comment-## -->
+
+	<li id="comment-3395" class="comment byuser comment-author-romuwu odd alt thread-odd thread-alt depth-1 highlander-comment">
+		<article id="div-comment-3395" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://2.gravatar.com/avatar/5b0b3d2636ca6acb053d2c08bf8395b4?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn"><a href='http://romuwu.wordpress.com' rel='external nofollow ugc' class='url'>Romu</a></cite></strong>				<span class="comment-date">19th November 2019 / 9:28 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>Seems promising 🤤🤤🤤</p>
+<p id="comment-like-3395" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3395&#038;_wpnonce=6523295f42" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3395" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=3395#respond' data-commentid="3395" data-postid="2234" data-belowelement="div-comment-3395" data-respondelement="respond" data-replyto="Reply to Romu" aria-label='Reply to Romu'>Reply</a></span>			</div>
+		</article><!-- #div-comment-3395 -->
+
+	</li><!-- #comment-## -->
+
+	<li id="comment-3431" class="comment even thread-even depth-1 highlander-comment">
+		<article id="div-comment-3431" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://0.gravatar.com/avatar/c755183684dbb6ce4f695ac47185927b?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn">arc</cite></strong>				<span class="comment-date">21st November 2019 / 11:19 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>omg this premise is interesting!! thank you for translating this! am trying to get over my sorrow and mourning period for i rely on kisses&#8230; aksdfksdf</p>
+<p id="comment-like-3431" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3431&#038;_wpnonce=e3fa456105" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3431" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=3431#respond' data-commentid="3431" data-postid="2234" data-belowelement="div-comment-3431" data-respondelement="respond" data-replyto="Reply to arc" aria-label='Reply to arc'>Reply</a></span>			</div>
+		</article><!-- #div-comment-3431 -->
+
+	</li><!-- #comment-## -->
+
+	<li id="comment-3559" class="comment odd alt thread-odd thread-alt depth-1 highlander-comment">
+		<article id="div-comment-3559" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://0.gravatar.com/avatar/94f7506387102b3e2836e030f88e64a7?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn">🎉Examsareover🎉</cite></strong>				<span class="comment-date">26th November 2019 / 9:01 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>Thank you for picking this up 💖💖💖</p>
+<p id="comment-like-3559" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3559&#038;_wpnonce=1f483a3ab2" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3559" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=3559#respond' data-commentid="3559" data-postid="2234" data-belowelement="div-comment-3559" data-respondelement="respond" data-replyto="Reply to 🎉Examsareover🎉" aria-label='Reply to 🎉Examsareover🎉'>Reply</a></span>			</div>
+		</article><!-- #div-comment-3559 -->
+
+	</li><!-- #comment-## -->
+
+	<li id="comment-3732" class="comment byuser comment-author-zhenqing18 even thread-even depth-1 highlander-comment">
+		<article id="div-comment-3732" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://0.gravatar.com/avatar/3cc3d87d63ef636b1bfb916799e84c1e?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn"><a href='http://rosetintedparadoxhome.wordpress.com' rel='external nofollow ugc' class='url'>zhenqing18</a></cite></strong>				<span class="comment-date">2nd December 2019 / 11:17 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>I&#8217;ve seen a BJYX fanvid of this novel, and was really interested in it! Thanks so much for translating this novel~! ❤</p>
+<p id="comment-like-3732" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=3732&#038;_wpnonce=a0ca48ffa5" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-3732" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=3732#respond' data-commentid="3732" data-postid="2234" data-belowelement="div-comment-3732" data-respondelement="respond" data-replyto="Reply to zhenqing18" aria-label='Reply to zhenqing18'>Reply</a></span>			</div>
+		</article><!-- #div-comment-3732 -->
+
+	</li><!-- #comment-## -->
+
+	<li id="comment-4029" class="comment byuser comment-author-fujostea odd alt thread-odd thread-alt depth-1 highlander-comment">
+		<article id="div-comment-4029" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://2.gravatar.com/avatar/2f94390efd5bbdcf7aa9f86fdc7ef13c?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn">nana</cite></strong>				<span class="comment-date">12th December 2019 / 11:51 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>Interesting~ i love you huo personality like a cold beauty&#8230;  Also, yu wen seems like a rebel at first he even call his father old man.. I wish I could be couragous as him 😂😂😂</p>
+<p id="comment-like-4029" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=4029&#038;_wpnonce=be2d8c75a0" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-4029" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=4029#respond' data-commentid="4029" data-postid="2234" data-belowelement="div-comment-4029" data-respondelement="respond" data-replyto="Reply to nana" aria-label='Reply to nana'>Reply</a></span>			</div>
+		</article><!-- #div-comment-4029 -->
+
+	</li><!-- #comment-## -->
+
+	<li id="comment-4160" class="comment byuser comment-author-silverphantasma even thread-even depth-1 parent highlander-comment">
+		<article id="div-comment-4160" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://1.gravatar.com/avatar/17e8e93c0b56ad4b6d9bcfe44147a5d1?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn">xxStarlessPhantasmxx</cite></strong>				<span class="comment-date">16th December 2019 / 5:42 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>The arc name is the same as Heartthrob in a Horror Movie&#8217;s latest arc&#8217;s movie so i almost thought i accidentally clicked it again instead of this novel owo</p>
+<p id="comment-like-4160" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=4160&#038;_wpnonce=0b7f93b4a8" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-4160" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=4160#respond' data-commentid="4160" data-postid="2234" data-belowelement="div-comment-4160" data-respondelement="respond" data-replyto="Reply to xxStarlessPhantasmxx" aria-label='Reply to xxStarlessPhantasmxx'>Reply</a></span>			</div>
+		</article><!-- #div-comment-4160 -->
+
+	<ul class="children">
+
+	<li id="comment-4162" class="comment byuser comment-author-kktranslates13 bypostauthor odd alt depth-2 highlander-comment">
+		<article id="div-comment-4162" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://1.gravatar.com/avatar/720f6e68a9c05ac5bbb2e29764e92b69?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn"><a href='https://kktranslateshome.wordpress.com' rel='external nofollow ugc' class='url'>KK</a></cite></strong>				<span class="comment-date">16th December 2019 / 5:47 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>Hahaha Can you imagine how surprised I was when I reached that arc in Heartthrob??? What a coincidence!!</p>
+<p id="comment-like-4162" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=4162&#038;_wpnonce=1c39cf3c56" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-4162" class="comment-like-feedback">Liked by <a href="#" class="view-likers" data-like-count="1">1 person</a></span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=4162#respond' data-commentid="4162" data-postid="2234" data-belowelement="div-comment-4162" data-respondelement="respond" data-replyto="Reply to KK" aria-label='Reply to KK'>Reply</a></span>			</div>
+		</article><!-- #div-comment-4162 -->
+
+	</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+	<li id="comment-7312" class="comment even thread-odd thread-alt depth-1 highlander-comment">
+		<article id="div-comment-7312" class="comment-body">
+			<div class="comment-meta">
+				<img alt='' src='https://1.gravatar.com/avatar/115f89d82d94e3f91dcbc9bc3bce4f1c?s=40&#038;d=identicon&#038;r=G' class='avatar avatar-40' height='40' width='40' />				<strong class="comment-author"><cite class="fn">kaylee</cite></strong>				<span class="comment-date">14th May 2020 / 9:14 pm</span>
+			</div>
+
+			
+			<div class="comment-content">
+				<p>I&#8217;m embarking on this!</p>
+<p>I can see, the shou and MC type we like are the same type ^^</p>
+<p id="comment-like-7312" data-liked=comment-not-liked class="comment-likes comment-not-liked"><a href="https://kktranslates.home.blog/2019/11/18/guee-ch1/?like_comment=7312&#038;_wpnonce=00caafcfbc" class="comment-like-link needs-login" rel="nofollow" data-blog="161405259"><span>Like</span></a><span id="comment-like-count-7312" class="comment-like-feedback">Like</span></p>
+			</div>
+
+			<div class="comment-meta comment-footer">
+								<span class="comment-reply"><a rel='nofollow' class='comment-reply-link' href='https://kktranslates.home.blog/2019/11/18/guee-ch1/?replytocom=7312#respond' data-commentid="7312" data-postid="2234" data-belowelement="div-comment-7312" data-respondelement="respond" data-replyto="Reply to kaylee" aria-label='Reply to kaylee'>Reply</a></span>			</div>
+		</article><!-- #div-comment-7312 -->
+
+	</li><!-- #comment-## -->
+		<!-- .comment-list --></ol>
+
+		
+	
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2019/11/18/guee-ch1/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://kktranslates.home.blog/wp-comments-post.php" method="post" id="commentform" class="comment-form" novalidate><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="a252d1ebfd" /><input type="hidden" name="_wp_http_referer" value="/2019/11/18/guee-ch1/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+                   title="Login via Guest">
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+                   title="Login via WordPress.com">
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#0087be" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+                   title="Login via Twitter">
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#1DA1F2" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+                   title="Login via Facebook">
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#3B5998" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#0087be" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-googleplus" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Google photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="googleplus_avatar" id="googleplus-avatar" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_user_id" id="googleplus-user_id" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_access_token" id="googleplus-access_token" class="comment-meta-googleplus" value="" />
+						<p class="comment-form-posting-as pa-googleplus">
+			<strong></strong>
+			You are commenting using your Google account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'googleplus' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" x="0px" y="0px" viewBox="0 0 60 60" ><path fill="#519bf7" d="M56.3,30c0,-1.6 -0.2,-3.4 -0.6,-5h-3.1H42.2H30v10.6h14.8C44,39.3 42,42 39.1,43.9l8.8,6.8C53,46 56.3,39 56.3,30z" /><path fill="#3db366" d="M30,57.5c6.7,0 13.1,-2.4 17.9,-6.8l-8.8,-6.8c-2.5,1.6 -5.6,2.4 -9.1,2.4c-7.2,0 -13.3,-4.7 -15.4,-11.2l-9.3,7.1C9.8,51.3 19.1,57.5 30,57.5z" /><path fill="#fdc600" d="M5.3,42.2l9.3,-7.1c-0.5,-1.6 -0.8,-3.3 -0.8,-5.1s0.3,-3.5 0.8,-5.1l-9.3,-7.1C3.5,21.5 2.5,25.6 2.5,30S3.5,38.5 5.3,42.2z" /><path fill="#f15b44" d="M40.1,17.4l8,-8C43.3,5.1 37,2.5 30,2.5C19.1,2.5 9.8,8.7 5.3,17.8l9.3,7.1c2.1,-6.5 8.2,-11.1 15.4,-11.1C33.9,13.7 37.4,15.1 40.1,17.4z" /></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#1DA1F2" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=G" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#3B5998" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function(){
+	var input = document.createElement( 'input' ),
+	    comment = jQuery( '#comment' );
+
+	if ( 'placeholder' in input ) {
+		comment.attr( 'placeholder', jQuery( '.comment-textarea label' ).remove().text() );
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	jQuery( '#comment-form-identity' ).hide();
+	jQuery( '#comment-form-subscribe' ).hide();
+	jQuery( '#commentform .form-submit' ).hide();
+
+	comment.css( { 'height':'10px' } ).one( 'focus', function() {
+		var timer = setInterval( HighlanderComments.resizeCallback, 10 )
+		jQuery( this ).animate( { 'height': HighlanderComments.initialHeight } ).delay( 100 ).queue( function(n) { clearInterval( timer ); HighlanderComments.resizeCallback(); n(); } );
+		jQuery( '#comment-form-identity' ).slideDown();
+		jQuery( '#comment-form-subscribe' ).slideDown();
+		jQuery( '#commentform .form-submit' ).slideDown();
+	});
+}
+jQuery(document).ready( highlander_expando_javascript );
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='2234' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="9b71571cc0" /></p>
+<input type="hidden" name="genseq" value="1599881761" />
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="21"/></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+
+</div><!-- #comments -->
+		
+		</main><!-- #main -->
+	</div><!-- #primary -->
+
+	<div id="secondary" class="widget-area" role="complementary">
+		<aside id="custom_html-9" class="widget_text widget widget_custom_html"><div class="textwidget custom-html-widget"><p><p><b>PLEASE DO NOT RETRANSLATE OR REPOST MY TRANSLATIONS ANYWHERE (ESPECIALLY WATTPAD)</b>
+		
+</p>
+
+</p></div></aside><aside id="custom_html-11" class="widget_text widget widget_custom_html"><h3 class="widget-title">Support the Authors</h3><div class="textwidget custom-html-widget">A  <a href="https://shokotranslates.wordpress.com/jjwxc/">HANDY GUIDE</a>  to JJWXC that you can follow to help support the authors. Links to raws are on the project pages.</div></aside><aside id="custom_html-3" class="widget_text widget widget_custom_html"><h3 class="widget-title">Support My Translations</h3><div class="textwidget custom-html-widget"><p><b>
+	Donate by buying me a coffee:</b>
+</p> <a href='https://ko-fi.com/Q5Q1ULPZ' target='_blank' rel="noopener noreferrer"><img height='36' style='border:0;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi4.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' />
+</a>
+<p>
+	
+</p>
+<b>Current Offer:</b>  None.<p>
+	
+</p>
+
+<p>
+</p>
+<b><u>Translation Schedule</u></b>
+
+<p>
+	
+<b>Global University Entrance Examination:</b>  Tuesday, Thursday, Saturday</p>
+	<p> <b>Misplacement Game:</b> Monday, Wednesday and Friday </p> 
+</div></aside><aside id="nav_menu-3" class="widget widget_nav_menu"><h3 class="widget-title">Links</h3><div class="menu-primary-container"><ul id="menu-primary-1" class="menu"><li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-6"><a href="/">Home</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-40"><a href="https://kktranslates.home.blog/about/">About</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-255"><a href="https://kktranslates.home.blog/my-projects/">My Projects</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1854"><a href="https://kktranslates.home.blog/faq/">FAQ</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-7"><a href="https://kktranslates.home.blog/contact/">Contact</a></li>
+</ul></div></aside><aside id="tlkio_widget-5" class="widget tlkio-widget"><h3 class="widget-title">Updates/Chat Box</h3><div id="tlkio" class="tlkio-container" data-channel="KKtranslates" style="width:100%; height:400px;"></div></aside><aside id="blog_subscription-3" class="widget widget_blog_subscription jetpack_subscription_widget"><h3 class="widget-title"><label for="subscribe-field">Follow Blog via Email</label></h3>
+			<form
+				action="https://subscribe.wordpress.com"
+				method="post"
+				accept-charset="utf-8"
+				id=""
+			>
+														<p id="subscribe-email">
+						<input
+								type="text"
+								name="email"
+								
+								style="width: 95%; padding: 1px 10px"
+								placeholder="Enter your email address"
+								value=""
+								id=""
+							/>					</p>
+				
+				<p id="subscribe-submit">
+                    <input type="hidden" name="action" value="subscribe"/>
+                    <input type="hidden" name="blog_id" value="161405259"/>
+                    <input type="hidden" name="source" value="https://kktranslates.home.blog/2019/11/18/guee-ch1/"/>
+                    <input type="hidden" name="sub-type" value="widget"/>
+                    <input type="hidden" name="redirect_fragment" value="blog_subscription-3"/>
+					<input type="hidden" id="_wpnonce" name="_wpnonce" value="f729559d31" />                    <button type="submit"
+	                    		                	                >
+	                    Follow                    </button>
+                </p>
+            </form>
+			
+</aside><aside id="custom_html-7" class="widget_text widget widget_custom_html"><div class="textwidget custom-html-widget">This site is a free wordpress blog. The ads on this site are wordpress ads that come with the free blog.
+</div></aside>	</div><!-- .widget-area -->
+
+		</div>
+
+	<footer class="site-footer" role="contentinfo">
+		<div class="content-wrapper">
+
+			
+
+<div id="tertiary" class="footer-widget-area" role="complementary">
+		<div id="widget-area-2" class="widget-area">
+		<div id="text-5" class="widget widget_text">			<div class="textwidget"></div>
+		</div>	</div><!-- #widget-area-2 -->
+	
+	
+	
+	</div><!-- .footer-widget-area -->
+			<div class="site-credit">
+				<a href="https://wordpress.com/?ref=footer_segment_blog" rel="nofollow">Blog at WordPress.com.</a>
+				
+							</div><!-- .site-credit -->
+
+		</div>
+	</footer><!-- .site-footer -->
+
+<!--  -->
+<div id="marketingbar" class="marketing-bar noskim"><div class="marketing-bar-text">Create your website at WordPress.com</div><a class="marketing-bar-button" href="https://wordpress.com/start/?ref=marketing_bar">Get started</a><a class="marketing-bar-link" tabindex="-1" aria-label="Create your website at WordPress.com" href="https://wordpress.com/start/?ref=marketing_bar"></a></div><script src='//0.gravatar.com/js/gprofiles.js?ver=202037y' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script type='text/javascript' src='https://s0.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-7c0472be0d3493c45ea7fb0ea1869488">
+	</div>
+	<div class="grofile-hash-map-46b572df9429de7ba99b7fde85fda94e">
+	</div>
+	<div class="grofile-hash-map-720f6e68a9c05ac5bbb2e29764e92b69">
+	</div>
+	<div class="grofile-hash-map-af7aa2c91f175a5f4e3fcd928860ef41">
+	</div>
+	<div class="grofile-hash-map-268213512a68a7e27f5e67dc8dfbb4b4">
+	</div>
+	<div class="grofile-hash-map-f312d73d4ec7155aec89b877211258ae">
+	</div>
+	<div class="grofile-hash-map-5b0b3d2636ca6acb053d2c08bf8395b4">
+	</div>
+	<div class="grofile-hash-map-c755183684dbb6ce4f695ac47185927b">
+	</div>
+	<div class="grofile-hash-map-94f7506387102b3e2836e030f88e64a7">
+	</div>
+	<div class="grofile-hash-map-3cc3d87d63ef636b1bfb916799e84c1e">
+	</div>
+	<div class="grofile-hash-map-2f94390efd5bbdcf7aa9f86fdc7ef13c">
+	</div>
+	<div class="grofile-hash-map-17e8e93c0b56ad4b6d9bcfe44147a5d1">
+	</div>
+	<div class="grofile-hash-map-115f89d82d94e3f91dcbc9bc3bce4f1c">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/kktranslateshome.wordpress.com\/public.api\/connect\/?action=request&domain=kktranslates.home.blog","logoutURL":"https:\/\/kktranslateshome.wordpress.com\/wp-login.php?action=logout&_wpnonce=77d45d8d5c","homeURL":"https:\/\/kktranslates.home.blog\/","postID":"2234","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/jquery/jquery.autoresize.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1573483029j'></script>
+		<!-- CCPA [start] -->
+		<script type="text/javascript">
+			( function () {
+
+				var setupPrivacy = function() {
+
+					document.addEventListener( 'DOMContentLoaded', function() {
+
+						// Minimal Mozilla Cookie library
+						// https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie/Simple_document.cookie_framework
+						var cookieLib = window.cookieLib = {getItem:function(e){return e&&decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*"+encodeURIComponent(e).replace(/[\-\.\+\*]/g,"\\$&")+"\\s*\\=\\s*([^;]*).*$)|^.*$"),"$1"))||null},setItem:function(e,o,n,t,r,i){if(!e||/^(?:expires|max\-age|path|domain|secure)$/i.test(e))return!1;var c="";if(n)switch(n.constructor){case Number:c=n===1/0?"; expires=Fri, 31 Dec 9999 23:59:59 GMT":"; max-age="+n;break;case String:c="; expires="+n;break;case Date:c="; expires="+n.toUTCString()}return"rootDomain"!==r&&".rootDomain"!==r||(r=(".rootDomain"===r?".":"")+document.location.hostname.split(".").slice(-2).join(".")),document.cookie=encodeURIComponent(e)+"="+encodeURIComponent(o)+c+(r?"; domain="+r:"")+(t?"; path="+t:"")+(i?"; secure":""),!0}};
+
+						var setDefaultOptInCookie = function() {
+							var value = '1YNN';
+							var domain = '.wordpress.com' === location.hostname.slice( -14 ) ? '.rootDomain' : location.hostname;
+							cookieLib.setItem( 'usprivacy', value, 365 * 24 * 60 * 60, '/', domain );
+						};
+
+						var setCcpaAppliesCookie = function( value ) {
+							var domain = '.wordpress.com' === location.hostname.slice( -14 ) ? '.rootDomain' : location.hostname;
+							cookieLib.setItem( 'ccpa_applies', value, 24 * 60 * 60, '/', domain );
+						}
+
+						var maybeCallDoNotSellCallback = function() {
+							if ( 'function' === typeof window.doNotSellCallback ) {
+								return window.doNotSellCallback();
+							}
+
+							return false;
+						}
+
+						var usprivacyCookie = cookieLib.getItem( 'usprivacy' );
+
+						if ( null !== usprivacyCookie ) {
+							maybeCallDoNotSellCallback();
+							return;
+						}
+
+						var ccpaCookie = cookieLib.getItem( 'ccpa_applies' );
+
+						if ( null === ccpaCookie ) {
+
+							var request = new XMLHttpRequest();
+							request.open( 'GET', 'https://public-api.wordpress.com/geo/', true );
+
+							request.onreadystatechange = function () {
+								if ( 4 === this.readyState ) {
+									if ( 200 === this.status ) {
+
+										var data = JSON.parse( this.response );
+										var ccpa_applies = data['region'] && data['region'].toLowerCase() === 'california';
+
+										setCcpaAppliesCookie( ccpa_applies );
+
+										if ( ccpa_applies ) {
+											if ( maybeCallDoNotSellCallback() ) {
+												setDefaultOptInCookie();
+											}
+										}
+									} else {
+										setCcpaAppliesCookie( true );
+										if ( maybeCallDoNotSellCallback() ) {
+											setDefaultOptInCookie();
+										}
+									}
+								}
+							};
+
+							request.send();
+						} else {
+							if ( ccpaCookie === 'true' ) {
+								if ( maybeCallDoNotSellCallback() ) {
+									setDefaultOptInCookie();
+								}
+							}
+						}
+					} );
+				};
+
+				if ( window.defQueue && defQueue.isLOHP && defQueue.isLOHP === 2020 ) {
+					defQueue.items.push( setupPrivacy );
+				} else {
+					setupPrivacy();
+				}
+
+			} )();
+		</script>
+
+		<!-- CCPA [end] -->
+					<script type="text/javascript">
+			( function( $ ) {
+				$( document.body ).on( 'post-load', function () {
+					if ( typeof __ATA.insertInlineAds === 'function' ) {
+						__ATA.insertInlineAds();
+					}
+				} );
+			} )( jQuery );
+			</script>
+	<script type="text/javascript">
+		window.WPCOM_sharing_counts = {"https:\/\/kktranslates.home.blog\/2019\/11\/18\/guee-ch1\/":2234};
+	</script>
+				<div class="widget widget_eu_cookie_law_widget"><div
+	class="hide-on-button ads-active"
+	data-hide-timeout="30"
+	data-consent-expiration="180"
+	id="eu-cookie-law"
+>
+	<form method="post">
+		<input type="submit" value="Close and accept" class="accept" />
+
+		Privacy &amp; Cookies: This site uses cookies. By continuing to use this website, you agree to their use. <br />
+To find out more, including how to control cookies, see here:
+		<a href="https://automattic.com/cookies" >
+			Cookie Policy		</a>
+ </form>
+</div>
+</div><script id='comment-like-js-extra'>
+var comment_like_text = {"loading":"Loading..."};
+</script>
+<script id='wpcom-actionbar-bar-js-extra'>
+var actionbardata = {"siteID":"161405259","siteName":"KKTranslates","siteURL":"https:\/\/kktranslates.home.blog","icon":"<img alt='' src='https:\/\/s0.wp.com\/i\/logo\/wpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/plane","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/wordpress.com\/log-in?redirect_to=https%3A%2F%2Fkktranslates.home.blog%2F2019%2F11%2F18%2Fguee-ch1%2F&signup_flow=account&domain=kktranslates.home.blog","themeURL":"https:\/\/wordpress.com\/theme\/plane\/","xhrURL":"https:\/\/kktranslates.home.blog\/wp-admin\/admin-ajax.php","nonce":"38c87afcae","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"f729559d31\" \/>","referer":"https:\/\/kktranslates.home.blog\/2019\/11\/18\/guee-ch1\/","canFollow":"1","feedID":"95041244","statusMessage":"","customizeLink":"https:\/\/kktranslateshome.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fkktranslateshome.wordpress.com%2F2019%2F11%2F18%2Fguee-ch1%2F","postID":"2234","shortlink":"https:\/\/wp.me\/paVeSD-A2","canEditPost":"","editLink":"https:\/\/wordpress.com\/block-editor\/post\/kktranslates.home.blog\/2234","statsLink":"https:\/\/wordpress.com\/stats\/post\/2234\/kktranslates.home.blog","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: Plane","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 637 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/wordpress.com\/log-in?redirect_to=https%3A%2F%2Fkktranslates.home.blog%2F2019%2F11%2F18%2Fguee-ch1%2F&signup_flow=account&domain=kktranslates.home.blog\">Log in now.<\/a>","stats":"Stats"}};
+</script>
+<script id='sharing-js-js-extra'>
+var sharing_js_options = {"lang":"en","counts":"1","is_stats_active":"1"};
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJydU+1ShDAMfCFLT08d74fjozilzUGgXzYB1Ke3iJynMPgxnaGZZHfTbIscotDBM3iWDUkDPWqIz0VDF/JrKQZiB0SqgpVq89RBevnYCvQ9wvAjrAGOSrciAeHrQtV1ItquQk/SYgskM6mDWnljIW2AdXAup8REakZ2KWnAuNVhQfqSmInote3MBECXnSAblAFTOPRrGKco+DzoWXnu/dm4tEG3JK+KvKRB4qn9lBazxD/pFquay7C4UK4hX6aMXZmllIeR5FWPlWIMi8Ouod+DtaFn5xJEuzr6me0DmgqYJHS5GloEYdUgGVxWZ/iW39BRJvcRpUqj5QwpRyL0kBKOhzrl/qjAKb9O2iLp0a2RdIq20C2SAxb7Yicfs2PyGJL7hTlsWwzTdwM9/p/iaBUmSbVK6Kt5z6QHd395c7g73F7vd4fmDXX9efk='></script>
+<script type='text/javascript'>
+var windowOpen;
+			jQuery( document.body ).on( 'click', 'a.share-twitter', function() {
+				// If there's another sharing window open, close it.
+				if ( 'undefined' !== typeof windowOpen ) {
+					windowOpen.close();
+				}
+				windowOpen = window.open( jQuery( this ).attr( 'href' ), 'wpcomtwitter', 'menubar=1,resizable=1,width=600,height=350' );
+				return false;
+			});
+var windowOpen;
+			jQuery( document.body ).on( 'click', 'a.share-facebook', function() {
+				// If there's another sharing window open, close it.
+				if ( 'undefined' !== typeof windowOpen ) {
+					windowOpen.close();
+				}
+				windowOpen = window.open( jQuery( this ).attr( 'href' ), 'wpcomfacebook', 'menubar=1,resizable=1,width=600,height=400' );
+				return false;
+			});
+</script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script>		<iframe src='https://widgets.wp.com/likes/master.html?ver=20200826#ver=20200826' scrolling='no' id='likes-master' name='likes-master' style='display:none;'></iframe>
+		<div id='likes-other-gravatars'><div class="likes-text"><span>%d</span> bloggers like this:</div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+<script src="//stats.wp.com/w.js?61" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'161405259','blog_tz':'10','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'161405259','v':'wpcom','tz':'10','user_id':'0','post':'2234','subd':'kktranslateshome'}]);
+_stq.push(['extra', {'crypt':'UE5XaGUuOTlwaD85flAmcm1mcmZsaDhkV11YdWFnNncxc1tjZG9XVXhRREQ/V0xPZ1hKXy9tOWVWRi1+eFZOJT0uZiU1QV9NU2UvfkorbzlnJXZlbXIlcC1yNEtWfFFtR3VHdkM9TG8vaG1YRyViaEVHcEFEN0drX35MLTgwRXV1RXNxbzRIZGF+ZEJCZXRJei5RWGZPeDN8W0guMUt0LS98T289UDkxNXFlcnlNMFc5UG0wSWUrd1R0LU9Ra1dnTyV1RitnRnZseUY9anUtejFMa19hMl8vfHglM2JfNkhOeU5XMGJifHZXTCVdakpqJnVQalY3cG9xSmlQZ1RoR355bjAlSW8wUkhXcEdHK296U3g1QUFkP2c='}]);
+_stq.push([ 'clickTrackerInit', '161405259', '2234' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>
