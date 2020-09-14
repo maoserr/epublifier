@@ -1,5 +1,6 @@
 let body = document.body;
 let get_chapters = document.getElementById("get_chapters");
+debugger;
 
 body.onload = function (element) {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {

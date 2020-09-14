@@ -1,18 +1,20 @@
 const { join } = require("path");
-const CopyPlugin = require('copy-webpack-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: {
     background: join(__dirname, "src/background.ts"),
     popup: join(__dirname, "src/popup.ts"),
     novel_updates: join(__dirname, "src/novel_updates.ts"),
+    getPageSource: join(__dirname, "src/getPageSource.ts"),
   },
+  devtool: "source-map",
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
+        use: "ts-loader",
+        include: /src/,
       },
     ],
   },
@@ -21,16 +23,14 @@ module.exports = {
     filename: "[name].js",
   },
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js' ],
+    extensions: [".tsx", ".ts", ".js"],
   },
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: 'assets'},
-        { from: 'node_modules/jszip/dist/jszip.min.js'},
-        { from: 'node_modules/ejs/ejs.min.js'},
-        { from: 'node_modules/file-saver/dist/FileSaver.min.js'},
-        { from: 'node_modules/file-saver/dist/FileSaver.min.js.map'}
+        { from: "assets" },
+        { from: "node_modules/jszip/dist/jszip.min.js" },
+        { from: "node_modules/ejs/ejs.min.js" },
       ],
     }),
   ],
