@@ -9,6 +9,9 @@ module.exports = {
     getPageSource: join(__dirname, "src/getPageSource.ts"),
   },
   devtool: "source-map",
+  devServer: {
+    contentBase: './dist'
+  },
   module: {
     rules: [
       {

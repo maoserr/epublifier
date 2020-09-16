@@ -8,8 +8,8 @@
             "type": "chrome",
             "request": "launch",
             "name": "Novel Updates",
-            "url":"http://localhost/dist/novel_updates.html",
-            "webRoot": "${workspaceFolder}"
+            "url":"http://localhost:8080/novel_updates.html",
+            "webRoot": "${workspaceFolder}/dist"
         }
     ]
 }
