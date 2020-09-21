@@ -4,7 +4,7 @@
   "description": "Epublify some common websites",
   "permissions": ["tabs", "storage", "<all_urls>", "downloads"],
   "background": {
-    "scripts": ["background.js", "hot-reload.js"],
+    "scripts": ["js/background.js", "js/vender/hot-reload.js"],
     "persistent": false
   },
   "browser_action": {

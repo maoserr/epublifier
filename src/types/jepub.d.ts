@@ -1,8 +1,8 @@
 declare module "jepub/dist/jepub" {
-    interface metadata {
-        percent:number
-        currentFile:string
-    }
+  interface metadata {
+    percent: number;
+    currentFile: string;
+  }
   class jEpub {
     constructor();
     init(opts: unknown): jEpub;

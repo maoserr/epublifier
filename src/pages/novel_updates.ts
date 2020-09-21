@@ -1,6 +1,6 @@
 import jEpub from "jepub/dist/jepub";
-import { parse_wordpress } from "./chap_parsers/wordpress";
-import { NovelData, Chapter } from "./common/novel_data";
+import { chap_parse } from "../common/chap_parse";
+import { NovelData, Chapter } from "../common/novel_data";
 
 let chapters = document.getElementById("chapters");
 let compile_epub = document.getElementById("compile_epub");
@@ -22,15 +22,17 @@ if ("runtime" in chrome && "onMessage" in chrome.runtime) {
       }
     });
 
-    let metadata = document.getElementById("metadata")
-    let cover_url = <HTMLInputElement>metadata.querySelector("#cover")
-    let cover_img = <HTMLImageElement>metadata.querySelector("#img_show")
-    cover_url.value= dom.querySelector(".seriesimg").querySelector("img").src
-    cover_img.src = cover_url.value
-    let title = <HTMLInputElement>metadata.querySelector("#title")
-    title.value =(<HTMLElement>dom.querySelector(".seriestitlenu")).innerText
-    let author = <HTMLInputElement>metadata.querySelector("#author")
-    author.value = dom.querySelector("#showauthors").querySelector("a").innerText
+    let metadata = document.getElementById("metadata");
+    let cover_url = <HTMLInputElement>metadata.querySelector("#cover");
+    let cover_img = <HTMLImageElement>metadata.querySelector("#img_show");
+    cover_url.value = dom.querySelector(".seriesimg").querySelector("img").src;
+    cover_img.src = cover_url.value;
+    let title = <HTMLInputElement>metadata.querySelector("#title");
+    title.value = (<HTMLElement>dom.querySelector(".seriestitlenu")).innerText;
+    let author = <HTMLInputElement>metadata.querySelector("#author");
+    author.value = dom
+      .querySelector("#showauthors")
+      .querySelector("a").innerText;
     return chaps;
   }
 
@@ -50,7 +52,6 @@ if ("runtime" in chrome && "onMessage" in chrome.runtime) {
         msg_html += lbl_html + txt_html + "<br/>";
       });
       chapters.innerHTML = msg_html;
-
     }
   });
 
@@ -58,7 +59,7 @@ if ("runtime" in chrome && "onMessage" in chrome.runtime) {
     chrome.tabs.executeScript(
       null,
       {
-        file: "getPageSource.js",
+        file: "js/getPageSource.js",
       },
       function () {
         // If you try and inject into an extensions page or the webstore/NTP you'll get an error
@@ -76,8 +77,8 @@ if ("runtime" in chrome && "onMessage" in chrome.runtime) {
 function parse_results(nov_data: NovelData) {
   for (let i in nov_data.chapters) {
     compile_result.innerHTML = "Compiling " + i;
-    let chap = parse_wordpress(nov_data.chapters[i].url, nov_data.chapters[i].content);
-    nov_data.chapter_parsed[nov_data.chapters[i].url] = chap
+    let chap = chap_parse(nov_data.chapters[i]);
+    nov_data.chapter_parsed[nov_data.chapters[i].url] = chap;
   }
   compile_result.innerHTML = "Fetching cover image...";
   fetch(nov_data.cover)
@@ -98,8 +99,11 @@ function parse_results(nov_data: NovelData) {
       jepub.cover(blob);
 
       for (let i in nov_data.chapters) {
-        let id = nov_data.chapters[i].url
-        jepub.add(nov_data.chapter_parsed[id].title, nov_data.chapter_parsed[id].html);
+        let id = nov_data.chapters[i].url;
+        jepub.add(
+          nov_data.chapter_parsed[id].title,
+          nov_data.chapter_parsed[id].html
+        );
       }
 
       compile_result.innerHTML = "Generating ePub";
@@ -155,7 +159,7 @@ compile_epub.onclick = function () {
             "Parsed chapter " +
             i +
             ", (" +
-            (i / length * 100).toFixed(1) +
+            ((i / length) * 100).toFixed(1) +
             "%) <br/>";
           loop(i + 1, length, resultArr);
         } else {
