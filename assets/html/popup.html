@@ -21,9 +21,20 @@
     <label for="type">Source Type:</label>
     <select id="type">
       <option value="novel_updates">Novel Updates</option>
-      <option value="syotsu">Syotsu</option>
     </select>
     <br />
+    <label for="chapt_start">Chapter Start:</label>
+    <input type="number" id="chapt_start" value=1 />
+    <br />
+    <label for="chapt_cnt">Chapter Count:</label>
+    <input type="number" id="chapt_cnt">
+    <br />
+    <label for="page_type">Page Type</label>
+    <select id="page_type">
+      <option value="toc">Table of Contents</option>
+      <option value="first">First Page</option>
+    </select>
+    <div id="msg"></div>
     <button id="get_chapters">Get Chapters</button>
     <script src="js/popup.js"></script>
   </body>

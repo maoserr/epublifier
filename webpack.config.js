@@ -26,7 +26,7 @@ module.exports = {
     filename: "js/[name].js",
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".js"],
+    extensions: [".tsx", ".ts", ".js"]
   },
   plugins: [
     new CopyPlugin({

@@ -1,6 +1,7 @@
 import jEpub from "jepub/dist/jepub";
 import { chap_parse } from "../common/chap_parse";
 import { NovelData, Chapter } from "../common/novel_data";
+import Vue from "vue";
 
 let chapters = document.getElementById("chapters");
 let compile_epub = document.getElementById("compile_epub");
@@ -36,8 +37,11 @@ if ("runtime" in chrome && "onMessage" in chrome.runtime) {
     return chaps;
   }
 
-  chrome.runtime.onMessage.addListener(function (request, sender) {
-    if (request.action == "getSource") {
+  let msg_func = function (request: any, sender: any) {
+    // Ensure it is run only once, as we will try to message twice
+    chrome.runtime.onMessage.removeListener(msg_func);
+
+    if (request.action == "newTabSource") {
       let chap_pop = getChaps(request.source);
       let msg_html = "";
       let lbl_html: string;
@@ -53,25 +57,9 @@ if ("runtime" in chrome && "onMessage" in chrome.runtime) {
       });
       chapters.innerHTML = msg_html;
     }
-  });
+  };
 
-  function onWindowLoad() {
-    chrome.tabs.executeScript(
-      null,
-      {
-        file: "js/getPageSource.js",
-      },
-      function () {
-        // If you try and inject into an extensions page or the webstore/NTP you'll get an error
-        if (chrome.runtime.lastError) {
-          chapters.innerText =
-            "There was an error injecting script : \n" +
-            chrome.runtime.lastError.message;
-        }
-      }
-    );
-  }
-  window.onload = onWindowLoad;
+  chrome.runtime.onMessage.addListener(msg_func);
 }
 
 function parse_results(nov_data: NovelData) {
