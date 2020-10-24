@@ -23,7 +23,7 @@
       <option value="first">First Page</option>
     </select>
     <div id="msg"></div>
-    <button id="get_chapters">Get Chapters</button>
+    <button id="get_chapters" v-on:click="get_chapters()">Get Chapters</button>
   </div>
 </template>
 
