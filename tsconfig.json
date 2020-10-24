@@ -8,7 +8,8 @@
     "module": "es6",
     "target": "es6",
     "jsx": "react",
-    "allowJs": true
+    "allowJs": true,
+    "experimentalDecorators": true
   },
   "baseUrl": "./src",
   "include": ["./src"],

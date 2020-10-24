@@ -2,9 +2,9 @@
   "name": "Epublifier",
   "version": "1.0",
   "description": "Epublify some common websites",
-  "permissions": ["tabs", "storage", "<all_urls>", "downloads"],
+  "permissions": ["tabs", "<all_urls>", "downloads"],
   "background": {
-    "scripts": ["js/background.js", "js/vender/hot-reload.js"],
+    "scripts": ["js/vender/hot-reload.js"],
     "persistent": false
   },
   "browser_action": {
