@@ -5,9 +5,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   entry: {
-    popup: join(__dirname, "src/pages/popup/popup.ts"),
-    main: join(__dirname, "src/pages/main/main.ts"),
-    getPageSource: join(__dirname, "src/pages/getPageSource.ts"),
+    popup: join(__dirname, "src/entry/popup/popup.ts"),
+    main: join(__dirname, "src/entry/main/main.ts"),
+    getPageSource: join(__dirname, "src/entry/getPageSource.ts"),
   },
   devtool: "source-map",
   devServer: {

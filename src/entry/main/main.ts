@@ -57,19 +57,20 @@ function getChaps(dom_str: string) {
         url: element.href.replace("chrome-extension", "https"),
       });
     }
+    console.log(element)
   });
 
-  let metadata = document.getElementById("metadata");
-  let cover_url = <HTMLInputElement>metadata.querySelector("#cover");
-  let cover_img = <HTMLImageElement>metadata.querySelector("#img_show");
-  cover_url.value = dom.querySelector(".seriesimg").querySelector("img").src;
-  cover_img.src = cover_url.value;
-  let title = <HTMLInputElement>metadata.querySelector("#title");
-  title.value = (<HTMLElement>dom.querySelector(".seriestitlenu")).innerText;
-  let author = <HTMLInputElement>metadata.querySelector("#author");
-  author.value = dom
-    .querySelector("#showauthors")
-    .querySelector("a").innerText;
+  // let metadata = document.getElementById("metadata");
+  // let cover_url = <HTMLInputElement>metadata.querySelector("#cover");
+  // let cover_img = <HTMLImageElement>metadata.querySelector("#img_show");
+  // cover_url.value = dom.querySelector(".seriesimg").querySelector("img").src;
+  // cover_img.src = cover_url.value;
+  // let title = <HTMLInputElement>metadata.querySelector("#title");
+  // title.value = (<HTMLElement>dom.querySelector(".seriestitlenu")).innerText;
+  // let author = <HTMLInputElement>metadata.querySelector("#author");
+  // author.value = dom
+  //   .querySelector("#showauthors")
+  //   .querySelector("a").innerText;
   return chaps;
 }
 

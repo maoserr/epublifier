@@ -13,6 +13,7 @@
       <input type="text" id="na" value="test.html" readonly />
     </div>
     <div id="compile_result"></div>
+    <button id="compile_epub">Compile</button>
   </div>
 </template>
 
