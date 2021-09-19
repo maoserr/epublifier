@@ -1,0 +1,13 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+start
+:Popup Load (mounted);
+:Create Listener;
+:Click Get chapter;
+:JS injected into current page to extract source;
+:Listener activated from `getPageSource.js`;
+
+stop
+
+@enduml

@@ -1,47 +1,66 @@
 import { NovelData, Chapter } from "../common/novel_data";
 
-export function parse_toc(chapters:HTMLElement, status:HTMLElement) {
-  let novdata = new NovelData();
-  let metadata = document.getElementById("metadata");
-  let inps = chapters.querySelectorAll("input");
-  let request = new XMLHttpRequest();
-
-  novdata.title = (<HTMLInputElement>metadata.querySelector("#title")).value;
-  novdata.author = (<HTMLInputElement>metadata.querySelector("#author")).value;
-  novdata.cover = (<HTMLInputElement>metadata.querySelector("#cover")).value;
-
-  function loop(i: number, length: number, resultArr: NovelData) {
-    if (i >= length) {
-      // parse_results(resultArr);
-      return;
-    }
-    let url = inps[i].value;
-
-    request.open("GET", url);
-    request.onreadystatechange = function () {
-      if (request.readyState === XMLHttpRequest.DONE) {
-        if (request.status === 200) {
-          resultArr.push({
-            content: request.responseText,
-            url: request.responseURL,
-          });
-          status.innerHTML =
-            "Parsed chapter " +
-            i +
-            ", (" +
-            ((i / length) * 100).toFixed(1) +
-            "%) <br/>";
-          loop(i + 1, length, resultArr);
-        } else {
-          status.innerHTML =
-            "Invalid response " +
-            request.status +
-            " in chapter url: " +
-            inps[i].value;
-        }
-      }
-    };
-    request.send();
+export function parse_toc_links(dom_str: string, web_url: string): Chapter[] {
+  let url = new URL(web_url);
+  switch (url.hostname) {
+    case "www.novelupdates.com":
+      return getChapsNU(dom_str);
+    case "bayabuscotranslation.com":
+      return getChapsWP(dom_str);
+    case "lightnovelbastion.com":
+      return getChapsBastion(dom_str);
   }
-  loop(0, inps.length, novdata);
+  throw new RangeError("Invalid hostname");
+}
+
+function getChapsNU(dom_str: string) {
+  let parser = new DOMParser();
+  let dom = parser.parseFromString(dom_str, "application/xml");
+  console.log(dom)
+  let chap_popup = dom.querySelector("#my_popupreading");
+  let chap_lis = chap_popup.querySelectorAll("a");
+  let chaps: Chapter[] = [];
+  chap_lis.forEach((element) => {
+    if (element.href.includes("extnu")) {
+      chaps.unshift({
+        content: element.innerText,
+        url: element.href.replace("chrome-extension", "https"),
+      });
+    }
+  });
+  return chaps;
+}
+
+function getChapsWP(dom_str: string) {
+  let parser = new DOMParser();
+  let dom = parser.parseFromString(dom_str, "application/xml");
+  console.log(dom)
+  let chap_cont = <HTMLElement>dom.querySelector(".entry-content");
+  chap_cont.querySelector("#jp-post-flair").remove();
+
+  let chap_lis = chap_cont.querySelectorAll("a");
+  let chaps: Chapter[] = [];
+  chap_lis.forEach((element) => {
+    chaps.push({
+      content: element.innerText,
+      url: element.href.replace("chrome-extension", "https"),
+    });
+  });
+  return chaps;
+}
+
+function getChapsBastion(dom_str: string) {
+  let parser = new DOMParser();
+  let dom = parser.parseFromString(dom_str, "text/html");
+  console.log(dom)
+  let chap_cont = <HTMLElement>dom.querySelector("ul.main");
+  let chap_lis = chap_cont.querySelectorAll("a:not(.has-child)");
+  let chaps: Chapter[] = [];
+  chap_lis.forEach((element) => {
+    chaps.unshift({
+      content: (<HTMLAnchorElement>element).innerText,
+      url: (<HTMLAnchorElement>element).href.replace("chrome-extension", "https"),
+    });
+  });
+  return chaps;
 }

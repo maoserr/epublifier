@@ -61,7 +61,7 @@ module.exports = {
         { from: "assets" },
         { from: "node_modules/jszip/dist/jszip.min.js", to: "js/vender" },
         { from: "node_modules/ejs/ejs.min.js", to: "js/vender" },
-        { from: "node_modules/purecss/build/pure-min.css", to: "css/vender"}
+        { from: "node_modules/purecss/build/pure-min.css", to: "css/vender"},
       ],
     }),
   ],
