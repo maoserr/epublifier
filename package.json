@@ -19,24 +19,26 @@
   },
   "homepage": "https://github.com/maoserr/web_novel_to_epub#readme",
   "devDependencies": {
-    "@types/chrome": "0.0.123",
-    "copy-webpack-plugin": "^6.1.0",
-    "html-webpack-plugin": "^4.5.0",
-    "ts-loader": "^8.0.3",
-    "typescript": "^4.0.2",
-    "vue-loader": "^15.9.3",
-    "vue-template-compiler": "^2.6.12",
+    "@types/dompurify": "^2.2.3",
+    "@types/webextension-polyfill": "^0.8.0",
+    "@vue/test-utils": "^1.2.2",
+    "copy-webpack-plugin": "^6.4.1",
+    "html-webpack-plugin": "^4.5.2",
+    "ts-loader": "^8.3.0",
+    "typescript": "^4.4.3",
+    "vue-loader": "^15.9.8",
+    "vue-template-compiler": "^2.6.14",
     "webextension-polyfill": "^0.6.0",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12",
-    "@vue/cli-plugin-unit-jest": "^4.5.13",
-    "@vue/test-utils": "^1.2.2"
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {
+    "@mozilla/readability": "^0.4.1",
+    "dompurify": "^2.3.2",
     "jepub": "^2.1.4",
     "jszip": "^3.7.1",
-    "purecss": "^2.0.3",
-    "vue": "^2.6.12",
+    "purecss": "^2.0.6",
+    "vue": "^2.6.14",
     "vue-class-component": "^7.2.6"
   }
 }

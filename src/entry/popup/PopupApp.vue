@@ -11,7 +11,7 @@
         </div>
         <div class="pure-control-group">
           <label for="url">Page URL:</label>
-          <input type="text" id="url" style="width:70%"/>
+          <input type="text" id="url" style="width:70%" :value="url"/>
         </div>
         <div class="pure-control-group">
           <label for="css_selector">CSS Selector:</label>
@@ -44,10 +44,12 @@
 import Vue from "vue";
 import Component from 'vue-class-component';
 import {IndexData, PopupMsg} from "../../common/novel_data";
+import browser from "webextension-polyfill";
 
 @Component
 export default class MainApp extends Vue {
   title: string = "Epublifier"
+  url: string = ""
   start: number = 1
   max_cnt: number = 300
   status_txt: string = ""
@@ -58,41 +60,41 @@ export default class MainApp extends Vue {
    */
   mounted() {
     let vm = this
-    chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-      (<HTMLInputElement>document.getElementById("url")).value = tabs[0].url;
-    });
-    if ("runtime" in chrome && "onMessage" in chrome.runtime) {
-      chrome.runtime.onMessage.addListener(function (request, sender) {
-        if (request.action == "getSource") {
-          vm.ind_data = request.data;
+    browser.tabs.query({active: true, currentWindow: true}).then(
+        tabs => {
+          vm.url = tabs[0].url;
         }
-      });
-      this.check_curr_page();
-    }
+    );
+    browser.runtime.onMessage.addListener(
+        request => {
+          if (request.action == "getSource") {
+            vm.ind_data = request.data;
+          }
+        }
+    );
+    this.check_curr_page();
   }
 
   start_main() {
     let vm = this
-    chrome.tabs.create({url: "main.html", active: true}, function (t) {
-      vm.send_msg(t, {ind_data: vm.ind_data, start: vm.start, cnt: vm.max_cnt});
-    });
+    browser.tabs.create({url: "main.html", active: true}).then(
+        t => {
+          vm.send_msg(t, {ind_data: vm.ind_data, start: vm.start, cnt: vm.max_cnt});
+        }
+    );
   }
 
   check_curr_page() {
     let vm = this
     vm.status_txt = "Injecting...";
-    chrome.tabs.executeScript(
-        null,
-        {
-          file: "js/getPageSource.js",
-        },
-        function () {
+    browser.tabs.executeScript(null, {file: "js/getPageSource.js",}).then(
+        () => {
           // If you try and inject into an extensions page or the webstore/NTP you'll get an error
-          if (chrome.runtime.lastError) {
+          if (browser.runtime.lastError) {
             vm.status_txt = "There was an error injecting script : \n" +
-                chrome.runtime.lastError.message;
+                browser.runtime.lastError.message;
           } else {
-            vm.status_txt = "Scrip success";
+            vm.status_txt = "Script success.";
           }
         }
     );
@@ -104,7 +106,7 @@ export default class MainApp extends Vue {
    * @param data
    */
   send_msg(
-      tab: chrome.tabs.Tab,
+      tab: browser.Tabs.Tab,
       data: PopupMsg
   ) {
     let msg = document.getElementById("msg");
@@ -115,14 +117,14 @@ export default class MainApp extends Vue {
     }
     let handler = function (tabid: number, changeInfo: any) {
       if (tabid === tab.id && changeInfo.status === "complete") {
-        chrome.tabs.onUpdated.removeListener(handler);
-        chrome.tabs.sendMessage(tabid, tab_msg);
+        browser.tabs.onUpdated.removeListener(handler);
+        browser.tabs.sendMessage(tabid, tab_msg);
       }
     };
     // in case we're faster than page load (usually):
-    chrome.tabs.onUpdated.addListener(handler);
+    browser.tabs.onUpdated.addListener(handler);
     // just in case we're too late with the listener:
-    chrome.tabs.sendMessage(tab.id, tab_msg);
+    browser.tabs.sendMessage(tab.id, tab_msg);
     msg.innerText += "Done";
   }
 }

@@ -33,18 +33,19 @@ import { generate_epub } from "../../common/epub_generator";
 import { chap_parse } from "../../common/chap_parse";
 import { NovelData, Chapter } from "../../common/novel_data";
 import { parse_toc_links } from "../../book_parser/toc_parser";
+import browser from "webextension-polyfill";
 
 export default {
   mounted: function() {
-    if ("runtime" in chrome && "onMessage" in chrome.runtime) {
-      chrome.runtime.onMessage.addListener(this.msg_func);
+    if ("runtime" in browser && "onMessage" in browser.runtime) {
+      browser.runtime.onMessage.addListener(this.msg_func);
     }
   },
   methods: {
     msg_func: function(request: any, sender: any) {
       console.log(request)
       // Ensure it is run only once, as we will try to message twice
-      chrome.runtime.onMessage.removeListener(this.msg_func);
+      browser.runtime.onMessage.removeListener(this.msg_func);
       if (request.action == "newTabSource") {
         let chapters = document.getElementById("chapters");
         let chap_pop = parse_toc_links(request.source, request.url);

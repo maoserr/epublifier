@@ -1,5 +1,6 @@
 import jEpub from "jepub/dist/jepub";
 import { NovelData } from "../common/novel_data";
+import browser from "webextension-polyfill";
 
 export function generate_epub(nov_data: NovelData, status:HTMLElement) {
     status.innerHTML = "Fetching cover image...";
@@ -41,12 +42,12 @@ export function generate_epub(nov_data: NovelData, status:HTMLElement) {
           .then((filecontent: Blob) => {
             let url = URL.createObjectURL(filecontent);
   
-            chrome.downloads.download({
+            browser.downloads.download({
               url: url,
               filename: nov_data.filename,
             });
           })
-          .catch((err: ExceptionInformation) => {
+          .catch((err) => {
             console.error(err);
           });
       });
