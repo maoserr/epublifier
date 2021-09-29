@@ -7,12 +7,11 @@ import DOMPurify from 'dompurify';
  * @param dom
  */
 function serialize_dom(dom: Document) {
-    const clean = DOMPurify.sanitize(dom);
-    return clean;
+    return DOMPurify.sanitize(dom);
 }
 
 let data: IndexData = {source: serialize_dom(document), url: window.location.href};
 browser.runtime.sendMessage({
     action: "getSource",
     data: data
-});
+}).then();
