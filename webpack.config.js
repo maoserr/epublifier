@@ -1,5 +1,5 @@
 const { join } = require("path");
-const VueLoaderPlugin = require("vue-loader/lib/plugin");
+const { VueLoaderPlugin } = require("vue-loader");
 const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
@@ -41,7 +41,7 @@ module.exports = {
   resolve: {
     extensions: [".tsx", ".ts", ".js",'.vue', '.json'],
     alias: {
-      'vue$': 'vue/dist/vue.esm.js'
+        'vue': '@vue/runtime-dom'
     },
   },
   plugins: [
@@ -61,7 +61,6 @@ module.exports = {
         { from: "assets" },
         { from: "node_modules/jszip/dist/jszip.min.js", to: "js/vender" },
         { from: "node_modules/ejs/ejs.min.js", to: "js/vender" },
-        { from: "node_modules/purecss/build/pure-min.css", to: "css/vender"},
       ],
     }),
   ],

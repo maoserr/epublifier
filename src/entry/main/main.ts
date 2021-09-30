@@ -1,13 +1,11 @@
-import Vue from "vue";
+import { createApp } from 'vue'
+
 import App from "./MainApp.vue";
+import PrimeVue from 'primevue/config';
 
-Vue.config.productionTip = false;
 
-/* eslint-disable no-new */
-new Vue({
-    el: "#app",
-    render: (createElement) => {
-        return createElement(App)
-    },
-});
+// @ts-ignore
+const app = createApp(App);
+app.use(PrimeVue);
 
+app.mount('#app')

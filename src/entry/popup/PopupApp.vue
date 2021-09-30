@@ -41,20 +41,22 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import Component from 'vue-class-component';
+import {defineComponent} from 'vue';
 import {IndexData, PopupMsg} from "../../common/novel_data";
 import browser from "webextension-polyfill";
 
-@Component
-export default class MainApp extends Vue {
-  title: string = "Epublifier"
-  url: string = ""
-  start: number = 1
-  max_cnt: number = 300
-  status_txt: string = ""
-  ind_data: IndexData = null
-
+export default defineComponent({
+  name: 'App',
+  data() {
+    return {
+      title: "Epublifier",
+      url: "",
+      start: 1,
+      max_cnt: 300,
+      status_txt: "",
+      ind_data: null as IndexData,
+    }
+  },
   /**
    * Mounted hook
    */
@@ -73,59 +75,58 @@ export default class MainApp extends Vue {
         }
     );
     this.check_curr_page();
-  }
-
-  start_main() {
-    let vm = this
-    browser.tabs.create({url: "main.html", active: true}).then(
-        t => {
-          vm.send_msg(t, {ind_data: vm.ind_data, start: vm.start, cnt: vm.max_cnt});
-        }
-    );
-  }
-
-  check_curr_page() {
-    let vm = this
-    vm.status_txt = "Injecting...";
-    browser.tabs.executeScript(null, {file: "js/getPageSource.js",}).then(
-        () => {
-          // If you try and inject into an extensions page or the webstore/NTP you'll get an error
-          if (browser.runtime.lastError) {
-            vm.status_txt = "There was an error injecting script : \n" +
-                browser.runtime.lastError.message;
-          } else {
-            vm.status_txt = "Script success.";
+  },
+  methods: {
+    start_main() {
+      let vm = this
+      browser.tabs.create({url: "main.html", active: true}).then(
+          t => {
+            vm.send_msg(t, {ind_data: vm.ind_data, start: vm.start, cnt: vm.max_cnt});
           }
-        }
-    );
-  }
-
-  /**
-   * Statis function to send parsed data/config to Main UI
-   * @param tab
-   * @param data
-   */
-  send_msg(
-      tab: browser.Tabs.Tab,
-      data: PopupMsg
-  ) {
-    let msg = document.getElementById("msg");
-    msg.innerText += data.start
-    let tab_msg = {
-      action: "newTabSource",
-      data: data
-    }
-    let handler = function (tabid: number, changeInfo: any) {
-      if (tabid === tab.id && changeInfo.status === "complete") {
-        browser.tabs.onUpdated.removeListener(handler);
-        browser.tabs.sendMessage(tabid, tab_msg);
+      );
+    },
+    check_curr_page() {
+      let vm = this
+      vm.status_txt = "Injecting...";
+      browser.tabs.executeScript(null, {file: "js/getPageSource.js",}).then(
+          () => {
+            // If you try and inject into an extensions page or the webstore/NTP you'll get an error
+            if (browser.runtime.lastError) {
+              vm.status_txt = "There was an error injecting script : \n" +
+                  browser.runtime.lastError.message;
+            } else {
+              vm.status_txt = "Script success.";
+            }
+          }
+      );
+    },
+    /**
+     * Statis function to send parsed data/config to Main UI
+     * @param tab
+     * @param data
+     */
+    send_msg(
+        tab: browser.Tabs.Tab,
+        data: PopupMsg
+    ) {
+      let msg = document.getElementById("msg");
+      msg.innerText += data.start
+      let tab_msg = {
+        action: "newTabSource",
+        data: data
       }
-    };
-    // in case we're faster than page load (usually):
-    browser.tabs.onUpdated.addListener(handler);
-    // just in case we're too late with the listener:
-    browser.tabs.sendMessage(tab.id, tab_msg);
-    msg.innerText += "Done";
+      let handler = function (tabid: number, changeInfo: any) {
+        if (tabid === tab.id && changeInfo.status === "complete") {
+          browser.tabs.onUpdated.removeListener(handler);
+          browser.tabs.sendMessage(tabid, tab_msg);
+        }
+      };
+      // in case we're faster than page load (usually):
+      browser.tabs.onUpdated.addListener(handler);
+      // just in case we're too late with the listener:
+      browser.tabs.sendMessage(tab.id, tab_msg);
+      msg.innerText += "Done";
+    }
   }
-}
+})
 </script>
