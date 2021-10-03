@@ -37,6 +37,7 @@ import browser from "webextension-polyfill";
 import {defineComponent} from "vue";
 
 export default defineComponent({
+  name: 'App',
   mounted() {
     if ("runtime" in browser && "onMessage" in browser.runtime) {
       browser.runtime.onMessage.addListener(this.msg_func);

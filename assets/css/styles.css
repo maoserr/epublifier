@@ -1,7 +1,13 @@
-#app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    color: #2c3e50;
-    margin-top: 60px;
+html {
+    font-size: 13px;
+}
+body {
+    margin: 10px;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: var(--surface-a);
+    font-family: var(--font-family);
+    font-weight: 400;
+    color: var(--text-color);
 }
