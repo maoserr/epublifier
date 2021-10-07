@@ -12,7 +12,6 @@ function serialize_dom(dom: Document) {
 }
 
 let data: IndexData = {source: serialize_dom(document), url: window.location.href};
-
 browser.runtime.sendMessage({
     action: "getSource",
     data: data

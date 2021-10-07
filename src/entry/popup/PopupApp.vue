@@ -1,17 +1,32 @@
 <template>
   <div id="app">
-    <div class="p-formgrid p-grid">
-      <div class="p-field p-col-12 p-md-6">
+    <div class="p-fluid p-formgrid p-grid">
+      <div class="p-field p-col-12">
+        <Message :closable="false">{{ status_txt }}</Message>
+      </div>
+      <div class="p-field p-col-12">
         <label for="url">Page URL</label>
         <InputText id="url" type="text" :value="url"/>
       </div>
-      <div class="p-field p-col-12 p-md-6">
+      <div class="p-field p-col-12">
         <label for="pagetype">Page Type</label>
-        <Dropdown id="pagetype" v-model="selectedPageType" :options="pageTypes" optionLabel="name" placeholder="Select a Page Type"/>
+        <Dropdown id="pagetype" v-model="selectedPageType" :options="pageTypes" optionLabel="name"
+                  placeholder="Select a Page Type"/>
       </div>
       <div class="p-field p-col-12">
         <label for="pagesource">Page Source</label>
         <Textarea id="pagesource" v-model="pagesource" rows="5" cols="30"/>
+      </div>
+      <div class="p-field p-col-12">
+        <label for="start_chap">Page Source</label>
+        <InputNumber id="start_chap" v-model="start"/>
+      </div>
+      <div class="p-field p-col-12">
+        <label for="max_chap">Page Source</label>
+        <InputNumber id="max_chap" v-model="max_cnt"/>
+      </div>
+      <div class="p-field p-col-12">
+        <Button label="Extract Chapters" @click="start_main()"/>
       </div>
     </div>
   </div>
@@ -22,12 +37,13 @@ import {defineComponent} from 'vue';
 import {IndexData, PopupMsg} from "../../common/novel_data";
 import browser from "webextension-polyfill";
 
+import Message from 'primevue/message';
+import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Textarea from 'primevue/textarea';
+import InputNumber from 'primevue/inputnumber';
 
-import RadioButton from 'primevue/radiobutton';
-import Card from 'primevue/card';
 import 'primeflex/primeflex.css';
 import 'primevue/resources/themes/saga-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
@@ -37,11 +53,12 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 export default defineComponent({
   name: 'App',
   components: {
+    Message,
     InputText,
     Dropdown,
     Textarea,
-    RadioButton,
-    Card
+    InputNumber,
+    Button
   },
   data() {
     return {
@@ -92,14 +109,8 @@ export default defineComponent({
       vm.status_txt = "Injecting...";
       browser.tabs.executeScript(null, {file: "js/getPageSource.js",}).then(
           () => {
-            // If you try and inject into an extensions page or the webstore/NTP you'll get an error
-            if (browser.runtime.lastError) {
-              vm.status_txt = "There was an error injecting script : \n" +
-                  browser.runtime.lastError.message;
-            } else {
-              vm.pagesource = vm.ind_data.source;
-              vm.status_txt = "Script success.";
-            }
+            vm.pagesource = vm.ind_data.source;
+            vm.status_txt = "Script success.";
           }
       );
     },
