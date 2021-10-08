@@ -8,7 +8,8 @@ import DOMPurify from 'dompurify';
  */
 function serialize_dom(dom: Document) {
     let s = new XMLSerializer();
-    return DOMPurify.sanitize(s.serializeToString(dom));
+    return s.serializeToString(dom)
+    // return DOMPurify.sanitize(s.serializeToString(dom));
 }
 
 let data: IndexData = {source: serialize_dom(document), url: window.location.href};

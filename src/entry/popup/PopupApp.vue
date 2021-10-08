@@ -14,15 +14,11 @@
                   placeholder="Select a Page Type"/>
       </div>
       <div class="p-field p-col-12">
-        <label for="pagesource">Page Source</label>
-        <Textarea id="pagesource" v-model="pagesource" rows="5" cols="30"/>
-      </div>
-      <div class="p-field p-col-12">
-        <label for="start_chap">Page Source</label>
+        <label for="start_chap">Start Chapter</label>
         <InputNumber id="start_chap" v-model="start"/>
       </div>
       <div class="p-field p-col-12">
-        <label for="max_chap">Page Source</label>
+        <label for="max_chap">Max Chapters</label>
         <InputNumber id="max_chap" v-model="max_cnt"/>
       </div>
       <div class="p-field p-col-12">
@@ -34,14 +30,12 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue';
-import {IndexData, PopupMsg} from "../../common/novel_data";
 import browser from "webextension-polyfill";
 
 import Message from 'primevue/message';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
-import Textarea from 'primevue/textarea';
 import InputNumber from 'primevue/inputnumber';
 
 import 'primeflex/primeflex.css';
@@ -50,13 +44,15 @@ import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
+import {Chapter, IndexData, PopupMsg} from "../../common/novel_data";
+import {parse_toc_links} from "../../book_parser/toc_parser"
+
 export default defineComponent({
   name: 'App',
   components: {
     Message,
     InputText,
     Dropdown,
-    Textarea,
     InputNumber,
     Button
   },
@@ -68,12 +64,12 @@ export default defineComponent({
         {name: 'List of Chapters', code: 'loc'},
         {name: 'First Page', code: 'fp'},
       ],
-      pagesource: "",
       title: "Epublifier",
       start: 1,
       max_cnt: 300,
       status_txt: "",
       ind_data: null as IndexData,
+      chaps: null as Chapter[],
     }
   },
   /**
@@ -90,6 +86,7 @@ export default defineComponent({
         request => {
           if (request.action == "getSource") {
             vm.ind_data = request.data;
+            vm.status_txt = "Script success.";
           }
         }
     );
@@ -107,12 +104,7 @@ export default defineComponent({
     check_curr_page() {
       let vm = this
       vm.status_txt = "Injecting...";
-      browser.tabs.executeScript(null, {file: "js/getPageSource.js",}).then(
-          () => {
-            vm.pagesource = vm.ind_data.source;
-            vm.status_txt = "Script success.";
-          }
-      );
+      browser.tabs.executeScript(null, {file: "js/getPageSource.js",});
     },
     /**
      * Statis function to send parsed data/config to Main UI
@@ -123,8 +115,7 @@ export default defineComponent({
         tab: browser.Tabs.Tab,
         data: PopupMsg
     ) {
-      let msg = document.getElementById("msg");
-      msg.innerText += data.start
+      let vm = this;
       let tab_msg = {
         action: "newTabSource",
         data: data
@@ -139,7 +130,7 @@ export default defineComponent({
       browser.tabs.onUpdated.addListener(handler);
       // just in case we're too late with the listener:
       browser.tabs.sendMessage(tab.id, tab_msg);
-      msg.innerText += "Done";
+      vm.status_txt = "Done";
     }
   }
 })
