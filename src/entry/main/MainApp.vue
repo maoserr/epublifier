@@ -2,15 +2,25 @@
   <div id="app">
     <div class="p-fluid p-formgrid p-grid">
       <div class="p-field p-col-12">
-        <DataTable :value="chapts" :paginator="true" :rows="10"
+        <DataTable :value="chapts"
+                   v-model:selection="selected_chaps"
+                   :paginator="true" :rows="20"
                    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
                    :rowsPerPageOptions="[10,20,50]" responsiveLayout="scroll"
                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
-          <Column field="content" header="Chapter"></Column>
-          <Column field="url" header="URL"></Column>
+          <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+          <Column field="content" header="Chapter" :sortable="true"></Column>
+          <Column field="url" header="URL">
+            <template #body="slotProps">
+              <a :href="slotProps.data.url" target="_blank" rel="noopener noreferrer">{{ slotProps.data.url }}</a>
+            </template>
+          </Column>
         </DataTable>
       </div>
-      <div class="p-field p-col-12">
+      <div class="p-field p-col-6">
+        <Button label="Extract Chapters" @click="gen_epub()"/>
+      </div>
+      <div class="p-field p-col-6">
         <Button label="Compile Epub" @click="gen_epub()"/>
       </div>
     </div>
@@ -34,12 +44,11 @@ import 'primeflex/primeflex.css';
 import 'primevue/resources/themes/saga-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
-import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
+import 'primevue/resources/themes/md-light-indigo/theme.css';
 
 import {generate_epub} from "../../common/epub_generator";
 import {chap_parse} from "../../common/chap_parse";
-import {NovelData, Chapter, IndexData, PopupMsg} from "../../common/novel_data";
-import {parse_toc_links} from "../../book_parser/toc_parser";
+import {NovelData, Chapter} from "../../common/novel_data";
 
 export default defineComponent({
   name: 'App',
@@ -51,6 +60,7 @@ export default defineComponent({
   },
   data() {
     return {
+      selected_chaps: null,
       chapts: null as Chapter[]
     }
   },
@@ -64,9 +74,7 @@ export default defineComponent({
       let vm = this;
       browser.runtime.onMessage.removeListener(this.msg_func);
       if (request.action == "newTabSource") {
-        let data: PopupMsg = request.data
-        let ind_data: IndexData = request.data.ind_data
-        vm.chapts = parse_toc_links(ind_data.source, ind_data.url);
+        vm.chapts = request.data;
       }
     },
     gen_epub() {

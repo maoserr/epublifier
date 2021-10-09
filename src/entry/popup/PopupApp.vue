@@ -8,21 +8,18 @@
         <label for="url">Page URL</label>
         <InputText id="url" type="text" :value="url"/>
       </div>
-      <div class="p-field p-col-12">
+      <div class="p-field p-col-6">
         <label for="pagetype">Page Type</label>
         <Dropdown id="pagetype" v-model="selectedPageType" :options="pageTypes" optionLabel="name"
                   placeholder="Select a Page Type"/>
       </div>
-      <div class="p-field p-col-12">
-        <label for="start_chap">Start Chapter</label>
-        <InputNumber id="start_chap" v-model="start"/>
+      <div class="p-field p-col-6">
+        <br/>
+        Detected Chapters: {{ chap_cnt }} <br/>
+        Detected Page type: {{ page_type }} <br/>
       </div>
       <div class="p-field p-col-12">
-        <label for="max_chap">Max Chapters</label>
-        <InputNumber id="max_chap" v-model="max_cnt"/>
-      </div>
-      <div class="p-field p-col-12">
-        <Button label="Extract Chapters" @click="start_main()"/>
+        <Button label="Load Page List" @click="start_main()"/>
       </div>
     </div>
   </div>
@@ -42,9 +39,9 @@ import 'primeflex/primeflex.css';
 import 'primevue/resources/themes/saga-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
-import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
+import 'primevue/resources/themes/md-light-indigo/theme.css';
 
-import {Chapter, IndexData, PopupMsg} from "../../common/novel_data";
+import {Chapter} from "../../common/novel_data";
 import {parse_toc_links} from "../../book_parser/toc_parser"
 
 export default defineComponent({
@@ -65,10 +62,9 @@ export default defineComponent({
         {name: 'First Page', code: 'fp'},
       ],
       title: "Epublifier",
-      start: 1,
-      max_cnt: 300,
+      chap_cnt: 0,
+      page_type: "List of Chapters",
       status_txt: "",
-      ind_data: null as IndexData,
       chaps: null as Chapter[],
     }
   },
@@ -85,26 +81,36 @@ export default defineComponent({
     browser.runtime.onMessage.addListener(
         request => {
           if (request.action == "getSource") {
-            vm.ind_data = request.data;
-            vm.status_txt = "Script success.";
+            if (request.data == null) {
+              vm.status_txt = "Script failed.";
+            } else {
+              vm.chaps = parse_toc_links(request.data.source, request.data.url);
+              vm.chap_cnt = vm.chaps.length;
+              vm.status_txt = "Chapters parsed: " + vm.chaps.length;
+            }
           }
         }
     );
-    this.check_curr_page();
+    vm.status_txt = "Parsing page..."
+    setTimeout(this.check_curr_page, 500);
   },
   methods: {
     start_main() {
       let vm = this
       browser.tabs.create({url: "main.html", active: true}).then(
           t => {
-            vm.send_msg(t, {ind_data: vm.ind_data, start: vm.start, cnt: vm.max_cnt});
+            vm.send_msg(t, vm.chaps);
           }
       );
     },
     check_curr_page() {
       let vm = this
       vm.status_txt = "Injecting...";
-      browser.tabs.executeScript(null, {file: "js/getPageSource.js",});
+      browser.tabs.executeScript(null, {file: "js/getPageSource.js",}).catch(
+          error => {
+            vm.status_txt = "Injection failed: " + error.message;
+          }
+      );
     },
     /**
      * Statis function to send parsed data/config to Main UI
@@ -113,7 +119,7 @@ export default defineComponent({
      */
     send_msg(
         tab: browser.Tabs.Tab,
-        data: PopupMsg
+        data: Chapter[]
     ) {
       let vm = this;
       let tab_msg = {

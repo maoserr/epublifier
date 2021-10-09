@@ -23,8 +23,7 @@ module.exports = {
             {
                 test: /\.ts$/,
                 loader: 'ts-loader',
-                options: {appendTsSuffixTo: [/\.vue$/]},
-                include: /src/,
+                options: { appendTsSuffixTo: [/\.vue$/] }
             },
             {
                 test: /\.css$/,

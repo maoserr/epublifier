@@ -1,22 +1,8 @@
-export interface IndexData {
-    source: string;
-    url: string;
-}
-
-export interface PopupMsg {
-    ind_data:IndexData;
-    start: number;
-    cnt: number
-}
-
 export interface Chapter {
     url: string;
     content: string;
-}
-
-export interface ChapterParsed {
-    title: string;
-    html: string;
+    title?: string;
+    html?: string;
 }
 
 export class NovelData {
@@ -25,7 +11,7 @@ export class NovelData {
     publisher: string;
     description: string;
     chapters: Chapter[];
-    chapter_parsed: Record<string, ChapterParsed>;
+    chapter_parsed: Record<string, Chapter>;
     cover: string;
     filename: string;
 
