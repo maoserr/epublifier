@@ -60,7 +60,7 @@ export default defineComponent({
   },
   data() {
     return {
-      selected_chaps: null,
+      selected_chaps: null as Chapter[],
       chapts: null as Chapter[]
     }
   },

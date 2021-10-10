@@ -21,6 +21,9 @@ export class NovelData {
         this.filename = "epublifier.epub"
         this.chapters = []
         this.chapter_parsed = {}
+        this.cover = ""
+        this.title = ""
+        this.author = ""
     }
 
     push(chap: Chapter) {

@@ -9,6 +9,7 @@ module.exports = {
         popup: join(__dirname, "src/entry/popup/popup.ts"),
         main: join(__dirname, "src/entry/main/main.ts"),
         getPageSource: join(__dirname, "src/entry/getPageSource.ts"),
+        sandbox: join(__dirname, "src/entry/sandbox.ts"),
     },
     devtool: "source-map",
     devServer: {
@@ -23,7 +24,7 @@ module.exports = {
             {
                 test: /\.ts$/,
                 loader: 'ts-loader',
-                options: { appendTsSuffixTo: [/\.vue$/] }
+                options: {appendTsSuffixTo: [/\.vue$/]}
             },
             {
                 test: /\.css$/,
@@ -55,6 +56,11 @@ module.exports = {
             chunks: ['main'],
             filename: 'main.html',
             template: 'templates/main.html'
+        }),
+        new HtmlWebpackPlugin({
+            chunks: ['sandbox'],
+            filename: 'sandbox.html',
+            template: 'templates/sandbox.html'
         }),
         new CopyPlugin({
             patterns: [

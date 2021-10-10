@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports":true,
-    "moduleResolution": "node",
     "outDir": "./dist/",
     "sourceMap": true,
     "noImplicitAny": true,
-    "module": "es2015",
-    "target": "es5",
-    "jsx": "react",
-    "allowJs": true,
+    "target": "esnext",
+    "module": "esnext",
     "strict": false,
+    "jsx": "preserve",
+    "moduleResolution": "node",
+    "allowJs": true,
     "experimentalDecorators": true
   },
   "baseUrl": "./src",

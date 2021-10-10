@@ -65,7 +65,7 @@ export default defineComponent({
       chap_cnt: 0,
       page_type: "List of Chapters",
       status_txt: "",
-      chaps: null as Chapter[],
+      chaps: [] as Chapter[],
     }
   },
   /**
@@ -78,15 +78,27 @@ export default defineComponent({
           vm.url = tabs[0].url;
         }
     );
+    window.addEventListener('message', function(event) {
+      vm.status_txt = event.data.message;
+    });
     browser.runtime.onMessage.addListener(
         request => {
           if (request.action == "getSource") {
             if (request.data == null) {
               vm.status_txt = "Script failed.";
             } else {
-              vm.chaps = parse_toc_links(request.data.source, request.data.url);
-              vm.chap_cnt = vm.chaps.length;
-              vm.status_txt = "Chapters parsed: " + vm.chaps.length;
+              try {
+                let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
+                iframe.contentWindow.postMessage({
+                  command: 'render',
+                  context: "blah"
+                }, '*');
+                // vm.chaps = parse_toc_links(request.data.source, request.data.url);
+                // vm.chap_cnt = vm.chaps.length;
+                // vm.status_txt = "Chapters parsed: " + vm.chaps.length;
+              } catch (e) {
+                vm.status_txt = "Unable to parse chapters.";
+              }
             }
           }
         }
