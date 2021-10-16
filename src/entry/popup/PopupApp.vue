@@ -42,7 +42,7 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/md-light-indigo/theme.css';
 
 import {Chapter} from "../../common/novel_data";
-import {parse_toc_links} from "../../book_parser/toc_parser"
+import {load_parsers} from "../../book_parser/toc_parser"
 
 export default defineComponent({
   name: 'App',
@@ -66,47 +66,61 @@ export default defineComponent({
       page_type: "List of Chapters",
       status_txt: "",
       chaps: [] as Chapter[],
+      parsers: null
     }
   },
   /**
    * Mounted hook
    */
   mounted() {
-    let vm = this
-    browser.tabs.query({active: true, currentWindow: true}).then(
-        tabs => {
-          vm.url = tabs[0].url;
+    let vm = this;
+    load_parsers().then(result => {
+      vm.parsers = result;
+      browser.tabs.query({active: true, currentWindow: true}).then(
+          tabs => {
+            vm.url = tabs[0].url;
+          }
+      );
+      window.addEventListener('message', function (event) {
+        let command = event.data.command;
+        vm.status_txt = event.data.message;
+        switch (command) {
+          case 'toc':
+            vm.chaps = event.data.chaps;
+            vm.chap_cnt = vm.chaps.length;
+            break;
         }
-    );
-    window.addEventListener('message', function(event) {
-      vm.status_txt = event.data.message;
-    });
-    browser.runtime.onMessage.addListener(
-        request => {
-          if (request.action == "getSource") {
-            if (request.data == null) {
-              vm.status_txt = "Script failed.";
-            } else {
-              try {
-                let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
-                iframe.contentWindow.postMessage({
-                  command: 'render',
-                  context: "blah"
-                }, '*');
-                // vm.chaps = parse_toc_links(request.data.source, request.data.url);
-                // vm.chap_cnt = vm.chaps.length;
-                // vm.status_txt = "Chapters parsed: " + vm.chaps.length;
-              } catch (e) {
-                vm.status_txt = "Unable to parse chapters.";
+      });
+      browser.runtime.onMessage.addListener(
+          request => {
+            vm.status_txt = "Received response.";
+            if (request.action == "getSource") {
+              if (request.data == null) {
+                vm.status_txt = "Script failed.";
+              } else {
+                try {
+                  vm.status_txt = "Parsing page content...";
+                  let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
+                  iframe.contentWindow.postMessage({
+                    command: 'main_parse',
+                    parser: vm.parsers,
+                    doc: request.data
+                  }, '*');
+                } catch (e) {
+                  vm.status_txt = "Unable to parse content: "+e;
+                }
               }
             }
           }
-        }
-    );
-    vm.status_txt = "Parsing page..."
-    setTimeout(this.check_curr_page, 500);
+      );
+      vm.status_txt = "Parsing page..."
+      setTimeout(this.check_curr_page, 100);
+    }).catch(e => vm.status_txt = e);
   },
   methods: {
+    /**
+     * Start Main  UI
+     */
     start_main() {
       let vm = this
       browser.tabs.create({url: "main.html", active: true}).then(
@@ -115,19 +129,24 @@ export default defineComponent({
           }
       );
     },
+    /**
+     * Get source from current page
+     */
     check_curr_page() {
       let vm = this
       vm.status_txt = "Injecting...";
-      browser.tabs.executeScript(null, {file: "js/getPageSource.js",}).catch(
+      browser.tabs.executeScript(null, {file: "js/getPageSource.js",}).then(
+          () => vm.status_txt = "Script injected. Awaiting response."
+      ).catch(
           error => {
             vm.status_txt = "Injection failed: " + error.message;
           }
       );
     },
     /**
-     * Statis function to send parsed data/config to Main UI
-     * @param tab
-     * @param data
+     * Function to send parsed data/config to Main UI
+     * @param tab Browser tab object
+     * @param data List of chapters extracted
      */
     send_msg(
         tab: browser.Tabs.Tab,

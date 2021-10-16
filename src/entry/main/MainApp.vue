@@ -2,6 +2,9 @@
   <div id="app">
     <div class="p-fluid p-formgrid p-grid">
       <div class="p-field p-col-12">
+        <Message :closable="false">{{ status_txt }}</Message>
+      </div>
+      <div class="p-field p-col-12">
         <DataTable :value="chapts"
                    v-model:selection="selected_chaps"
                    :paginator="true" :rows="20"
@@ -15,10 +18,15 @@
               <a :href="slotProps.data.url" target="_blank" rel="noopener noreferrer">{{ slotProps.data.url }}</a>
             </template>
           </Column>
+          <Column field="html" header="HTML">
+            <template #body="slotProps">
+              {{ slotProps.data.html ? "Parsed":"" }}
+            </template>
+          </Column>
         </DataTable>
       </div>
       <div class="p-field p-col-6">
-        <Button label="Extract Chapters" @click="gen_epub()"/>
+        <Button label="Extract Chapters" @click="extract_chaps()"/>
       </div>
       <div class="p-field p-col-6">
         <Button label="Compile Epub" @click="gen_epub()"/>
@@ -53,6 +61,7 @@ import {NovelData, Chapter} from "../../common/novel_data";
 export default defineComponent({
   name: 'App',
   components: {
+    Message,
     DataTable,
     Column,
     ColumnGroup,
@@ -60,6 +69,7 @@ export default defineComponent({
   },
   data() {
     return {
+      status_txt: "",
       selected_chaps: null as Chapter[],
       chapts: null as Chapter[]
     }
@@ -77,70 +87,29 @@ export default defineComponent({
         vm.chapts = request.data;
       }
     },
-    gen_epub() {
-      let chapters = document.getElementById("chapters");
-      let compile_epub = document.getElementById("compile_epub");
-      let compile_result = document.getElementById("compile_result");
-      let novdata = new NovelData();
-      let metadata = document.getElementById("metadata");
-      let inps = chapters.querySelectorAll("input");
-      let request = new XMLHttpRequest();
-
-      novdata.title = (<HTMLInputElement>(
-          metadata.querySelector("#title")
-      )).value;
-      novdata.author = (<HTMLInputElement>(
-          metadata.querySelector("#author")
-      )).value;
-      novdata.cover = (<HTMLInputElement>(
-          metadata.querySelector("#cover")
-      )).value;
-
-      function loop(i: number, length: number, resultArr: NovelData) {
-        if (i >= length) {
-          this.parse_results(resultArr);
-          return;
-        }
-        let url = inps[i].value;
-
-        request.open("GET", url);
-        request.onreadystatechange = function () {
-          if (request.readyState === XMLHttpRequest.DONE) {
-            if (request.status === 200) {
-              resultArr.push({
-                content: request.responseText,
-                url: request.responseURL,
-              });
-              compile_result.innerHTML =
-                  "Parsed chapter " +
-                  i +
-                  ", (" +
-                  ((i / length) * 100).toFixed(1) +
-                  "%) <br/>";
-              loop(i + 1, length, resultArr);
-            } else {
-              compile_result.innerHTML =
-                  "Invalid response " +
-                  request.status +
-                  " in chapter url: " +
-                  inps[i].value;
-            }
-          }
-        };
-        request.send();
+    extract_chaps() {
+      let vm = this;
+      let chap_fetches = [];
+      for (let c in vm.selected_chaps) {
+        chap_fetches.push(
+            fetch(vm.chapts[c].url)
+                .then(x => x.text())
+                .then(x => {
+                  vm.chapts[c].html = x;
+                })
+        );
       }
-
-      loop(0, inps.length, novdata);
+      Promise.all(chap_fetches).then(() => vm.status_txt="All selected chapters extracted.");
     },
-    parse_results(nov_data: NovelData) {
-      let compile_result = document.getElementById("compile_result");
-      for (let i in nov_data.chapters) {
-        compile_result.innerHTML = "Compiling " + i;
-        let chap = chap_parse(nov_data.chapters[i]);
-        nov_data.chapter_parsed[nov_data.chapters[i].url] = chap;
-      }
-      generate_epub(nov_data, compile_result);
-    }
+    gen_epub() {
+      // let compile_result = document.getElementById("compile_result");
+      // for (let i in nov_data.chapters) {
+      //   compile_result.innerHTML = "Compiling " + i;
+      //   let chap = chap_parse(nov_data.chapters[i]);
+      //   nov_data.chapter_parsed[nov_data.chapters[i].url] = chap;
+      // }
+      // generate_epub(nov_data, compile_result);
+    },
   }
 });
 

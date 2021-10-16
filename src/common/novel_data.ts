@@ -3,6 +3,7 @@ export interface Chapter {
     content: string;
     title?: string;
     html?: string;
+    html_parsed?: string;
 }
 
 export class NovelData {
