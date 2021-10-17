@@ -1,4 +1,9 @@
-# Main parser determins whether page is toc/chapter and sends back function name and function type
+# URL Filter, see if it's a known URL
+main_url_filter:
+  "www.novelupdates.com": [toc, chaps_nu]
+  "www.foxaholic.com": [toc, chaps_wp_manga]
+# For unknown URLs
+# Main parser determine whether page is toc/chapter and sends back function name and function type
 main_parser: |
   var url = new URL(arguments[0]);
   var src = arguments[1];
@@ -9,82 +14,70 @@ main_parser: |
       return ["toc", "chaps_wp_manga"];
   }
   return ["none"];
+
 # TOC parsers, returns a list of chapters
 toc_parsers:
-  chaps_nu: |
-    var domstr = arguments[1];
-    var parser = new DOMParser();
-    var dom = parser.parseFromString(domstr, "application/xml");
-    var chap_popup = dom.querySelector("#my_popupreading");
-    if (chap_popup == null) {
-        return []
-    }
-    var chap_lis = chap_popup.querySelectorAll("a");
-    var chaps = [];
-    chap_lis.forEach((element) => {
-        if (element.href.includes("extnu")) {
+  chaps_nu:
+    name: Novel Update
+    code: |
+      var domstr = arguments[1];
+      var cb = arguments[2];
+      var parser = new DOMParser();
+      var dom = parser.parseFromString(domstr, "application/xml");
+      var chap_popup = dom.querySelector("#my_popupreading");
+      if (chap_popup == null) {
+          return []
+      }
+      var chap_lis = chap_popup.querySelectorAll("a");
+      var chaps = [];
+      chap_lis.forEach((element) => {
+          if (element.href.includes("extnu")) {
+              chaps.unshift({
+                  url_title: element.innerText,
+                  url: element.href.replace("chrome-extension", "https"),
+              });
+          }
+      });
+      cb(chaps);
+  chaps_wp_manga:
+    name: Wordpress Manga
+    code: |
+      var domstr = arguments[1];
+      var cb = arguments[2];
+      var parser = new DOMParser();
+      var dom = parser.parseFromString(domstr, "application/xml");
+      var chap_cont = dom.querySelector("#manga-chapters-holder > div.page-content-listing.single-page > div > ul");
+      var chap_lis = chap_cont.querySelectorAll("a");
+      var chaps = []
+      chap_lis.forEach((element) => {
             chaps.unshift({
-                content: element.innerText,
+                url_title: element.innerText,
                 url: element.href.replace("chrome-extension", "https"),
             });
-        }
-    });
-    return chaps;
-  chaps_wp_manga: |
-    var domstr = arguments[1];
-    var parser = new DOMParser();
-    var dom = parser.parseFromString(domstr, "application/xml");
-    var chap_cont = dom.querySelector("#manga-chapters-holder > div.page-content-listing.single-page > div > ul");
-    var chap_lis = chap_cont.querySelectorAll("a");
-    var chaps = []
-    chap_lis.forEach((element) => {
-          chaps.unshift({
-              content: element.innerText,
-              url: element.href.replace("chrome-extension", "https"),
-          });
-    });
-    return chaps;
+      });
+      cb(chaps);
 
-  chaps_wp: |
-    var domstr = arguments[1];
-    let parser = new DOMParser();
-    let dom = parser.parseFromString(dom_str, "application/xml");
-    console.log(dom)
-    let chap_cont = dom.querySelector(".entry-content");
-    chap_cont.querySelector("#jp-post-flair").remove();
-
-    let chap_lis = chap_cont.querySelectorAll("a");
-    let chaps: Chapter[] = [];
-    chap_lis.forEach((element) => {
-        chaps.push({
-            content: element.innerText,
-            url: element.href.replace("chrome-extension", "https"),
-        });
-    });
-    return chaps;
-  chaps_bastion: |
-    let parser = new DOMParser();
-    let dom = parser.parseFromString(dom_str, "text/html");
-    console.log(dom)
-    let chap_cont = <HTMLElement>dom.querySelector("ul.main");
-    let chap_lis = chap_cont.querySelectorAll("a:not(.has-child)");
-    let chaps: Chapter[] = [];
-    chap_lis.forEach((element) => {
-        chaps.unshift({
-            content: (<HTMLAnchorElement>element).innerText,
-            url: (<HTMLAnchorElement>element).href.replace("chrome-extension", "https"),
-        });
-    });
-    return chaps;
+# Determines type of chapter parser to use
+chap_main_parser: |
+  var url = new URL(arguments[0]);
+  var src = arguments[1];
+  switch (url.hostname) {
+    case "www.novelupdates.com":
+      return ["chap", "chaps_nu"];
+    case "www.foxaholic.com":
+      return ["chap", "chaps_wp_manga"];
+  }
+  return ["none"];
 # Chapter parsers, return chapter content, and optionally next chapter.
-chap_parser:
-  main_parser: |
-    var url = new URL(arguments[0]);
-    var src = arguments[1];
-    switch (url.hostname) {
-      case "www.novelupdates.com":
-        return ["toc", "chaps_nu"];
-    }
-    return ["none"];
-  chap_wp_manga: |
-    var sel="body > div.wrap > div > div > div > div > div > div > div > div > div.c-blog-post > div.entry-content > div > div > div > div.text-left";
+chap_parsers:
+  chaps_wp_manga:
+    name: Wordpress Manga
+    code: |
+      var domstr = arguments[1];
+      var title = arguments[2];
+      var cb = arguments[3];
+      var parser = new DOMParser();
+      var dom = parser.parseFromString(domstr, "text/html");
+      var sel="body > div.wrap > div > div > div > div > div > div > div > div > div.c-blog-post > div.entry-content > div > div > div > div.text-left";
+      var chap_html = dom.querySelector(sel);
+      cb(title, chap_html.innerHTML);

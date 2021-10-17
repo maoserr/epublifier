@@ -38,6 +38,7 @@
     "jepub": "^2.1.4",
     "js-yaml": "^4.1.0",
     "jszip": "^3.7.1",
+    "p-limit": "^4.0.0",
     "primeflex": "^2.0.0",
     "primeicons": "^4.1.0",
     "primevue": "^3.7.1",

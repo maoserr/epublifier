@@ -1,9 +1,62 @@
 import {load} from "js-yaml";
+import {Chapter} from "../common/novel_data";
 
 interface Parser {
     main_parser: string;
-    toc_parsers: Record<string, string>;
-    chap_parsers: Record<string, string>
+    toc_parsers: Record<string, Record<string, string>>;
+    chap_main_parser: string;
+    chap_parsers: Record<string, Record<string, string>>;
+}
+
+function main_parse(event: MessageEvent) {
+    let parser: Parser = load(event.data.parser) as Parser;
+    let doc = event.data.doc;
+    let main_func = Function(parser["main_parser"]);
+    let main_out = main_func(doc["url"], doc["source"]);
+    if (main_out[0] == "toc") {
+        let toc_func = Function(parser["toc_parsers"][main_out[1]]["code"])
+        toc_func(doc["url"], doc["source"], function (chaps: Chapter[]) {
+            event.source.postMessage({
+                command: "toc",
+                message: "Table of contents detected and parsed.",
+                chaps: chaps,
+            }, event.origin as WindowPostMessageOptions);
+        })
+        return;
+    } else if (main_out[0] == "chap") {
+
+    }
+    event.source.postMessage({
+        command: "error",
+        message: "Unrecognized page."
+    }, event.origin as WindowPostMessageOptions);
+}
+
+function chap_parse(event: MessageEvent) {
+    let parser: Parser = load(event.data.parser) as Parser;
+    let html = event.data.doc;
+    let url = event.data.url;
+    let id = event.data.id;
+    let title = event.data.url_title;
+    let chap_main_func = Function(parser["chap_main_parser"])
+    let chap_main_out = chap_main_func(url, html);
+    if (chap_main_out[0] == "chap") {
+        let chap_func = Function( parser["chap_parsers"][chap_main_out[1]]["code"])
+        chap_func(url, html,title, function (title: string, out_html: string) {
+            event.source.postMessage({
+                command: "chap",
+                message: "Chapter "+id+" detected and parsed.",
+                title: title,
+                html: out_html,
+                id: id,
+            }, event.origin as WindowPostMessageOptions);
+        })
+        return;
+    }
+    event.source.postMessage({
+        command: "error",
+        message: "Unrecognized page."
+    }, event.origin as WindowPostMessageOptions);
 }
 
 window.addEventListener('message', function (event) {
@@ -11,32 +64,14 @@ window.addEventListener('message', function (event) {
     try {
         switch (command) {
             case 'main_parse':
-                let parser: Parser = load(event.data.parser) as Parser;
-                let doc = event.data.doc;
-                let main_func = Function(parser["main_parser"]);
-                let main_out = main_func(doc["url"], doc["source"]);
-                if (main_out[0] == "toc") {
-                    let toc_func = Function(parser["toc_parsers"][main_out[1]])
-                    let chaps = toc_func(doc["url"], doc["source"])
-                    event.source.postMessage({
-                        command: "toc",
-                        message: "Table of contents detected and parsed.",
-                        chaps: chaps,
-                    }, event.origin as WindowPostMessageOptions);
-                } else if (main_out[0] == "chap") {
-
-                } else if (main_out[0] == "none"){
-
-                } else {
-
-                }
-
-                break;
+                return main_parse(event);
+            case 'chap_parse':
+                return chap_parse(event);
         }
     } catch (e) {
         event.source.postMessage({
             command: "error",
-            message: "Parser error: "+ e,
+            message: "Parser error: " + e,
         }, event.origin as WindowPostMessageOptions);
     }
 });

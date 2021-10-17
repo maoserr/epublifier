@@ -1,6 +1,6 @@
 export interface Chapter {
     url: string;
-    content: string;
+    url_title: string;
     title?: string;
     html?: string;
     html_parsed?: string;
@@ -12,22 +12,16 @@ export class NovelData {
     publisher: string;
     description: string;
     chapters: Chapter[];
-    chapter_parsed: Record<string, Chapter>;
     cover: string;
     filename: string;
 
-    constructor() {
+    constructor(chaps: Chapter[]) {
         this.publisher = "None";
         this.description = "N/A";
-        this.filename = "epublifier.epub"
-        this.chapters = []
-        this.chapter_parsed = {}
+        this.filename = "epublifier.epub";
+        this.chapters = chaps;
         this.cover = ""
-        this.title = ""
-        this.author = ""
-    }
-
-    push(chap: Chapter) {
-        this.chapters.push(chap);
+        this.title = "None"
+        this.author = "None"
     }
 }

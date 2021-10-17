@@ -42,7 +42,7 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/md-light-indigo/theme.css';
 
 import {Chapter} from "../../common/novel_data";
-import {load_parsers} from "../../book_parser/toc_parser"
+import {load_parsers} from "../../common/parser_loader"
 
 export default defineComponent({
   name: 'App',
@@ -107,7 +107,7 @@ export default defineComponent({
                     doc: request.data
                   }, '*');
                 } catch (e) {
-                  vm.status_txt = "Unable to parse content: "+e;
+                  vm.status_txt = "Unable to parse content: " + e;
                 }
               }
             }
@@ -166,7 +166,7 @@ export default defineComponent({
       // in case we're faster than page load (usually):
       browser.tabs.onUpdated.addListener(handler);
       // just in case we're too late with the listener:
-      browser.tabs.sendMessage(tab.id, tab_msg);
+      browser.tabs.sendMessage(tab.id, tab_msg).catch(e => vm.status_txt = "Done");
       vm.status_txt = "Done";
     }
   }
