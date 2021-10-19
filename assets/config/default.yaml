@@ -1,7 +1,3 @@
-# URL Filter, see if it's a known URL
-main_url_filter:
-  "www.novelupdates.com": [toc, chaps_nu]
-  "www.foxaholic.com": [toc, chaps_wp_manga]
 # For unknown URLs
 # Main parser determine whether page is toc/chapter and sends back function name and function type
 main_parser: |
@@ -21,9 +17,8 @@ toc_parsers:
     name: Novel Update
     code: |
       var domstr = arguments[1];
-      var cb = arguments[2];
       var parser = new DOMParser();
-      var dom = parser.parseFromString(domstr, "application/xml");
+      var dom = parser.parseFromString(domstr, "text/html");
       var chap_popup = dom.querySelector("#my_popupreading");
       if (chap_popup == null) {
           return []
@@ -38,14 +33,13 @@ toc_parsers:
               });
           }
       });
-      cb(chaps);
+      return chaps;
   chaps_wp_manga:
     name: Wordpress Manga
     code: |
       var domstr = arguments[1];
-      var cb = arguments[2];
       var parser = new DOMParser();
-      var dom = parser.parseFromString(domstr, "application/xml");
+      var dom = parser.parseFromString(domstr, "text/html");
       var chap_cont = dom.querySelector("#manga-chapters-holder > div.page-content-listing.single-page > div > ul");
       var chap_lis = chap_cont.querySelectorAll("a");
       var chaps = []
@@ -55,7 +49,7 @@ toc_parsers:
                 url: element.href.replace("chrome-extension", "https"),
             });
       });
-      cb(chaps);
+      return chaps;
 
 # Determines type of chapter parser to use
 chap_main_parser: |
@@ -80,4 +74,4 @@ chap_parsers:
       var dom = parser.parseFromString(domstr, "text/html");
       var sel="body > div.wrap > div > div > div > div > div > div > div > div > div.c-blog-post > div.entry-content > div > div > div > div.text-left";
       var chap_html = dom.querySelector(sel);
-      cb(title, chap_html.innerHTML);
+      return [title, chap_html.innerHTML];

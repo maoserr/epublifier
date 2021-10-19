@@ -10,6 +10,7 @@ module.exports = {
         main: join(__dirname, "src/entry/main/main.ts"),
         getPageSource: join(__dirname, "src/entry/getPageSource.ts"),
         sandbox: join(__dirname, "src/entry/sandbox.ts"),
+        options: join(__dirname, "src/entry/options/options.ts"),
     },
     devtool: "source-map",
     devServer: {
@@ -61,6 +62,11 @@ module.exports = {
             chunks: ['sandbox'],
             filename: 'sandbox.html',
             template: 'templates/sandbox.html'
+        }),
+        new HtmlWebpackPlugin({
+            chunks: ['options'],
+            filename: 'options.html',
+            template: 'templates/options.html'
         }),
         new CopyPlugin({
             patterns: [

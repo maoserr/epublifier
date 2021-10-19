@@ -7,8 +7,8 @@
         <small class="p-error" v-if="!chap.title">Title is required.</small>
       </div>
       <div class="p-field">
-        <label for="innerhtml">Description</label>
-        <Textarea id="innerhtml" v-model="chap.html" required="true" rows="3" cols="20"/>
+        <label for="innerhtml">Parsed HTML</label>
+        <Textarea id="innerhtml" v-model="chap.html_parsed" disabled required="true" rows="30" cols="150"/>
       </div>
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hide_dialog"/>
@@ -24,9 +24,12 @@
       <div class="p-field p-col-12">
         <DataTable :value="chapts"
                    v-model:selection="selected_chaps"
-                   :paginator="true" :rows="20"
+                   selectionMode="multiple"
+                   scrollable scrollHeight="500px"
+                   :paginator="true" :rows="100"
+                   class="p-datatable-sm"
                    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                   :rowsPerPageOptions="[10,20,50]" responsiveLayout="scroll"
+                   :rowsPerPageOptions="[100, 200,500]" responsiveLayout="scroll"
                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
           <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
           <Column field="url_title" header="URL Title" :sortable="true"></Column>
@@ -42,7 +45,7 @@
           </Column>
           <Column :exportable="false" style="min-width:8rem">
             <template #body="slotProps">
-              <Button icon="pi pi-pencil" class="p-button-rounded p-button-success p-mr-2"
+              <Button icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm"
                       @click="edit_chap(slotProps.data)"/>
             </template>
           </Column>

@@ -14,9 +14,15 @@
                   placeholder="Select a Page Type"/>
       </div>
       <div class="p-field p-col-6">
+        <label for="pagefunc">Parser</label>
+        <Dropdown id="pagefunc" v-model="selectedParserType" :options="parsersTypes" optionLabel="name"
+                  placeholder="Select a Parser"/>
+      </div>
+      <div class="p-col-12">
         <br/>
         Detected Chapters: {{ chap_cnt }} <br/>
         Detected Page type: {{ page_type }} <br/>
+        <br/>
       </div>
       <div class="p-field p-col-12">
         <Button label="Load Page List" @click="start_main()"/>
@@ -42,7 +48,8 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/md-light-indigo/theme.css';
 
 import {Chapter} from "../../common/novel_data";
-import {load_parsers} from "../../common/parser_loader"
+import {load_parsers, Parser} from "../../common/parser_loader"
+import {load} from "js-yaml";
 
 export default defineComponent({
   name: 'App',
@@ -58,7 +65,7 @@ export default defineComponent({
       url: "",
       selectedPageType: null,
       pageTypes: [
-        {name: 'List of Chapters', code: 'loc'},
+        {name: 'Table of Contents', code: 'toc'},
         {name: 'First Page', code: 'fp'},
       ],
       title: "Epublifier",
@@ -66,7 +73,9 @@ export default defineComponent({
       page_type: "List of Chapters",
       status_txt: "",
       chaps: [] as Chapter[],
-      parsers: null
+      parsers: null,
+      selectedParserType: null,
+      parsersTypes: [{name: 'Test', code: 'test'}],
     }
   },
   /**
@@ -76,6 +85,11 @@ export default defineComponent({
     let vm = this;
     load_parsers().then(result => {
       vm.parsers = result;
+      let parser_yml: Parser = load(result) as Parser;
+      vm.parsersTypes = []
+      for (let k in parser_yml["toc_parsers"]) {
+        vm.parsersTypes.push({name: parser_yml["toc_parsers"][k]["name"], code: k})
+      }
       browser.tabs.query({active: true, currentWindow: true}).then(
           tabs => {
             vm.url = tabs[0].url;
@@ -88,6 +102,8 @@ export default defineComponent({
           case 'toc':
             vm.chaps = event.data.chaps;
             vm.chap_cnt = vm.chaps.length;
+            vm.selectedPageType = vm.pageTypes.find((x: any) => x.code === 'toc');
+            vm.selectedParserType = vm.parsersTypes.find((x: any) => x.code === event.data.parser);
             break;
         }
       });
