@@ -4,8 +4,10 @@
   "description": "Converts Web Novels to Epub",
   "private": true,
   "scripts": {
-    "watch": "webpack --mode development --watch",
-    "build": "webpack --mode production"
+    "watch": "webpack --env=browser_type='chrome' --mode development --watch",
+    "watch_ff": "webpack --env=browser_type='firefox' --mode development --watch",
+    "build": "webpack --env=browser_type='chrome' --mode production",
+    "build_ff": "webpack --env=browser_type='firefox' --mode production"
   },
   "repository": {
     "type": "git",

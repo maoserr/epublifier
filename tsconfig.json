@@ -1,18 +1,17 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports":true,
-    "outDir": "./dist/",
-    "sourceMap": true,
-    "noImplicitAny": true,
     "target": "esnext",
     "module": "esnext",
     "strict": false,
-    "jsx": "preserve",
     "moduleResolution": "node",
-    "allowJs": true,
-    "experimentalDecorators": true
+    "noImplicitThis": true,
+    "outDir": "./dist/",
+    "sourceMap": true
   },
   "baseUrl": "./src",
-  "include": ["./src"],
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.vue"
+  ],
   "exclude": ["node_modules"]
 }
