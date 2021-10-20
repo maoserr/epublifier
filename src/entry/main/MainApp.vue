@@ -110,13 +110,15 @@ export default defineComponent({
       diag_show: false,
     }
   },
+  created() {
+    if ("runtime" in browser && "onMessage" in browser.runtime) {
+      browser.runtime.onMessage.addListener(this.msg_func);
+    }
+  },
   mounted() {
     let vm = this;
     load_parsers().then(result => {
       vm.parsers = result;
-      if ("runtime" in browser && "onMessage" in browser.runtime) {
-        browser.runtime.onMessage.addListener(this.msg_func);
-      }
       window.addEventListener('message', function (event) {
         let command = event.data.command;
         vm.status_txt = event.data.message;
@@ -137,7 +139,7 @@ export default defineComponent({
       let vm = this;
       browser.runtime.onMessage.removeListener(this.msg_func);
       if (request.action == "newTabSource") {
-        vm.chapts = request.data;
+        vm.chapts = JSON.parse(request.data);
         vm.status_txt = "Loaded chapters.";
       }
     },

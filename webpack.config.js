@@ -3,6 +3,31 @@ const {VueLoaderPlugin} = require("vue-loader");
 const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require("webpack");
+const pack = require('./package.json');
+
+function modify_manifest(buffer) {
+    // copy-webpack-plugin passes a buffer
+    let manifest = JSON.parse(buffer.toString());
+
+    // Firefox specific
+    manifest.browser_specific_settings = {
+        "gecko":{
+            "id": "epublifier@maoserr.com",
+            "strict_min_version": "42.0"
+        }
+    }
+    manifest.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self';";
+
+    // Chrome specific
+    manifest.sandbox = {"pages":["sandbox.html"]};
+
+    // Dynamic version
+    manifest.version = pack.version;
+
+    // pretty print to JSON with two spaces
+    manifest_JSON = JSON.stringify(manifest, null, 2);
+    return manifest_JSON;
+}
 
 module.exports = {
     entry: {
@@ -73,6 +98,13 @@ module.exports = {
                 {from: "assets"},
                 {from: "node_modules/jszip/dist/jszip.min.js", to: "js/vender"},
                 {from: "node_modules/ejs/ejs.min.js", to: "js/vender"},
+                {
+                    from: "src/manifest.json",
+                    to: "manifest.json",
+                    transform(content, path) {
+                        return modify_manifest(content)
+                    }
+                }
             ],
         }),
         new webpack.DefinePlugin({

@@ -1,9 +1,10 @@
 {
   "name": "Epublifier",
-  "version": "1.0",
   "description": "Epublify some common websites",
   "permissions": ["tabs", "<all_urls>", "downloads", "storage"],
-  "options_page": "options.html",
+  "options_ui": {
+    "page": "options.html"
+  },
   "background": {
     "scripts": ["js/vender/hot-reload.js"],
     "persistent": false
@@ -17,9 +18,6 @@
     },
     "default_title": "Epublifier",
     "default_popup": "popup.html"
-  },
-  "sandbox": {
-    "pages": ["sandbox.html"]
   },
   "icons": {
     "16": "images/icon16.png",

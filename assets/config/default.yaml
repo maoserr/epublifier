@@ -29,7 +29,7 @@ toc_parsers:
           if (element.href.includes("extnu")) {
               chaps.unshift({
                   url_title: element.innerText,
-                  url: element.href.replace("chrome-extension", "https"),
+                  url: element.href.replace(/chrome-extension|moz-extension/, "https"),
               });
           }
       });

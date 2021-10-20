@@ -171,7 +171,7 @@ export default defineComponent({
       let vm = this;
       let tab_msg = {
         action: "newTabSource",
-        data: data
+        data: JSON.stringify(data)
       }
       let handler = function (tabid: number, changeInfo: any) {
         if (tabid === tab.id && changeInfo.status === "complete") {
@@ -180,9 +180,10 @@ export default defineComponent({
         }
       };
       // in case we're faster than page load (usually):
-      browser.tabs.onUpdated.addListener(handler);
+      browser.tabs.onUpdated.addListener(handler)
       // just in case we're too late with the listener:
-      browser.tabs.sendMessage(tab.id, tab_msg).catch(e => vm.status_txt = "Done");
+      setTimeout(()=>browser.tabs.sendMessage(tab.id, tab_msg).catch(e => vm.status_txt = "Done"),
+          500);
       vm.status_txt = "Done";
     }
   }
