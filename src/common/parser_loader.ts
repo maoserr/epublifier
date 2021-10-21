@@ -7,21 +7,27 @@ export interface Parser {
     chap_parsers: Record<string, Record<string, string>>;
 }
 
-function get_default(): Promise<string> {
-    return fetch(browser.runtime.getURL("config/default.yaml")).then(r => r.text()).then(result => {
-        return result;
+export async function get_initial(): Promise<string> {
+    let result = await fetch(browser.runtime.getURL("config/default.yaml"));
+    let txt = result.text();
+    await browser.storage.sync.set({
+        "parser_main": txt
     })
+    return txt;
 }
 
 
-export function load_parsers(): Promise<string> {
-    return browser.storage.sync.get("parser_main").then(
-        x => {
-            if (x.hasOwnProperty('parser_main')) {
-                return x["parser_main"];
-            } else {
-                return get_default();
-            }
-        }
-    );
+export async function load_parsers(): Promise<string> {
+    let config = await browser.storage.sync.get("parser_main")
+    if (config.hasOwnProperty('parser_main') && (config["parser_main"] != null)) {
+        return config["parser_main"];
+    } else {
+        return get_initial();
+    }
+}
+
+export async function save_parsers(txt: string) {
+    await browser.storage.sync.set({
+        "parser_main": txt
+    })
 }

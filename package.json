@@ -21,13 +21,14 @@
   },
   "homepage": "https://github.com/maoserr/web_novel_to_epub#readme",
   "devDependencies": {
-    "@types/dompurify": "^2.2.3",
     "@types/webextension-polyfill": "^0.8.0",
     "@vue/compiler-sfc": "^3.2.19",
     "style-loader": "^3.3.0",
     "ts-loader": "^8.3.0",
     "typescript": "^4.4.3",
+    "vue-loader": "^16.5.0",
     "webextension-polyfill": "^0.6.0",
+    "webpack": "^5.59.0",
     "webpack-cli": "^4.8.0"
   },
   "dependencies": {
@@ -35,7 +36,6 @@
     "@types/js-yaml": "^4.0.3",
     "copy-webpack-plugin": "^9.0.1",
     "css-loader": "^6.3.0",
-    "dompurify": "^2.3.2",
     "html-webpack-plugin": "^5.3.2",
     "jepub": "^2.1.4",
     "js-yaml": "^4.1.0",
@@ -44,8 +44,6 @@
     "primeflex": "^2.0.0",
     "primeicons": "^4.1.0",
     "primevue": "^3.7.1",
-    "vue": "^3.2.19",
-    "vue-loader": "^16.8.1",
-    "webpack": "^5.55.1"
+    "vue": "^3.2.19"
   }
 }

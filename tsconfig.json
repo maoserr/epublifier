@@ -5,8 +5,7 @@
     "strict": false,
     "moduleResolution": "node",
     "noImplicitThis": true,
-    "outDir": "./dist/",
-    "sourceMap": true
+    "allowJs": true
   },
   "baseUrl": "./src",
   "include": [

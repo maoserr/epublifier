@@ -27,6 +27,9 @@
       <div class="p-field p-col-12">
         <Button label="Load Page List" @click="start_main()"/>
       </div>
+      <div class="p-field p-col-12">
+        <Button label="Load Page List" @click="start_main()"/>
+      </div>
     </div>
   </div>
 </template>
@@ -50,6 +53,7 @@ import 'primevue/resources/themes/md-light-indigo/theme.css';
 import {Chapter} from "../../common/novel_data";
 import {load_parsers, Parser} from "../../common/parser_loader"
 import {load} from "js-yaml";
+
 
 export default defineComponent({
   name: 'App',
