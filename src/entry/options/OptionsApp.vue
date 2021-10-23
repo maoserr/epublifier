@@ -3,7 +3,7 @@
     <div class="p-fluid p-formgrid p-grid">
       <div class="p-field p-col-6">
         <label for="parsedoc">Parser:</label>
-        <Dropdown id="parsedoc" v-model="selectedParsecat" :options="parsecats" optionLabel="name"
+        <Dropdown id="parsedoc" v-model="selectedParsedoc" :options="parsedocs" optionLabel="name"
                   placeholder="Select a Parser Category Type"/>
       </div>
       <div class="p-field p-col-6">
@@ -18,10 +18,10 @@
       </div>
       <div class="p-field">
         <label for="parser_txt">Parser Definition:</label>
-        <Textarea id="parser_txt" v-model="parser_config" required="true" rows="20" cols="150"/>
+        <Textarea id="parser_txt" v-model="txt" required="true" rows="20" cols="150"/>
       </div>
       <div class="p-field p-col-6 p-md-3">
-        <Button label="Reset" icon="pi pi-minus-circle" @click="reset_options"/>
+        <Button label="Reset Default" icon="pi pi-minus-circle" @click="reset_options"/>
       </div>
       <div class="p-field p-col-6 p-md-3">
         <Button label="Save" icon="pi pi-check" @click="save_options"/>
@@ -55,6 +55,8 @@ export default defineComponent({
   },
   data() {
     return {
+      selectedParsedoc: null,
+      parsedocs: [],
       selectedParsecat: null,
       parsecats: [
         {name: "Main Parser", code: 'main'},
@@ -62,18 +64,19 @@ export default defineComponent({
         {name: "Chapter Parser", code: 'chap'}
       ],
       selectedParser: null,
-      parser_config: "",
+      parsers: [],
       txt: ""
     }
   },
   async mounted() {
-    this.parser_config = await load_parsers();
+    let parser_config = await load_parsers();
+    this.parsers = []
   },
   computed: {
-    parsers(): Record<string, string>[] {
-      return [
-        {name: "Test", code: "test"}
-      ]
+  },
+  watch: {
+    selectedParsedoc(olddoc, newdoc):void {
+
     }
   },
   methods: {

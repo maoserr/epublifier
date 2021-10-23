@@ -11,7 +11,8 @@ export interface Parser {
 export async function get_initial(): Promise<Record<string,Parser>> {
     let result = await fetch(browser.runtime.getURL("config/default.yaml"));
     let txt = await result.text();
-    let parser = load(txt) as Parser
+    // Ignore any YAML specific functions
+    let parser = Object.assign({},load(txt)) as Parser
     await browser.storage.sync.set({
         "parsers": {"main": parser}
     })
