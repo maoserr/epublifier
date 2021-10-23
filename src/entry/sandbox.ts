@@ -4,7 +4,7 @@ import {Parser} from "../common/parser_loader";
 
 function main_parse(event: MessageEvent) {
     let parser: Parser = load(event.data.parser) as Parser;
-    let doc = event.data.doc;
+    let doc = JSON.parse(event.data.doc);
     let main_func = Function(parser["main_parser"]);
     Promise.resolve(main_func(doc["url"], doc["source"])).then(
         main_out => {

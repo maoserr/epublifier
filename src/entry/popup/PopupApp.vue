@@ -24,11 +24,11 @@
         Detected Page type: {{ page_type }} <br/>
         <br/>
       </div>
-      <div class="p-field p-col-12">
-        <Button label="Load Page List" @click="start_main()"/>
+      <div class="p-field p-col-6 p-md-3">
+        <Button label="(Re)Parse Source" @click="parse_source()"/>
       </div>
-      <div class="p-field p-col-12">
-        <Button label="Load Page List" @click="start_main()"/>
+      <div class="p-field p-col-6 p-md-3">
+        <Button label="Load Chapter List" class="p-button-success" icon="pi pi-check" @click="start_main()" :disabled="main_disable"/>
       </div>
     </div>
   </div>
@@ -73,109 +73,74 @@ export default defineComponent({
         {name: 'First Page', code: 'fp'},
       ],
       title: "Epublifier",
-      chap_cnt: 0,
       page_type: "List of Chapters",
       status_txt: "",
+      page_src: "",
       chaps: [] as Chapter[],
       parsers: null,
       selectedParserType: null,
-      parsersTypes: [{name: 'Test', code: 'test'}],
+      parsersTypes: [{name: 'Test', code: 'test'}]
+    }
+  },
+  computed: {
+    main_disable(): string {
+      return this.chaps.length == 0 ? "disabled" : null;
+    },
+    chap_cnt(): number {
+      return this.chaps.length;
     }
   },
   /**
    * Mounted hook
    */
-  mounted() {
+  async mounted() {
     let vm = this;
-    load_parsers().then(result => {
-      vm.parsers = result;
-      let parser_yml: Parser = load(result) as Parser;
-      vm.parsersTypes = []
-      for (let k in parser_yml["toc_parsers"]) {
-        vm.parsersTypes.push({name: parser_yml["toc_parsers"][k]["name"], code: k})
+    let result = await load_parsers();
+    vm.parsers = result;
+    let parser_yml: Parser = load(result) as Parser;
+    vm.parsersTypes = []
+    for (let k in parser_yml["toc_parsers"]) {
+      vm.parsersTypes.push({name: parser_yml["toc_parsers"][k]["name"], code: k})
+    }
+    let tabs = await browser.tabs.query({active: true, currentWindow: true})
+    vm.url = tabs[0].url;
+    window.addEventListener('message', function (event) {
+      let command = event.data.command;
+      vm.status_txt = event.data.message;
+      switch (command) {
+        case 'toc':
+          vm.chaps = event.data.chaps;
+          vm.selectedPageType = vm.pageTypes.find((x: any) => x.code === 'toc');
+          vm.selectedParserType = vm.parsersTypes.find((x: any) => x.code === event.data.parser);
+          break;
       }
-      browser.tabs.query({active: true, currentWindow: true}).then(
-          tabs => {
-            vm.url = tabs[0].url;
-          }
-      );
-      window.addEventListener('message', function (event) {
-        let command = event.data.command;
-        vm.status_txt = event.data.message;
-        switch (command) {
-          case 'toc':
-            vm.chaps = event.data.chaps;
-            vm.chap_cnt = vm.chaps.length;
-            vm.selectedPageType = vm.pageTypes.find((x: any) => x.code === 'toc');
-            vm.selectedParserType = vm.parsersTypes.find((x: any) => x.code === event.data.parser);
-            break;
-        }
-      });
-      browser.runtime.onMessage.addListener(
-          request => {
-            vm.status_txt = "Received response.";
-            if (request.action == "getSource") {
-              if (request.data == null) {
-                vm.status_txt = "Script failed.";
-              } else {
-                try {
-                  vm.status_txt = "Parsing page content...";
-                  let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
-                  iframe.contentWindow.postMessage({
-                    command: 'main_parse',
-                    parser: vm.parsers,
-                    doc: request.data
-                  }, '*');
-                } catch (e) {
-                  vm.status_txt = "Unable to parse content: " + e;
-                }
-              }
+    });
+    browser.runtime.onMessage.addListener(
+        request => {
+          vm.status_txt = "Received response.";
+          if (request.action == "getSource") {
+            if (request.data == null) {
+              vm.status_txt = "Script failed.";
+            } else {
+              vm.page_src = request.data;
+              vm.parse_source();
             }
           }
-      );
-      vm.status_txt = "Parsing page..."
-      setTimeout(this.check_curr_page, 100);
-    }).catch(e => vm.status_txt = e);
+        }
+    );
+    vm.status_txt = "Extracting source from page..."
+    setTimeout(this.extract_curr_source, 100);
   },
   methods: {
     /**
      * Start Main  UI
      */
-    start_main() {
+    async start_main() {
       let vm = this
-      browser.tabs.create({url: "main.html", active: true}).then(
-          t => {
-            vm.send_msg(t, vm.chaps);
-          }
-      );
-    },
-    /**
-     * Get source from current page
-     */
-    check_curr_page() {
-      let vm = this
-      vm.status_txt = "Injecting...";
-      browser.tabs.executeScript(null, {file: "js/getPageSource.js",}).then(
-          () => vm.status_txt = "Script injected. Awaiting response."
-      ).catch(
-          error => {
-            vm.status_txt = "Injection failed: " + error.message;
-          }
-      );
-    },
-    /**
-     * Function to send parsed data/config to Main UI
-     * @param tab Browser tab object
-     * @param data List of chapters extracted
-     */
-    send_msg(
-        tab: browser.Tabs.Tab,
-        data: Chapter[]
-    ) {
-      let vm = this;
+      let tab = await browser.tabs.create({url: "main.html", active: true});
       let tab_msg = {
         action: "newTabSource",
-        data: JSON.stringify(data)
+        data: JSON.stringify(vm.chaps)
       }
       let handler = function (tabid: number, changeInfo: any) {
         if (tabid === tab.id && changeInfo.status === "complete") {
@@ -186,9 +151,38 @@ export default defineComponent({
       // in case we're faster than page load (usually):
       browser.tabs.onUpdated.addListener(handler)
       // just in case we're too late with the listener:
-      setTimeout(()=>browser.tabs.sendMessage(tab.id, tab_msg).catch(e => vm.status_txt = "Done"),
+      setTimeout(() => browser.tabs.sendMessage(tab.id, tab_msg).catch(e => vm.status_txt = "Done: " + e),
           500);
       vm.status_txt = "Done";
+    },
+    /**
+     * Get source from current page
+     */
+    async extract_curr_source() {
+      let vm = this
+      vm.status_txt = "Injecting...";
+      try {
+        await browser.tabs.executeScript(null, {file: "js/getPageSource.js",})
+        vm.status_txt = "Script injected. Awaiting response."
+      } catch (error) {
+        vm.status_txt = "Injection failed: " + error.message;
+      }
+    },
+    async parse_source() {
+      let vm = this;
+      try {
+        vm.status_txt = "Parsing page content...";
+        let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
+        console.log(vm.parsers)
+        console.log(vm.page_src)
+        iframe.contentWindow.postMessage({
+          command: 'main_parse',
+          parser: vm.parsers,
+          doc: JSON.stringify(vm.page_src),
+        }, '*');
+      } catch (e) {
+        vm.status_txt = "Unable to parse content: " + e;
+      }
     }
   }
 })
