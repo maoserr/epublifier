@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require("webpack");
 const pack = require('./package.json');
 
-function modify_manifest(buffer, browser_type) {
+function modify_manifest(buffer, browser_type, mode) {
     // copy-webpack-plugin passes a buffer
     let manifest = JSON.parse(buffer.toString());
 
@@ -21,6 +21,12 @@ function modify_manifest(buffer, browser_type) {
     } else {
         // Chrome specific
         manifest.sandbox = {"pages": ["sandbox.html"]};
+        if (mode === "development") {
+            manifest.background = {
+                "scripts": ["js/vender/hot-reload.js"],
+                "persistent": false
+            }
+        }
     }
     // Dynamic version
     manifest.version = pack.version;
@@ -29,7 +35,7 @@ function modify_manifest(buffer, browser_type) {
     return JSON.stringify(manifest, null, 2);
 }
 
-module.exports = env => {
+module.exports = (env,argv) => {
     return {
         entry: {
             popup: join(__dirname, "src/entry/popup/popup.ts"),
@@ -106,7 +112,7 @@ module.exports = env => {
                         from: "src/manifest.json",
                         to: "manifest.json",
                         transform(content, path) {
-                            return modify_manifest(content, env.browser_type)
+                            return modify_manifest(content, env.browser_type, argv.mode)
                         }
                     }
                 ],

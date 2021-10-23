@@ -52,7 +52,6 @@ import 'primevue/resources/themes/md-light-indigo/theme.css';
 
 import {Chapter} from "../../common/novel_data";
 import {load_parsers, Parser} from "../../common/parser_loader"
-import {load} from "js-yaml";
 
 
 export default defineComponent({
@@ -79,7 +78,6 @@ export default defineComponent({
       chaps: [] as Chapter[],
       parsers: null,
       selectedParserType: null,
-      parsersTypes: [{name: 'Test', code: 'test'}]
     }
   },
   computed: {
@@ -88,6 +86,16 @@ export default defineComponent({
     },
     chap_cnt(): number {
       return this.chaps.length;
+    },
+    async parsers(): Promise<Record<string,Parser>> {
+      return await load_parsers();
+    },
+    async parsersTypes(): Promise<Record<string, string>[]> {
+      let parsetyps = []
+      for (let k in this.parsers["toc_parsers"]) {
+        parsetyps.push({name: this.parsers["toc_parsers"][k]["name"], code: k})
+      }
+      return parsetyps;
     }
   },
   /**
@@ -95,13 +103,6 @@ export default defineComponent({
    */
   async mounted() {
     let vm = this;
-    let result = await load_parsers();
-    vm.parsers = result;
-    let parser_yml: Parser = load(result) as Parser;
-    vm.parsersTypes = []
-    for (let k in parser_yml["toc_parsers"]) {
-      vm.parsersTypes.push({name: parser_yml["toc_parsers"][k]["name"], code: k})
-    }
     let tabs = await browser.tabs.query({active: true, currentWindow: true})
     vm.url = tabs[0].url;
     window.addEventListener('message', function (event) {

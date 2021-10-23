@@ -5,10 +5,6 @@
   "options_ui": {
     "page": "options.html"
   },
-  "background": {
-    "scripts": ["js/vender/hot-reload.js"],
-    "persistent": false
-  },
   "browser_action": {
     "default_icon": {
       "16": "images/icon16.png",

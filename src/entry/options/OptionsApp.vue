@@ -2,12 +2,17 @@
   <div id="app">
     <div class="p-fluid p-formgrid p-grid">
       <div class="p-field p-col-6">
+        <label for="parsedoc">Parser:</label>
+        <Dropdown id="parsedoc" v-model="selectedParsecat" :options="parsecats" optionLabel="name"
+                  placeholder="Select a Parser Category Type"/>
+      </div>
+      <div class="p-field p-col-6">
         <label for="parsecat">Category:</label>
         <Dropdown id="parsecat" v-model="selectedParsecat" :options="parsecats" optionLabel="name"
                   placeholder="Select a Parser Category Type"/>
       </div>
       <div class="p-field p-col-6">
-        <label for="parser">Parser:</label>
+        <label for="parser">Parse Function:</label>
         <Dropdown id="parser" v-model="selectedParser" :options="parsers" optionLabel="name"
                   placeholder="Select a Parser Category Type"/>
       </div>
