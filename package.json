@@ -14,7 +14,7 @@
     "url": "git+https://github.com/maoserr/web_novel_to_epub.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Mao Yu<maoserr@gmail.com>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/maoserr/web_novel_to_epub/issues"
@@ -44,6 +44,8 @@
     "primeflex": "^2.0.0",
     "primeicons": "^4.1.0",
     "primevue": "^3.7.1",
-    "vue": "^3.2.19"
+    "prismjs": "^1.25.0",
+    "vue": "^3.2.19",
+    "vue-prism-editor": "^2.0.0-alpha.2"
   }
 }

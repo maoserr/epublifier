@@ -1,5 +1,8 @@
 html {
-    font-size: 14px;
+    font-size: 0.9em;
+}
+label {
+    font-size: 1em;
 }
 body {
     margin: 10px;

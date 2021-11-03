@@ -15,12 +15,13 @@
         <Button label="Save" icon="pi pi-check" class="p-button-text" @click="save_chap"/>
       </template>
     </Dialog>
-
     <div class="p-fluid p-formgrid p-grid">
-      <div class="p-field p-col-12">
-        <Message :closable="false">{{ status_txt }}</Message>
-        <ProgressBar :value="progress_val" :showValue="true" style="height: .5em"/>
-      </div>
+      <NovelMetadata
+          :tit="title"
+          :auth="author"
+          :cov="cover"
+          :pub="publisher"
+          :desc="description"></NovelMetadata>
       <div class="p-field p-col-12">
         <DataTable :value="chapts"
                    v-model:selection="selected_chaps"
@@ -50,6 +51,10 @@
             </template>
           </Column>
         </DataTable>
+      </div>
+      <div class="p-field p-col-12">
+        <Message :closable="false">{{ status_txt }}</Message>
+        <ProgressBar :value="progress_val" :showValue="true" style="height: .5em"/>
       </div>
       <div class="p-field p-col-6">
         <Button label="Extract Chapters" @click="extract_chaps()"/>
@@ -85,10 +90,12 @@ import {NovelData, Chapter} from "../../common/novel_data";
 import {generate_epub} from "../../common/epub_generator";
 import {load_parsers} from "../../common/parser_loader";
 import pLimit from "p-limit";
+import NovelMetadata from "../../components/NovelMetadata.vue";
 
 export default defineComponent({
   name: 'App',
   components: {
+    NovelMetadata,
     Message,
     DataTable,
     Column,
@@ -103,11 +110,17 @@ export default defineComponent({
     return {
       status_txt: "",
       progress_val: 0,
+      title: "Epublifier",
+      publisher: "",
+      author: "",
+      cover: "",
+      description: "",
       chap: {} as Chapter,
       selected_chaps: null as Chapter[],
       chapts: null as Chapter[],
       parsers: null,
       diag_show: false,
+      parsedoc: "",
     }
   },
   created() {
@@ -115,23 +128,21 @@ export default defineComponent({
       browser.runtime.onMessage.addListener(this.msg_func);
     }
   },
-  mounted() {
+  async mounted() {
     let vm = this;
-    load_parsers().then(result => {
-      vm.parsers = result;
-      window.addEventListener('message', function (event) {
-        let command = event.data.command;
-        vm.status_txt = event.data.message;
-        switch (command) {
-          case 'chap':
-            let id = event.data.id;
-            let title = event.data.title;
-            let html = event.data.html;
-            vm.selected_chaps[id].html_parsed = html;
-            vm.selected_chaps[id].title = title;
-            break;
-        }
-      });
+    vm.parsers = await load_parsers();
+    window.addEventListener('message', function (event) {
+      let command = event.data.command;
+      vm.status_txt = event.data.message;
+      switch (command) {
+        case 'chap':
+          let id = event.data.id;
+          let title = event.data.title;
+          let html = event.data.html;
+          vm.selected_chaps[id].html_parsed = html;
+          vm.selected_chaps[id].title = title;
+          break;
+      }
     });
   },
   methods: {
@@ -140,10 +151,16 @@ export default defineComponent({
       browser.runtime.onMessage.removeListener(this.msg_func);
       if (request.action == "newTabSource") {
         vm.chapts = JSON.parse(request.data);
+        vm.title = request.metadata.title || "N/A";
+        vm.publisher = request.metadata.publisher ||  "N/A";
+        vm.author = request.metadata.author || "N/A";
+        vm.cover = request.metadata.cover || null;
+        vm.description = request.metadata.description ||  "N/A";
+        vm.parsedoc = request.parser.split("||")[0];
         vm.status_txt = "Loaded chapters.";
       }
     },
-    extract_chaps() {
+    async extract_chaps() {
       let vm = this;
       let chap_fetches = [];
       let cnt_slice = 100.0 / vm.selected_chaps.length;
@@ -160,8 +177,8 @@ export default defineComponent({
                         vm.status_txt = "Parsing chapter content: " + c;
                         let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
                         iframe.contentWindow.postMessage({
-                          command: 'chap_parse',
-                          parser: vm.parsers,
+                          parser: JSON.stringify(vm.parsers),
+                          selparser: vm.parsedoc+"||chap_main_parser",
                           doc: x,
                           id: c,
                           url: vm.selected_chaps[c].url,
@@ -169,6 +186,7 @@ export default defineComponent({
                         }, '*');
                       } catch (e) {
                         vm.status_txt = "Unable to parse content: " + e;
+                        console.log(e)
                       }
                       vm.progress_val += cnt_slice;
                     })
@@ -186,12 +204,20 @@ export default defineComponent({
     },
     save_chap() {
     },
-    gen_epub() {
+    async gen_epub() {
       let vm = this;
       let nov_data = new NovelData(this.selected_chaps);
-      generate_epub(nov_data, function (msg: string) {
-        vm.status_txt = msg
-      });
+      nov_data.title = vm.title;
+      nov_data.author = vm.author;
+      nov_data.publisher = vm.publisher;
+      nov_data.description = vm.description;
+      if (vm.cover != null) {
+        let response = await fetch(vm.cover);
+        if (response.ok) {
+          nov_data.cover = await response.blob();
+        }
+      }
+      await generate_epub(nov_data, function (msg: string) {vm.status_txt = msg});
     },
   }
 });

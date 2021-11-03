@@ -12,16 +12,18 @@ export class NovelData {
     publisher: string;
     description: string;
     chapters: Chapter[];
-    cover: string;
+    cover: Blob;
     filename: string;
+    tags: string[];
 
     constructor(chaps: Chapter[]) {
-        this.publisher = "None";
-        this.description = "N/A";
-        this.filename = "epublifier.epub";
-        this.chapters = chaps;
-        this.cover = ""
+        this.publisher = "None"
+        this.description = "N/A"
+        this.filename = "epublifier.epub"
+        this.chapters = chaps
+        this.cover = null
         this.title = "None"
         this.author = "None"
+        this.tags = ["default"]
     }
 }

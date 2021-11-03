@@ -9,15 +9,14 @@ function serialize_dom(dom: Document) {
     return s.serializeToString(dom)
 }
 
-try {
-    let data = {source: serialize_dom(document), url: window.location.href};
-    browser.runtime.sendMessage({
-        action: "getSource",
-        data: data
-    }).then();
-} catch (e) {
+
+let data = {source: serialize_dom(document), url: window.location.href};
+browser.runtime.sendMessage({
+    action: "getSource",
+    data: data
+}).catch(e => {
     browser.runtime.sendMessage({
         action: "getSource",
         data: null
-    }).then();
-}
+    });
+})

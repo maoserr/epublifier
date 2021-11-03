@@ -12,11 +12,12 @@ declare module "jepub/dist/jepub" {
         init(opts: unknown): jEpub;
         cover(blob: Blob): jEpub;
         notes(str: string): jEpub;
+        date(date: Date): jEpub;
         add(title: string, content: string | string[]): jEpub;
         generate(
             type: string,
             updateCallback: (metadata: metadata) => unknown
-        ): Promise<unknown>;
+        ): Promise<Blob>;
         static html2text(html: string): string;
     }
     export default jEpub;

@@ -4,31 +4,31 @@
       <div class="p-field p-col-12">
         <Message :closable="false">{{ status_txt }}</Message>
       </div>
-      <div class="p-field p-col-12">
+      <div class="p-field p-col-4">
         <label for="url">Page URL</label>
-        <InputText id="url" type="text" :value="url"/>
+        <InputText id="url" type="text" :value="url" disabled="disabled"/>
       </div>
-      <div class="p-field p-col-6">
-        <label for="pagetype">Page Type</label>
-        <Dropdown id="pagetype" v-model="selectedPageType" :options="pageTypes" optionLabel="name"
-                  placeholder="Select a Page Type"/>
-      </div>
-      <div class="p-field p-col-6">
-        <label for="pagefunc">Parser</label>
-        <Dropdown id="pagefunc" v-model="selectedParserType" :options="parsersTypes" optionLabel="name"
-                  placeholder="Select a Parser"/>
-      </div>
+      <ParserSelector
+          :parser_obj="parsers"
+          v-model="selectedParser"></ParserSelector>
+      <NovelMetadata
+          edit="disable"
+          :tit="title"
+          :auth="author"
+          :cov="cover"
+          :pub="publisher"
+          :desc="description"></NovelMetadata>
       <div class="p-col-12">
         <br/>
-        Detected Chapters: {{ chap_cnt }} <br/>
-        Detected Page type: {{ page_type }} <br/>
+        Detected Chapters: {{ chap_cnt }}
         <br/>
       </div>
       <div class="p-field p-col-6 p-md-3">
         <Button label="(Re)Parse Source" @click="parse_source()"/>
       </div>
       <div class="p-field p-col-6 p-md-3">
-        <Button label="Load Chapter List" class="p-button-success" icon="pi pi-check" @click="start_main()" :disabled="main_disable"/>
+        <Button label="Load Chapter List" class="p-button-success" icon="pi pi-check" @click="start_main()"
+                :disabled="main_disable"/>
       </div>
     </div>
   </div>
@@ -37,6 +37,9 @@
 <script lang="ts">
 import {defineComponent} from 'vue';
 import browser from "webextension-polyfill";
+
+import ParserSelector from "../../components/ParserSelector.vue";
+import NovelMetadata from "../../components/NovelMetadata.vue";
 
 import Message from 'primevue/message';
 import Button from 'primevue/button';
@@ -57,6 +60,8 @@ import {load_parsers, Parser} from "../../common/parser_loader"
 export default defineComponent({
   name: 'App',
   components: {
+    NovelMetadata,
+    ParserSelector,
     Message,
     InputText,
     Dropdown,
@@ -66,18 +71,16 @@ export default defineComponent({
   data() {
     return {
       url: "",
-      selectedPageType: null,
-      pageTypes: [
-        {name: 'Table of Contents', code: 'toc'},
-        {name: 'First Page', code: 'fp'},
-      ],
+      selectedParser: "main||main_parser",
       title: "Epublifier",
-      page_type: "List of Chapters",
+      publisher: "",
+      author: "",
+      cover: "",
+      description: "",
       status_txt: "",
       page_src: "",
       chaps: [] as Chapter[],
       parsers: null,
-      selectedParserType: null,
     }
   },
   computed: {
@@ -87,22 +90,14 @@ export default defineComponent({
     chap_cnt(): number {
       return this.chaps.length;
     },
-    async parsers(): Promise<Record<string,Parser>> {
-      return await load_parsers();
-    },
-    async parsersTypes(): Promise<Record<string, string>[]> {
-      let parsetyps = []
-      for (let k in this.parsers["toc_parsers"]) {
-        parsetyps.push({name: this.parsers["toc_parsers"][k]["name"], code: k})
-      }
-      return parsetyps;
-    }
   },
   /**
    * Mounted hook
    */
   async mounted() {
     let vm = this;
+    vm.parsers = await load_parsers();
+
     let tabs = await browser.tabs.query({active: true, currentWindow: true})
     vm.url = tabs[0].url;
     window.addEventListener('message', function (event) {
@@ -111,28 +106,36 @@ export default defineComponent({
       switch (command) {
         case 'toc':
           vm.chaps = event.data.chaps;
-          vm.selectedPageType = vm.pageTypes.find((x: any) => x.code === 'toc');
-          vm.selectedParserType = vm.parsersTypes.find((x: any) => x.code === event.data.parser);
+          vm.selectedParser = event.data.parser;
+          vm.title = event.data.meta["title"] || "N/A";
+          vm.description = event.data.meta["description"] || "N/A";
+          vm.author = event.data.meta["author"] || "N/A";
+          vm.cover = event.data.meta["cover"] || null;
+          vm.publisher = event.data.meta["publisher"] || "N/A";
+          break;
+        default:
+          vm.selectedParser = "main||toc_parsers||chaps_all_links";
           break;
       }
     });
-    browser.runtime.onMessage.addListener(
-        request => {
-          vm.status_txt = "Received response.";
-          if (request.action == "getSource") {
-            if (request.data == null) {
-              vm.status_txt = "Script failed.";
-            } else {
-              vm.page_src = request.data;
-              vm.parse_source();
-            }
-          }
-        }
-    );
+    browser.runtime.onMessage.addListener(vm.source_received);
     vm.status_txt = "Extracting source from page..."
     setTimeout(this.extract_curr_source, 100);
   },
   methods: {
+    source_received(request) {
+      let vm = this;
+      browser.runtime.onMessage.removeListener(this.source_received);
+      vm.status_txt = "Received response.";
+      if (request.action == "getSource") {
+        if (request.data == null) {
+          vm.status_txt = "Script failed.";
+        } else {
+          vm.page_src = request.data;
+          vm.parse_source();
+        }
+      }
+    },
     /**
      * Start Main  UI
      */
@@ -141,7 +144,15 @@ export default defineComponent({
       let tab = await browser.tabs.create({url: "main.html", active: true});
       let tab_msg = {
         action: "newTabSource",
-        data: JSON.stringify(vm.chaps)
+        data: JSON.stringify(vm.chaps),
+        parser: vm.selectedParser,
+        metadata: {
+          title: vm.title,
+          publisher: vm.publisher,
+          author: vm.author,
+          cover: vm.cover,
+          description: vm.description
+        }
       }
       let handler = function (tabid: number, changeInfo: any) {
         if (tabid === tab.id && changeInfo.status === "complete") {
@@ -161,10 +172,8 @@ export default defineComponent({
      */
     async extract_curr_source() {
       let vm = this
-      vm.status_txt = "Injecting...";
       try {
         await browser.tabs.executeScript(null, {file: "js/getPageSource.js",})
-        vm.status_txt = "Script injected. Awaiting response."
       } catch (error) {
         vm.status_txt = "Injection failed: " + error.message;
       }
@@ -174,11 +183,9 @@ export default defineComponent({
       try {
         vm.status_txt = "Parsing page content...";
         let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
-        console.log(vm.parsers)
-        console.log(vm.page_src)
         iframe.contentWindow.postMessage({
-          command: 'main_parse',
-          parser: vm.parsers,
+          selparser: vm.selectedParser,
+          parser: JSON.stringify(vm.parsers),
           doc: JSON.stringify(vm.page_src),
         }, '*');
       } catch (e) {
@@ -192,5 +199,6 @@ export default defineComponent({
 <style>
 body {
   width: 700px;
+  min-height: 550px;
 }
 </style>

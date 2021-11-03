@@ -1,6 +1,7 @@
 {
   "name": "Epublifier",
-  "description": "Epublify some common websites",
+  "author": "Mao Yu<maoserr@gmail.com",
+  "description": "A tool to convert website based books or list of pages to ePub format to read on your eReader/Kindle/etc.",
   "permissions": ["tabs", "<all_urls>", "downloads", "storage"],
   "options_ui": {
     "page": "options.html"

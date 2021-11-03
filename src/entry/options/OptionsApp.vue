@@ -1,91 +1,153 @@
 <template>
   <div id="app">
     <div class="p-fluid p-formgrid p-grid">
-      <div class="p-field p-col-6">
-        <label for="parsedoc">Parser:</label>
-        <Dropdown id="parsedoc" v-model="selectedParsedoc" :options="parsedocs" optionLabel="name"
-                  placeholder="Select a Parser Category Type"/>
+      <div class="p-field p-col-12">
+        <Message :closable="false">{{ status_txt }}</Message>
       </div>
-      <div class="p-field p-col-6">
-        <label for="parsecat">Category:</label>
-        <Dropdown id="parsecat" v-model="selectedParsecat" :options="parsecats" optionLabel="name"
-                  placeholder="Select a Parser Category Type"/>
+      <ParserSelector
+          :parser_obj="parsers"
+          v-model="selectedParser"></ParserSelector>
+      <div class="p-field p-col-4 p-md-4">
+        <label>Add/Remove parser:</label>
+        <div class="p-inputgroup">
+          <InputText type="text" v-model="new_parser"></InputText>
+          <Button class="p-button-success" icon="pi pi-plus-circle" iconPos="right" @click="add_parser"/>
+          <Button class="p-button-warning" icon="pi pi-minus-circle" iconPos="right" @click="rem_parser"/>
+        </div>
       </div>
-      <div class="p-field p-col-6">
-        <label for="parser">Parse Function:</label>
-        <Dropdown id="parser" v-model="selectedParser" :options="parsers" optionLabel="name"
-                  placeholder="Select a Parser Category Type"/>
-      </div>
-      <div class="p-field">
-        <label for="parser_txt">Parser Definition:</label>
-        <Textarea id="parser_txt" v-model="txt" required="true" rows="20" cols="150"/>
-      </div>
-      <div class="p-field p-col-6 p-md-3">
-        <Button label="Reset Default" icon="pi pi-minus-circle" @click="reset_options"/>
-      </div>
-      <div class="p-field p-col-6 p-md-3">
-        <Button label="Save" icon="pi pi-check" @click="save_options"/>
-      </div>
+      <ParserEditor
+          :parser_obj="parsers"
+          :parser="selectedParser"
+          @save="save_options($event)"
+          @import="import_yaml($event)"
+          @reset="reset_options"
+          @status="status_txt=$event"></ParserEditor>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import browser from "webextension-polyfill";
 
-import Dropdown from 'primevue/dropdown';
+import ParserSelector from '../../components/ParserSelector.vue';
+import ParserEditor from '../../components/ParserEditor.vue';
+
+import InputText from 'primevue/inputtext';
 import Button from "primevue/button";
-import Textarea from "primevue/textarea";
+import Message from 'primevue/message';
 
 import 'primeflex/primeflex.css';
 import 'primevue/resources/themes/saga-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/md-light-indigo/theme.css';
-
-import {get_initial, load_parsers, save_parsers} from "../../common/parser_loader"
+import {get_initial, load_parsers, save_parsers, load_yaml_doc} from "../../common/parser_loader";
 
 export default defineComponent({
   name: 'Options UI',
   components: {
-    Textarea,
-    Button,
-    Dropdown
+    ParserEditor,
+    ParserSelector,
+    Message,
+    InputText,
+    Button
   },
   data() {
     return {
-      selectedParsedoc: null,
-      parsedocs: [],
-      selectedParsecat: null,
-      parsecats: [
-        {name: "Main Parser", code: 'main'},
-        {name: "Table of Content Parser", code: 'toc'},
-        {name: "Chapter Parser", code: 'chap'}
-      ],
       selectedParser: null,
-      parsers: [],
-      txt: ""
+      parsers: null,
+      new_parser: null,
+      status_txt: ""
     }
   },
   async mounted() {
-    let parser_config = await load_parsers();
-    this.parsers = []
-  },
-  computed: {
+    this.parsers = await load_parsers();
+    this.selectedParser = "main||main_parser"
   },
   watch: {
-    selectedParsedoc(olddoc, newdoc):void {
-
-    }
+    status_txt(newstatus): void {
+      if (newstatus == "Parser reset to main only.") {
+        window.close()
+      }
+    },
   },
   methods: {
-    async save_options() {
-      await save_parsers(this.parser_config);
-      window.close();
+    add_parser() {
+      if ((this.selectedParser == null) || (this.new_parser == null)) {
+        return
+      }
+      let p_sp = this.selectedParser.split("||");
+      let pdoc = p_sp[0];
+      let pcat = p_sp[1];
+      let path_name = this.new_parser.toLowerCase().replaceAll(/\s/g, '_')
+      if ((pcat == "main_parser") || (pcat == "toc_parsers")) {
+        this.parsers[pdoc]["toc_parsers"][path_name] = {name: this.new_parser, code: "//New code here"}
+        this.selectedParser = `${pdoc}||toc_parsers||${path_name}`
+        this.status_txt = `Added new toc parser: ${path_name}`
+      } else if ((pcat == "chap_main_parser") || (pcat == "chap_parsers")) {
+        this.parsers[pdoc]["chap_parsers"][path_name] = {name: this.new_parser, code: "//New code here"}
+        this.selectedParser = `${pdoc}||chap_parsers||${path_name}`
+        this.status_txt = `Added new chap parser: ${path_name}`
+      }
+    },
+    rem_parser() {
+      if (this.selectedParser == null) {
+        return
+      }
+      let p_sp = this.selectedParser.split("||");
+      let pdoc = p_sp[0];
+      let pcat = p_sp[1];
+      let pars = null;
+      if (p_sp.length > 2) {
+        pars = p_sp[2];
+      }
+      if ((pcat == "toc_parsers") || (pcat == "chap_parsers")) {
+        delete this.parsers[pdoc][pcat][pars];
+        this.selectedParser = "main||main_parser"
+        this.status_txt = `Removed ${pdoc} - ${pcat}: ${pars}`
+      } else if(pdoc != "main") {
+        delete this.parsers[pdoc];
+        this.status_txt = `Removed ${pdoc}`
+        this.selectedParser = "main||main_parser"
+      } else {
+        this.status_txt = `Cannot delete main parser.`
+      }
+    },
+    async import_yaml(import_txt) {
+      let fullname = import_txt.name
+      let name = fullname.split(/[\\/]/).pop().split(".")[0];
+      if (this.parsers.hasOwnProperty(name)) {
+        this.status_txt = `Document ${name} already exists}.`
+        return
+      }
+      this.parsers[name] = await load_yaml_doc(import_txt.text)
+      this.status_txt = `Document ${name} imported.`
+    },
+    async save_options(txt) {
+      if (this.selectedParser == null) {
+        return
+      }
+      let p_sp = this.selectedParser.split("||");
+      let pdoc = p_sp[0];
+      let pcat = p_sp[1];
+      let pars = null;
+      if (p_sp.length > 2) {
+        pars = p_sp[2];
+      }
+      let save_msg
+      if ((pcat == "main_parser") || (pcat == "chap_main_parser")) {
+        this.parsers[pdoc][pcat] = txt;
+        save_msg = `Parser saved: ${pdoc} - ${pcat}`
+      } else if ((pcat == "toc_parsers") || (pcat == "chap_parsers")) {
+        this.parsers[pdoc][pcat][pars]["code"] = txt;
+        save_msg = `Parser saved: ${pdoc} - ${pcat} - ${pars}`
+      }
+      await save_parsers(this.parsers);
+      this.status_txt = save_msg;
     },
     async reset_options() {
-      this.parser_config = await get_initial();
+      this.parsers = await get_initial();
+      this.status_txt = `Parser reset to main only.`;
     }
   }
 });

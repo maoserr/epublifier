@@ -3,15 +3,19 @@
 main_parser: |
   var url = new URL(arguments[0]);
   var src = arguments[1];
+  var parser = new DOMParser();
+  var dom = parser.parseFromString(src, "text/html");
   switch (url.hostname) {
     case "www.novelupdates.com":
-      return ["toc", "chaps_nu"];
-    case "www.foxaholic.com":
-      return ["toc", "chaps_wp_manga"];
+      var paths = url.pathname.split("/");
+      if (paths.length > 1 && paths[1] == "series") {
+        return {page_type:"toc", parser:"chaps_nu"};
+      }
   }
-  return ["none"];
+  // Default to all links
+  return {page_type:"toc", parser:"chaps_all_links"};
 
-# TOC parsers, returns a list of chapters
+# TOC parsers, returns a list of chapters + metadata
 toc_parsers:
   chaps_nu:
     name: Novel Update
@@ -33,7 +37,14 @@ toc_parsers:
               });
           }
       });
-      return chaps;
+      var tit = dom.querySelector(".seriestitlenu").innerText;
+      var desc = dom.querySelector("#editdescription").innerHTML;
+      var auth = dom.querySelector("#authtag").innerText;
+      var img = dom.querySelector(".serieseditimg > img").src;
+      return {"chaps":chaps,
+       meta:{title:tit, description: desc, author: auth, cover: img, publisher: "Novel Update"}
+      };
+
   chaps_wp_manga:
     name: Wordpress Manga
     code: |
@@ -46,32 +57,80 @@ toc_parsers:
       chap_lis.forEach((element) => {
             chaps.unshift({
                 url_title: element.innerText,
-                url: element.href.replace("chrome-extension", "https"),
+                url: element.href.replace(/chrome-extension|moz-extension/, "https"),
             });
       });
-      return chaps;
+      return {"chaps":chaps,
+        meta:{}
+      };
+  chaps_name_search:
+    name: Chapter Links
+    code: |
+      var domstr = arguments[1];
+      var parser = new DOMParser();
+      var dom = parser.parseFromString(domstr, "text/html");
+      var ancs = dom.querySelectorAll("a");
+      var chaps = []
+      ancs.forEach((element) => {
+            if(RegExp(/chap|Chap/).test(element.innerText)){
+              chaps.unshift({
+                  url_title: element.innerText,
+                  url: element.href.replace(/chrome-extension|moz-extension/, "https"),
+              });
+            }
+      });
+      return {"chaps":chaps,
+        meta:{}
+      };
+  chaps_all_links:
+    name: All Links
+    code: |
+      var domstr = arguments[1];
+      var parser = new DOMParser();
+      var dom = parser.parseFromString(domstr, "text/html");
+      var ancs = dom.querySelectorAll("a");
+      var chaps = []
+      ancs.forEach((element) => {
+          chaps.unshift({
+              url_title: element.innerText,
+              url: element.href.replace(/chrome-extension|moz-extension/, "https"),
+          });
+      });
+      return {"chaps":chaps,
+        meta:{}
+      };
+
 
 # Determines type of chapter parser to use
 chap_main_parser: |
   var url = new URL(arguments[0]);
   var src = arguments[1];
-  switch (url.hostname) {
-    case "www.novelupdates.com":
-      return ["chap", "chaps_nu"];
-    case "www.foxaholic.com":
-      return ["chap", "chaps_wp_manga"];
-  }
-  return ["none"];
+  var parser = new DOMParser();
+  var dom = parser.parseFromString(src, "text/html");
+
+  // Generic parser
+  return {chap_type: "chap", parser:"chaps_readability"};
+
 # Chapter parsers, return chapter content, and optionally next chapter.
 chap_parsers:
+  chaps_readability:
+    name: Readability
+    code: |
+      var domstr = arguments[1];
+      var title = arguments[2];
+      var helper = arguments[3];
+      var parser = new DOMParser();
+      var dom = parser.parseFromString(domstr, "text/html");
+      var out = helper["readability"](dom);
+      return {title: out.title, html: out.content};
+
   chaps_wp_manga:
     name: Wordpress Manga
     code: |
       var domstr = arguments[1];
       var title = arguments[2];
-      var cb = arguments[3];
       var parser = new DOMParser();
       var dom = parser.parseFromString(domstr, "text/html");
-      var sel="body > div.wrap > div > div > div > div > div > div > div > div > div.c-blog-post > div.entry-content > div > div > div > div.text-left";
+      var sel=".entry-content > div > div > div > div.text-left";
       var chap_html = dom.querySelector(sel);
-      return [title, chap_html.innerHTML];
+      return {title: title, html: chap_html.innerHTML};
