@@ -6,24 +6,13 @@ export interface Chapter {
     html_parsed?: string;
 }
 
-export class NovelData {
+export interface NovelData {
+    publisher?: string;
+    description?: string;
+    filename: string;
+    chapters: Chapter[];
+    cover?: any;
     title: string;
     author: string;
-    publisher: string;
-    description: string;
-    chapters: Chapter[];
-    cover: Blob;
-    filename: string;
-    tags: string[];
-
-    constructor(chaps: Chapter[]) {
-        this.publisher = "None"
-        this.description = "N/A"
-        this.filename = "epublifier.epub"
-        this.chapters = chaps
-        this.cover = null
-        this.title = "None"
-        this.author = "None"
-        this.tags = ["default"]
-    }
+    tags?: string[];
 }

@@ -1,6 +1,23 @@
-import jEpub from "jepub/dist/jepub";
 import {NovelData} from "./novel_data";
 import browser from "webextension-polyfill";
+
+interface metadata {
+    percent: number;
+    currentFile: string;
+}
+declare class jEpub {
+    constructor();
+    init(opts: unknown): jEpub;
+    cover(blob: Blob): jEpub;
+    notes(str: string): jEpub;
+    date(date: Date): jEpub;
+    add(title: string, content: string | string[]): jEpub;
+    generate(
+        type: string,
+        updateCallback: (metadata: metadata) => unknown
+    ): Promise<Blob>;
+    static html2text(html: string): string;
+}
 
 export async function generate_epub(nov_data: NovelData, update_cb: CallableFunction) {
     try {
@@ -39,5 +56,6 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
         });
     } catch (err) {
         update_cb(err);
+        console.log(err)
     }
 }

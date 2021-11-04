@@ -64,13 +64,6 @@ export default defineComponent({
     this.parsers = await load_parsers();
     this.selectedParser = "main||main_parser"
   },
-  watch: {
-    status_txt(newstatus): void {
-      if (newstatus == "Parser reset to main only.") {
-        window.close()
-      }
-    },
-  },
   methods: {
     add_parser() {
       if ((this.selectedParser == null) || (this.new_parser == null)) {

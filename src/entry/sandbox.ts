@@ -37,7 +37,7 @@ async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
     } catch (e) {
         event.source.postMessage({
             command: "error",
-            message: "Main page parsing error: " + e.stack
+            message: "Main page parsing error: " + e.message + ", stack:" + e.stack
         }, event.origin as WindowPostMessageOptions);
     }
 }

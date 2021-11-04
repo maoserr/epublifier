@@ -13,10 +13,10 @@ function modify_manifest(buffer, browser_type, mode) {
         // Firefox specific
         manifest.browser_specific_settings = {
             "gecko": {
-                "id": "epublifier@maoserr.com",
-                "strict_min_version": "42.0"
+                "id": "epublifier@maoserr.com"
             }
         }
+        manifest.options_ui.open_in_tab = true
         manifest.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self';";
     } else {
         // Chrome specific
@@ -36,6 +36,8 @@ function modify_manifest(buffer, browser_type, mode) {
 }
 
 module.exports = (env,argv) => {
+    console.log(env)
+    console.log(argv)
     return {
         entry: {
             popup: join(__dirname, "src/entry/popup/popup.ts"),
@@ -45,9 +47,6 @@ module.exports = (env,argv) => {
             options: join(__dirname, "src/entry/options/options.ts"),
         },
         devtool: "source-map",
-        devServer: {
-            contentBase: "./dist",
-        },
         module: {
             rules: [
                 {
@@ -108,6 +107,7 @@ module.exports = (env,argv) => {
                     {from: "assets"},
                     {from: "node_modules/jszip/dist/jszip.min.js", to: "js/vender"},
                     {from: "node_modules/ejs/ejs.min.js", to: "js/vender"},
+                    {from: "node_modules/jepub/dist/jepub.min.js", to: "js/vender"},
                     {
                         from: "src/manifest.json",
                         to: "manifest.json",

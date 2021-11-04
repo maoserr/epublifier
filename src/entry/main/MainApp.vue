@@ -80,6 +80,7 @@ import Dialog from 'primevue/dialog';
 import Textarea from "primevue/textarea";
 import InputText from "primevue/inputtext";
 
+import * as Parallel from 'async-parallel';
 import 'primeflex/primeflex.css';
 import 'primevue/resources/themes/saga-blue/theme.css';
 import 'primevue/resources/primevue.min.css';
@@ -89,7 +90,7 @@ import 'primevue/resources/themes/md-light-indigo/theme.css';
 import {NovelData, Chapter} from "../../common/novel_data";
 import {generate_epub} from "../../common/epub_generator";
 import {load_parsers} from "../../common/parser_loader";
-import pLimit from "p-limit";
+
 import NovelMetadata from "../../components/NovelMetadata.vue";
 
 export default defineComponent({
@@ -152,48 +153,42 @@ export default defineComponent({
       if (request.action == "newTabSource") {
         vm.chapts = JSON.parse(request.data);
         vm.title = request.metadata.title || "N/A";
-        vm.publisher = request.metadata.publisher ||  "N/A";
+        vm.publisher = request.metadata.publisher || "N/A";
         vm.author = request.metadata.author || "N/A";
         vm.cover = request.metadata.cover || null;
-        vm.description = request.metadata.description ||  "N/A";
+        vm.description = request.metadata.description || "N/A";
         vm.parsedoc = request.parser.split("||")[0];
         vm.status_txt = "Loaded chapters.";
       }
     },
     async extract_chaps() {
       let vm = this;
-      let chap_fetches = [];
       let cnt_slice = 100.0 / vm.selected_chaps.length;
       vm.progress_val = 0;
-      const limit = pLimit(3);
-      for (let c in vm.selected_chaps) {
-        chap_fetches.push(
-            limit(() =>
-                fetch(vm.selected_chaps[c].url)
-                    .then(x => x.text())
-                    .then(x => {
-                      try {
-                        vm.selected_chaps[c].html = x;
-                        vm.status_txt = "Parsing chapter content: " + c;
-                        let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
-                        iframe.contentWindow.postMessage({
-                          parser: JSON.stringify(vm.parsers),
-                          selparser: vm.parsedoc+"||chap_main_parser",
-                          doc: x,
-                          id: c,
-                          url: vm.selected_chaps[c].url,
-                          url_title: vm.selected_chaps[c].url_title,
-                        }, '*');
-                      } catch (e) {
-                        vm.status_txt = "Unable to parse content: " + e;
-                        console.log(e)
-                      }
-                      vm.progress_val += cnt_slice;
-                    })
-            )
-        );
+      let extract_chap = async function (id){
+        let f_res = await fetch(vm.selected_chaps[id].url)
+        let f_txt = await f_res.text()
+        try {
+          vm.selected_chaps[id].html = f_txt;
+          vm.status_txt = "Parsing chapter content: " + id;
+          let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
+          iframe.contentWindow.postMessage({
+            parser: JSON.stringify(vm.parsers),
+            selparser: vm.parsedoc + "||chap_main_parser",
+            doc: f_txt,
+            id: id,
+            url: vm.selected_chaps[id].url,
+            url_title: vm.selected_chaps[id].url_title,
+          }, '*');
+        } catch (e) {
+          vm.status_txt = "Unable to parse content: " + e;
+          console.log(e)
+        }
+        vm.progress_val += cnt_slice;
       }
-      Promise.all(chap_fetches).then(() => vm.status_txt = "All selected chapters extracted.");
+      await Parallel.each(Array.from(Array(vm.selected_chaps.length).keys()), async id => {
+        await extract_chap(id)
+      }, 3);
     },
     edit_chap(chap: Chapter) {
       this.chap = chap;
@@ -206,18 +201,23 @@ export default defineComponent({
     },
     async gen_epub() {
       let vm = this;
-      let nov_data = new NovelData(this.selected_chaps);
-      nov_data.title = vm.title;
-      nov_data.author = vm.author;
-      nov_data.publisher = vm.publisher;
-      nov_data.description = vm.description;
+      let nov_data: NovelData = {
+        chapters: this.selected_chaps,
+        title: vm.title,
+        author: vm.author,
+        publisher: vm.publisher,
+        description: vm.description,
+        filename: vm.title.toLowerCase().replaceAll(/[\W_]+/g, "_")+".epub"
+      };
       if (vm.cover != null) {
         let response = await fetch(vm.cover);
         if (response.ok) {
           nov_data.cover = await response.blob();
         }
       }
-      await generate_epub(nov_data, function (msg: string) {vm.status_txt = msg});
+      await generate_epub(nov_data, function (msg: string) {
+        vm.status_txt = msg
+      });
     },
   }
 });

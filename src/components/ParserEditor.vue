@@ -77,6 +77,23 @@ export default defineComponent({
       } else if ((pcat == "toc_parsers") || (pcat == "chap_parsers")) {
         this.txt = this.parser_obj[pdoc][pcat][pars]["code"]
       }
+    },
+    async parser_obj(newobj) {
+      if (this.parser == null) {
+        return
+      }
+      let p_sp = this.parser.split("||");
+      let pdoc = p_sp[0];
+      let pcat = p_sp[1];
+      let pars = null;
+      if (p_sp.length > 2) {
+        pars = p_sp[2];
+      }
+      if ((pcat == "main_parser") || (pcat == "chap_main_parser")) {
+        this.txt = newobj[pdoc][pcat]
+      } else if ((pcat == "toc_parsers") || (pcat == "chap_parsers")) {
+        this.txt = newobj[pdoc][pcat][pars]["code"]
+      }
     }
   },
   methods: {

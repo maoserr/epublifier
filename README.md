@@ -2,6 +2,11 @@
 
 Converts e-novels hosted on websites into Epub files.
 
-## Focus Area ##
+# Build Environment #
+- Windows 10
+- NPM version 8.1.2
 
-Novel Updates
+# Build Steps #
+- Install NPM
+- Run `npm install` in base directory 
+- Run `npm run build_ff`

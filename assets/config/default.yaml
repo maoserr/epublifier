@@ -40,9 +40,12 @@ toc_parsers:
       var tit = dom.querySelector(".seriestitlenu").innerText;
       var desc = dom.querySelector("#editdescription").innerHTML;
       var auth = dom.querySelector("#authtag").innerText;
-      var img = dom.querySelector(".serieseditimg > img").src;
+      var img = dom.querySelector(".serieseditimg > img");
+      if (img == null){
+        img = dom.querySelector(".seriesimg > img");
+      }
       return {"chaps":chaps,
-       meta:{title:tit, description: desc, author: auth, cover: img, publisher: "Novel Update"}
+       meta:{title:tit, description: desc, author: auth, cover: img.src, publisher: "Novel Update"}
       };
 
   chaps_wp_manga:
