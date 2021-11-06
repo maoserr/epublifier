@@ -1,13 +1,12 @@
 # For unknown URLs
 # Main parser determine whether page is toc/chapter and sends back function name and function type
 main_parser: |
-  var url = new URL(arguments[0]);
-  var src = arguments[1];
+  var link = new URL(url);
   var parser = new DOMParser();
-  var dom = parser.parseFromString(src, "text/html");
-  switch (url.hostname) {
+  var dom = parser.parseFromString(source, "text/html");
+  switch (link.hostname) {
     case "www.novelupdates.com":
-      var paths = url.pathname.split("/");
+      var paths = link.pathname.split("/");
       if (paths.length > 1 && paths[1] == "series") {
         return {page_type:"toc", parser:"chaps_nu"};
       }
@@ -20,9 +19,8 @@ toc_parsers:
   chaps_nu:
     name: Novel Update
     code: |
-      var domstr = arguments[1];
       var parser = new DOMParser();
-      var dom = parser.parseFromString(domstr, "text/html");
+      var dom = parser.parseFromString(source, "text/html");
       var chap_popup = dom.querySelector("#my_popupreading");
       if (chap_popup == null) {
           return []
@@ -33,7 +31,7 @@ toc_parsers:
           if (element.href.includes("extnu")) {
               chaps.unshift({
                   url_title: element.innerText,
-                  url: element.href.replace(/chrome-extension|moz-extension/, "https"),
+                  url: helpers["link_fixer"](element.href, url),
               });
           }
       });
@@ -48,37 +46,18 @@ toc_parsers:
        meta:{title:tit, description: desc, author: auth, cover: img.src, publisher: "Novel Update"}
       };
 
-  chaps_wp_manga:
-    name: Wordpress Manga
-    code: |
-      var domstr = arguments[1];
-      var parser = new DOMParser();
-      var dom = parser.parseFromString(domstr, "text/html");
-      var chap_cont = dom.querySelector("#manga-chapters-holder > div.page-content-listing.single-page > div > ul");
-      var chap_lis = chap_cont.querySelectorAll("a");
-      var chaps = []
-      chap_lis.forEach((element) => {
-            chaps.unshift({
-                url_title: element.innerText,
-                url: element.href.replace(/chrome-extension|moz-extension/, "https"),
-            });
-      });
-      return {"chaps":chaps,
-        meta:{}
-      };
   chaps_name_search:
     name: Chapter Links
     code: |
-      var domstr = arguments[1];
       var parser = new DOMParser();
-      var dom = parser.parseFromString(domstr, "text/html");
+      var dom = parser.parseFromString(source, "text/html");
       var ancs = dom.querySelectorAll("a");
       var chaps = []
       ancs.forEach((element) => {
-            if(RegExp(/chap|Chap/).test(element.innerText)){
-              chaps.unshift({
+            if(RegExp(/chap|part/i).test(element.innerText)){
+              chaps.push({
                   url_title: element.innerText,
-                  url: element.href.replace(/chrome-extension|moz-extension/, "https"),
+                  url: helpers["link_fixer"](element.href, url),
               });
             }
       });
@@ -88,15 +67,14 @@ toc_parsers:
   chaps_all_links:
     name: All Links
     code: |
-      var domstr = arguments[1];
       var parser = new DOMParser();
-      var dom = parser.parseFromString(domstr, "text/html");
+      var dom = parser.parseFromString(source, "text/html");
       var ancs = dom.querySelectorAll("a");
       var chaps = []
       ancs.forEach((element) => {
-          chaps.unshift({
+          chaps.push({
               url_title: element.innerText,
-              url: element.href.replace(/chrome-extension|moz-extension/, "https"),
+              url: helpers["link_fixer"](element.href, url),
           });
       });
       return {"chaps":chaps,
@@ -106,10 +84,9 @@ toc_parsers:
 
 # Determines type of chapter parser to use
 chap_main_parser: |
-  var url = new URL(arguments[0]);
-  var src = arguments[1];
+  var url = new URL(url);
   var parser = new DOMParser();
-  var dom = parser.parseFromString(src, "text/html");
+  var dom = parser.parseFromString(source, "text/html");
 
   // Generic parser
   return {chap_type: "chap", parser:"chaps_readability"};
@@ -119,21 +96,39 @@ chap_parsers:
   chaps_readability:
     name: Readability
     code: |
-      var domstr = arguments[1];
-      var title = arguments[2];
-      var helper = arguments[3];
       var parser = new DOMParser();
-      var dom = parser.parseFromString(domstr, "text/html");
-      var out = helper["readability"](dom);
+      var dom = parser.parseFromString(source, "text/html");
+      var main_cont = dom.querySelector(".entry-content")
+      if(main_cont == null){
+        main_cont = dom
+      }
+      var ancs = main_cont.querySelectorAll("a");
+      var new_link = null;
+      var subchaps = [];
+      ancs.forEach((element) => {
+            if(RegExp(/click here to read|read here|continue reading/i).test(element.innerText)){
+              new_link = helpers["link_fixer"](element.href, url);
+            } else if (RegExp(/chapter|part/i).test(element.innerText)) {
+              subchaps.push(helpers["link_fixer"](element.href, url))
+            }
+      });
+      if (new_link != null) {
+          var res = await fetch(new_link);
+          var r_txt = await res.text();
+          dom = parser.parseFromString(r_txt, "text/html");
+          var out = helpers["readability"](dom);
+          return {title: out.title, html: out.content};
+      } else if (subchaps.length > 0) {
+          var html = "";
+          for(var subc in subchaps){
+            console.log(subchaps[subc]);
+            var cres = await fetch(subchaps[subc]);
+            var c_txt = await cres.text();
+            var cdom = parser.parseFromString(c_txt, "text/html");
+            var out = helpers["readability"](cdom);
+            html += "<h1>"+out.title+"</h1>"+ out.content
+          }
+          return {title: title, html: html};
+      }
+      var out = helpers["readability"](dom);
       return {title: out.title, html: out.content};
-
-  chaps_wp_manga:
-    name: Wordpress Manga
-    code: |
-      var domstr = arguments[1];
-      var title = arguments[2];
-      var parser = new DOMParser();
-      var dom = parser.parseFromString(domstr, "text/html");
-      var sel=".entry-content > div > div > div > div.text-left";
-      var chap_html = dom.querySelector(sel);
-      return {title: title, html: chap_html.innerHTML};

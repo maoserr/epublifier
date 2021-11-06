@@ -165,21 +165,25 @@ export default defineComponent({
       let vm = this;
       let cnt_slice = 100.0 / vm.selected_chaps.length;
       vm.progress_val = 0;
-      let extract_chap = async function (id){
-        let f_res = await fetch(vm.selected_chaps[id].url)
-        let f_txt = await f_res.text()
+      let extract_chap = async function (id) {
         try {
-          vm.selected_chaps[id].html = f_txt;
-          vm.status_txt = "Parsing chapter content: " + id;
-          let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
-          iframe.contentWindow.postMessage({
-            parser: JSON.stringify(vm.parsers),
-            selparser: vm.parsedoc + "||chap_main_parser",
-            doc: f_txt,
-            id: id,
-            url: vm.selected_chaps[id].url,
-            url_title: vm.selected_chaps[id].url_title,
-          }, '*');
+          if (vm.selected_chaps[id].url != "none") {
+            let f_res = await fetch(vm.selected_chaps[id].url)
+            let f_txt = await f_res.text()
+            vm.selected_chaps[id].html = f_txt;
+            vm.status_txt = "Parsing chapter content: " + id;
+            let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
+            iframe.contentWindow.postMessage({
+              parser: JSON.stringify(vm.parsers),
+              selparser: vm.parsedoc + "||chap_main_parser",
+              doc: f_txt,
+              id: id,
+              url: vm.selected_chaps[id].url,
+              url_title: vm.selected_chaps[id].url_title,
+            }, '*');
+          } else {
+            // Is a single page book, no additional parsing needed.
+          }
         } catch (e) {
           vm.status_txt = "Unable to parse content: " + e;
           console.log(e)
@@ -207,7 +211,7 @@ export default defineComponent({
         author: vm.author,
         publisher: vm.publisher,
         description: vm.description,
-        filename: vm.title.toLowerCase().replaceAll(/[\W_]+/g, "_")+".epub"
+        filename: vm.title.toLowerCase().replaceAll(/[\W_]+/g, "_") + ".epub"
       };
       if (vm.cover != null) {
         let response = await fetch(vm.cover);

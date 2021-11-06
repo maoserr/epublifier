@@ -11,6 +11,7 @@ declare class jEpub {
     cover(blob: Blob): jEpub;
     notes(str: string): jEpub;
     date(date: Date): jEpub;
+    image(data: object, id: string);
     add(title: string, content: string | string[]): jEpub;
     generate(
         type: string,
@@ -35,10 +36,29 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
         }
         jepub.date(new Date());
 
+        let img_id = 0;
+        let parser = new DOMParser();
+        let s = new XMLSerializer();
         for (let i in nov_data.chapters) {
+            let html_node = parser.parseFromString(nov_data.chapters[i].html_parsed, "text/html");
+            let imgs = html_node.querySelectorAll("img");
+            for (const img of imgs) {
+                let sp = html_node.createElement("span")
+                update_cb(`Fetching image ${img_id}`)
+                let img_resp = await fetch(img.src)
+                if (img_resp.ok) {
+                    let img_dat = await img_resp.blob();
+                    jepub.image(img_dat, img_id.toString())
+                    sp.innerHTML = `{{{ image[${img_id.toString()}] }}}`
+                    img_id++;
+                }
+                img.replaceWith(sp)
+            }
+            let s_html = s.serializeToString(html_node);
+            let fixed_html = s_html.replaceAll(/{{{/g, "<%=").replaceAll(/}}}/g, "%>")
             jepub.add(
                 nov_data.chapters[i].title,
-                nov_data.chapters[i].html_parsed
+                fixed_html
             );
         }
         update_cb("Generating ePub");

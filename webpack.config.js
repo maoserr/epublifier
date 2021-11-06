@@ -38,6 +38,10 @@ function modify_manifest(buffer, browser_type, mode) {
 module.exports = (env,argv) => {
     console.log(env)
     console.log(argv)
+    let out_dir="dist"
+    if (env.browser_type === "firefox") {
+        out_dir = "dist_ff"
+    }
     return {
         entry: {
             popup: join(__dirname, "src/entry/popup/popup.ts"),
@@ -71,7 +75,7 @@ module.exports = (env,argv) => {
             ],
         },
         output: {
-            path: join(__dirname, "dist"),
+            path: join(__dirname, out_dir),
             filename: "js/[name].js",
         },
         resolve: {
@@ -118,8 +122,8 @@ module.exports = (env,argv) => {
                 ],
             }),
             new webpack.DefinePlugin({
-                __VUE_OPTIONS_API__: JSON.stringify(true),
-                __VUE_PROD_DEVTOOLS__: JSON.stringify(true),
+                __VUE_OPTIONS_API__: "true",
+                __VUE_PROD_DEVTOOLS__: "false",
             })
         ],
     }

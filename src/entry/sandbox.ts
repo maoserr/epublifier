@@ -1,6 +1,17 @@
 import {Parser} from "../common/parser_loader";
 import {Readability} from "@mozilla/readability";
 
+let helper_funcs = {
+    "readability": function (dom: Document) {
+        return new Readability(dom).parse();
+    },
+    "link_fixer": function (link: string, base_url: string) {
+        return link.replace(/chrome-extension|moz-extension/, "https")
+    }
+}
+let AsyncFunction = Object.getPrototypeOf(async function () {
+}).constructor;
+
 async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar: string) {
     try {
         let parser: Record<string, Parser> = JSON.parse(event.data.parser) as Record<string, Parser>;
@@ -8,22 +19,22 @@ async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
         let out_type = "toc"
         let out_parser
         if (pcat == "main_parser") {
-            let main_func = Function(parser[pdoc]["main_parser"]);
-            let main_out = await Promise.resolve(main_func(doc["url"], doc["source"]))
+            let main_func = AsyncFunction('url', 'source', 'helpers', parser[pdoc]["main_parser"]);
+            let main_out = await main_func(doc["url"], doc["source"], helper_funcs);
             out_type = main_out["page_type"]
             out_parser = main_out["parser"]
         } else {
             out_parser = ppar
         }
         if (out_type == "toc") {
-            let toc_func = Function(parser[pdoc]["toc_parsers"][out_parser]["code"])
-            let toc_out = await Promise.resolve(toc_func(doc["url"], doc["source"]))
+            let toc_func = AsyncFunction('url', 'source', 'helpers', parser[pdoc]["toc_parsers"][out_parser]["code"])
+            let toc_out = await toc_func(doc["url"], doc["source"], helper_funcs);
             let chaps = toc_out["chaps"]
             let out_meta = toc_out["meta"]
             event.source.postMessage({
                 command: "toc",
                 message: "Table of contents detected and parsed.",
-                parser: pdoc + "||toc_parsers||"+out_parser,
+                parser: pdoc + "||toc_parsers||" + out_parser,
                 meta: out_meta || {},
                 chaps: chaps,
             }, event.origin as WindowPostMessageOptions);
@@ -45,11 +56,6 @@ async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
 
 async function chap_parse(event: MessageEvent, pdoc: string, pcat: string, ppar: string) {
     try {
-        let helper_funcs = {
-            "readability": function (dom: Document) {
-                return new Readability(dom).parse();
-            }
-        }
         let parser: Record<string, Parser> = JSON.parse(event.data.parser) as Record<string, Parser>;
         let html = event.data.doc;
         let url = event.data.url;
@@ -58,16 +64,16 @@ async function chap_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
         let out_type = "chap"
         let out_parser
         if (pcat == "chap_main_parser") {
-            let chap_main_func = Function(parser[pdoc]["chap_main_parser"])
-            let chap_main_out = await Promise.resolve(chap_main_func(url, html))
+            let chap_main_func = AsyncFunction('url', 'source', 'helpers', parser[pdoc]["chap_main_parser"])
+            let chap_main_out = await chap_main_func(url, html, helper_funcs)
             out_type = chap_main_out["chap_type"]
             out_parser = chap_main_out["parser"]
         } else {
             out_parser = ppar
         }
         if (out_type == "chap") {
-            let chap_func = Function(parser[pdoc]["chap_parsers"][out_parser]["code"])
-            let out = await Promise.resolve(chap_func(url, html, title, helper_funcs))
+            let chap_func = AsyncFunction('url', 'source', 'title', 'helpers', parser[pdoc]["chap_parsers"][out_parser]["code"])
+            let out = await chap_func(url, html, title, helper_funcs)
             let chap_title: string = out["title"]
             let out_html: string = out["html"];
             event.source.postMessage({
