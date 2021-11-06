@@ -29,7 +29,8 @@ export default defineComponent({
   },
   props: {
     modelValue: String,
-    parser_obj: Object
+    parser_obj: Object,
+    toc_only: Boolean
   },
   emits: ["update:modelValue"],
   data() {
@@ -55,7 +56,6 @@ export default defineComponent({
             ([key, val]) => {
               let doc_child = []
               doc_child.push({key: key + "||main_parser", label: "Table of Content Auto Detector"})
-              doc_child.push({key: key + "||chap_main_parser", label: "Chapter Auto Detector"})
               let toc_childs = []
               Object.entries(val["toc_parsers"]).forEach(
                   ([tkey, tval]) => {
@@ -68,18 +68,21 @@ export default defineComponent({
                 selectable: false,
                 children: toc_childs
               })
-              let chap_childs = []
-              Object.entries(val["chap_parsers"]).forEach(
-                  ([tkey, tval]) => {
-                    chap_childs.push({key: key + "||chap_parsers||" + tkey, label: tval["name"]})
-                  }
-              )
-              doc_child.push({
-                key: key + "||chap_parsers",
-                label: "Chapter Parsers",
-                selectable: false,
-                children: chap_childs
-              })
+              if(!this.toc_only) {
+                doc_child.push({key: key + "||chap_main_parser", label: "Chapter Auto Detector"})
+                let chap_childs = []
+                Object.entries(val["chap_parsers"]).forEach(
+                    ([tkey, tval]) => {
+                      chap_childs.push({key: key + "||chap_parsers||" + tkey, label: tval["name"]})
+                    }
+                )
+                doc_child.push({
+                  key: key + "||chap_parsers",
+                  label: "Chapter Parsers",
+                  selectable: false,
+                  children: chap_childs
+                })
+              }
               parserd.push({key: key, label: "Doc: " + key, selectable: false, children: doc_child});
             }
         );

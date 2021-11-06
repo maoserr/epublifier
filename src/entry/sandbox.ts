@@ -1,12 +1,14 @@
 import {Parser} from "../common/parser_loader";
 import {Readability} from "@mozilla/readability";
 
+let ext_url = new URL(window.location.origin);
 let helper_funcs = {
     "readability": function (dom: Document) {
         return new Readability(dom).parse();
     },
     "link_fixer": function (link: string, base_url: string) {
-        return link.replace(/chrome-extension|moz-extension/, "https")
+        let c_url = new URL(base_url);
+        return link.replace(ext_url.origin, c_url.origin).replace(ext_url.protocol, c_url.protocol)
     }
 }
 let AsyncFunction = Object.getPrototypeOf(async function () {

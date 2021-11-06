@@ -98,20 +98,22 @@ chap_parsers:
     code: |
       var parser = new DOMParser();
       var dom = parser.parseFromString(source, "text/html");
-      var main_cont = dom.querySelector(".entry-content")
-      if(main_cont == null){
-        main_cont = dom
-      }
-      var ancs = main_cont.querySelectorAll("a");
+
       var new_link = null;
       var subchaps = [];
-      ancs.forEach((element) => {
-            if(RegExp(/click here to read|read here|continue reading/i).test(element.innerText)){
-              new_link = helpers["link_fixer"](element.href, url);
-            } else if (RegExp(/chapter|part/i).test(element.innerText)) {
-              subchaps.push(helpers["link_fixer"](element.href, url))
-            }
-      });
+
+      // Wordpress content
+      var main_cont = dom.querySelector(".entry-content")
+      if(main_cont != null){
+        var ancs = main_cont.querySelectorAll("a");
+        ancs.forEach((element) => {
+              if(RegExp(/click here to read|read here|continue reading/i).test(element.innerText)){
+                new_link = helpers["link_fixer"](element.href, url);
+              } else if (RegExp(/chapter|part/i).test(element.innerText)) {
+                subchaps.push(helpers["link_fixer"](element.href, url))
+              }
+        });
+      }
       if (new_link != null) {
           var res = await fetch(new_link);
           var r_txt = await res.text();

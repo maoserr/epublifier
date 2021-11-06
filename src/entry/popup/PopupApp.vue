@@ -10,14 +10,15 @@
       </div>
       <ParserSelector
           :parser_obj="parsers"
+          toc_only="true"
           v-model="selectedParser"></ParserSelector>
       <NovelMetadata
           edit="disable"
-          :tit="title"
-          :auth="author"
-          :cov="cover"
-          :pub="publisher"
-          :desc="description"></NovelMetadata>
+          v-model:tit="title"
+          v-model:auth="author"
+          v-model:cov="cover"
+          v-model:pub="publisher"
+          v-model:desc="description"></NovelMetadata>
       <div class="p-col-12">
         <br/>
         Detected Chapters: {{ chap_cnt }}

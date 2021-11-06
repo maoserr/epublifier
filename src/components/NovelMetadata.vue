@@ -1,25 +1,25 @@
 <template>
   <div class="p-field p-col-4 p-md-4">
     <label for="title">Title:</label>
-    <InputText id="title" type="text" :value="title" :disabled="edit"/>
+    <InputText id="title" type="text" :value="tit" @input="$emit('update:tit', $event.target.value)" :disabled="edit"/>
   </div>
   <div class="p-field p-col-4 p-md-4">
     <label for="author">Author:</label>
-    <InputText id="author" type="text" :value="author" :disabled="edit"/>
+    <InputText id="author" type="text" :value="auth" @input="$emit('update:auth', $event.target.value)" :disabled="edit"/>
   </div>
   <div class="p-field p-col-4 p-md-4">
     <label for="publisher">Publisher:</label>
-    <InputText id="publisher" type="text" :value="publisher" :disabled="edit"/>
+    <InputText id="publisher" type="text" :value="pub" @input="$emit('update:pub', $event.target.value)" :disabled="edit"/>
   </div>
   <div class="p-field p-col-4 p-md-4">
     <label for="cover">Cover:</label>
     <div id="coverdiv">
-      <img id="cover" :src="cover"/>
+      <img id="cover" :src="cov"/>
     </div>
   </div>
   <div class="p-field p-col-8 p-md-8">
     <label for="desc">Description:</label>
-    <div id="desc" v-html="description"></div>
+    <div id="desc" v-html="desc"></div>
   </div>
 </template>
 
@@ -48,32 +48,7 @@ export default defineComponent({
     cov: String,
     desc: String
   },
-  data() {
-    return {
-      title: "none",
-      author: "none",
-      publisher: "none",
-      cover: null,
-      description: "none"
-    }
-  },
-  watch: {
-    tit(newtit): void {
-      this.title = newtit
-    },
-    auth(newauth): void {
-      this.author = newauth
-    },
-    pub(newpub): void {
-      this.publisher = newpub
-    },
-    cov(newcov): void {
-      this.cover = newcov
-    },
-    desc(newdesc): void {
-      this.description = newdesc
-    }
-  }
+  emits: ['update:tit', 'update:auth', 'update:pub', 'update:cov', 'update:desc']
 });
 
 </script>
@@ -81,10 +56,12 @@ export default defineComponent({
 #desc {
   font-size: 1.4em;
 }
+
 #coverdiv {
   max-height: 400px;
   max-width: 200px;
 }
+
 #cover {
   max-width: 100%;
   max-height: 100%;

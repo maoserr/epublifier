@@ -20,8 +20,21 @@ Converts e-novels hosted on websites into Epub files.
 - Click `Extract Chapters`, if all is well, it should say `Parsed` if parser worked
 - Click `Compile Epub` to generate the ePub as a download
 
+## Advanced User Configurations ##
+**Warning: Advanced configuration requires javascript knowledge**
+
+### Overview ###
+There are four configurations for advanced users:
+- Table of Content Auto detector - Changes which TOC parser to use depending on page source and URL
+- Table of Content parsers - Actually parses HTML into list of chapter URLs or chapter htmls
+- Chapter Type Auto Detector - Detects what kindof chapter parser to use depending on page source and URL
+- Chapter Parser - Parses a chapter HTML text into text only HTML content
+
+### Configuring a parser ###
+You can either create a new YAML parser definition or modify the existing main definition.
+
 ## Building ##
-Build Environmen 
+Build Environment
 - Windows 10
 - NPM version 8.1.2
 

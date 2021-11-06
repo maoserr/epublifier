@@ -8,20 +8,19 @@
       </div>
       <div class="p-field">
         <label for="innerhtml">Parsed HTML</label>
-        <Textarea id="innerhtml" v-model="chap.html_parsed" disabled required="true" rows="30" cols="150"/>
+        <Textarea id="innerhtml" v-model="chap.html_parsed" required="true" rows="30" cols="150"/>
       </div>
       <template #footer>
-        <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="hide_dialog"/>
         <Button label="Save" icon="pi pi-check" class="p-button-text" @click="save_chap"/>
       </template>
     </Dialog>
     <div class="p-fluid p-formgrid p-grid">
       <NovelMetadata
-          :tit="title"
-          :auth="author"
-          :cov="cover"
-          :pub="publisher"
-          :desc="description"></NovelMetadata>
+          v-model:tit="title"
+          v-model:auth="author"
+          v-model:cov="cover"
+          v-model:pub="publisher"
+          v-model:desc="description"></NovelMetadata>
       <div class="p-field p-col-12">
         <DataTable :value="chapts"
                    v-model:selection="selected_chaps"
@@ -198,10 +197,8 @@ export default defineComponent({
       this.chap = chap;
       this.diag_show = true;
     },
-    hide_dialog() {
-      this.diag_show = false;
-    },
     save_chap() {
+      this.diag_show = false;
     },
     async gen_epub() {
       let vm = this;
