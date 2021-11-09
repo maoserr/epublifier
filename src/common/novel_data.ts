@@ -1,6 +1,7 @@
 export interface Chapter {
     url: string;
     url_title: string;
+    parser?: string;
     title?: string;
     html?: string;
     html_parsed?: string;

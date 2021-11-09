@@ -7,8 +7,19 @@
         <small class="p-error" v-if="!chap.title">Title is required.</small>
       </div>
       <div class="p-field">
-        <label for="innerhtml">Parsed HTML</label>
-        <Textarea id="innerhtml" v-model="chap.html_parsed" required="true" rows="30" cols="150"/>
+        <TabView v-model:activeIndex="activeIndex">
+          <TabPanel header="Preview">
+            <iframe :srcdoc="chap.html_parsed" width="900px" height="600px"></iframe>
+          </TabPanel>
+          <TabPanel header="Parsed Source">
+            <label for="innerhtml">Parsed HTML</label>
+            <Textarea id="innerhtml" v-model="chap.html_parsed" required="true" rows="30" cols="150"/>
+          </TabPanel>
+          <TabPanel header="Full Source">
+            <label for="allhtml">Full HTML</label>
+            <Textarea id="allhtml" v-model="chap.html" required="true" rows="30" cols="150" disabled="disabled"/>
+          </TabPanel>
+        </TabView>
       </div>
       <template #footer>
         <Button label="Save" icon="pi pi-check" class="p-button-text" @click="save_chap"/>
@@ -21,32 +32,49 @@
           v-model:cov="cover"
           v-model:pub="publisher"
           v-model:desc="description"></NovelMetadata>
+      <div class="p-field p-col-3">
+        <Button icon="pi pi-external-link" label="Delete Selected" @click="deleteSel($event)" disabled="disabled"/>
+      </div>
+      <div class="p-field p-col-3">
+        <Button icon="pi pi-external-link" label="Set Parser" @click="setParser($event)" disabled="disabled"/>
+      </div>
+      <div class="p-field p-col-3">
+      </div>
+      <div class="p-field p-col-3">
+        <Button icon="pi pi-external-link" label="Export CSV" @click="exportCSV($event)"/>
+      </div>
       <div class="p-field p-col-12">
         <DataTable :value="chapts"
+                   ref="dt"
                    v-model:selection="selected_chaps"
+                   :reorderableColumns="true"
+                   @rowReorder="onRowReorder"
                    selectionMode="multiple"
                    scrollable scrollHeight="500px"
                    :paginator="true" :rows="100"
                    class="p-datatable-sm"
                    paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                   :rowsPerPageOptions="[100, 200,500]" responsiveLayout="scroll"
+                   :rowsPerPageOptions="[100, 200,500]"
+                   responsiveLayout="scroll"
                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
+          <Column :rowReorder="true" headerStyle="width: 3rem" :reorderableColumn="false"/>
           <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
           <Column field="url_title" header="URL Title" :sortable="true"></Column>
-          <Column field="url" header="URL">
+          <Column field="url" header="URL" :sortable="true">
             <template #body="slotProps">
               <a :href="slotProps.data.url" target="_blank" rel="noopener noreferrer">{{ slotProps.data.url }}</a>
             </template>
           </Column>
-          <Column field="html_parsed" header="Parsed HTML">
+          <Column field="parser" header="Parser">
             <template #body="slotProps">
-              {{ slotProps.data.html_parsed ? "Parsed" : "" }}
+              {{ slotProps.data.parser ? slotProps.data.parser : "Auto" }}
             </template>
           </Column>
-          <Column :exportable="false" style="min-width:8rem">
+          <Column field="title" header="Parsed Title" :sortable="true"></Column>
+          <Column :exportable="false" style="min-width:8rem" header="Edit Content">
             <template #body="slotProps">
               <Button icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm"
-                      @click="edit_chap(slotProps.data)"/>
+                      @click="edit_chap(slotProps.data)" :disabled='slotProps.data.html_parsed?null:"disabled"'/>
             </template>
           </Column>
         </DataTable>
@@ -56,10 +84,10 @@
         <ProgressBar :value="progress_val" :showValue="true" style="height: .5em"/>
       </div>
       <div class="p-field p-col-6">
-        <Button label="Extract Chapters" @click="extract_chaps()"/>
+        <Button label="Extract Chapters" @click="extract_chaps()" :disabled="btn_disabled"/>
       </div>
       <div class="p-field p-col-6">
-        <Button label="Compile Epub" @click="gen_epub()"/>
+        <Button label="Compile Epub" @click="gen_epub()" :disabled="btn_comp_disabled"/>
       </div>
     </div>
   </div>
@@ -78,6 +106,8 @@ import ProgressBar from 'primevue/progressbar';
 import Dialog from 'primevue/dialog';
 import Textarea from "primevue/textarea";
 import InputText from "primevue/inputtext";
+import TabView from 'primevue/tabview';
+import TabPanel from 'primevue/tabpanel';
 
 import * as Parallel from 'async-parallel';
 import 'primeflex/primeflex.css';
@@ -104,7 +134,9 @@ export default defineComponent({
     ProgressBar,
     Dialog,
     Textarea,
-    InputText
+    InputText,
+    TabView,
+    TabPanel
   },
   data() {
     return {
@@ -116,11 +148,28 @@ export default defineComponent({
       cover: "",
       description: "",
       chap: {} as Chapter,
-      selected_chaps: null as Chapter[],
+      selected_chaps: [] as Chapter[],
       chapts: null as Chapter[],
       parsers: null,
       diag_show: false,
+      diag_tab: 0,
       parsedoc: "",
+    }
+  },
+  computed: {
+    btn_disabled(): string {
+      return this.selected_chaps.length == 0 ? "disabled" : null;
+    },
+    btn_comp_disabled(): string {
+      if (this.selected_chaps.length == 0) {
+        return "disabled";
+      }
+      for (let c in this.selected_chaps) {
+        if (!this.selected_chaps[c].html_parsed) {
+          return "disabled"
+        }
+      }
+      return null;
     }
   },
   created() {
@@ -159,6 +208,18 @@ export default defineComponent({
         vm.parsedoc = request.parser.split("||")[0];
         vm.status_txt = "Loaded chapters.";
       }
+    },
+    deleteSel(){
+    },
+    setParser(){
+
+    },
+    exportCSV() {
+      let adt = this.$refs.dt as any;
+      adt.exportCSV();
+    },
+    onRowReorder(event) {
+      this.chapts = event.value;
     },
     async extract_chaps() {
       let vm = this;

@@ -10,7 +10,7 @@
       </div>
       <ParserSelector
           :parser_obj="parsers"
-          toc_only="true"
+          :toc_only="true"
           v-model="selectedParser"></ParserSelector>
       <NovelMetadata
           edit="disable"
