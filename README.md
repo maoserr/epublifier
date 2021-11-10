@@ -1,6 +1,10 @@
 # Epublifier #
 
-Converts e-novels hosted on websites into Epub files.
+Fans of eReaders and Kindle can use this tool to generate eReader/Kindle compatible files from websites to read later.
+
+An extremely customizable tool that allows you to extract a list of html pages from a table of content page and compile them into an ePub book to be imported into your eReader of choice.
+
+For advanced users who can write javascript, you can add additional parser definition to customize parsing of any site.
 
 ## Features ##
 - Support novels with many chapters (tested up to 300 chapters)
