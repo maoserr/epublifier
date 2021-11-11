@@ -1,9 +1,6 @@
 <template>
-  <div class="p-field p-col-8 p-md-8">
-    <label for="parser">Parser:</label>
-    <TreeSelect id="parser" v-model="value" :options="parsers_nodes"
-                placeholder="Select Parser" scrollHeight="250px"/>
-  </div>
+  <TreeSelect v-model="value" :options="parsers_nodes"
+              placeholder="Select Parser" scrollHeight="250px"/>
 </template>
 <script lang="ts">
 
@@ -30,7 +27,8 @@ export default defineComponent({
   props: {
     modelValue: String,
     parser_obj: Object,
-    toc_only: Boolean
+    toc_only: Boolean,
+    chap_only: Boolean
   },
   emits: ["update:modelValue"],
   data() {
@@ -41,7 +39,7 @@ export default defineComponent({
   computed: {
     value: {
       get() {
-        return {[this.modelValue]:true};
+        return {[this.modelValue]: true};
       },
       set(value) {
         this.$emit('update:modelValue', Object.entries(value)[0][0])
@@ -50,25 +48,27 @@ export default defineComponent({
   },
   watch: {
     parser_obj: {
-      handler(){
+      handler() {
         let parserd = []
         Object.entries(this.parser_obj).forEach(
             ([key, val]) => {
               let doc_child = []
-              doc_child.push({key: key + "||main_parser", label: "Table of Content Auto Detector"})
-              let toc_childs = []
-              Object.entries(val["toc_parsers"]).forEach(
-                  ([tkey, tval]) => {
-                    toc_childs.push({key: key + "||toc_parsers||" + tkey, label: tval["name"]})
-                  }
-              )
-              doc_child.push({
-                key: key + "||toc_parsers",
-                label: "Table of Content Parsers",
-                selectable: false,
-                children: toc_childs
-              })
-              if(!this.toc_only) {
+              if (!this.chap_only) {
+                doc_child.push({key: key + "||main_parser", label: "Table of Content Auto Detector"})
+                let toc_childs = []
+                Object.entries(val["toc_parsers"]).forEach(
+                    ([tkey, tval]) => {
+                      toc_childs.push({key: key + "||toc_parsers||" + tkey, label: tval["name"]})
+                    }
+                )
+                doc_child.push({
+                  key: key + "||toc_parsers",
+                  label: "Table of Content Parsers",
+                  selectable: false,
+                  children: toc_childs
+                })
+              }
+              if (!this.toc_only) {
                 doc_child.push({key: key + "||chap_main_parser", label: "Chapter Auto Detector"})
                 let chap_childs = []
                 Object.entries(val["chap_parsers"]).forEach(

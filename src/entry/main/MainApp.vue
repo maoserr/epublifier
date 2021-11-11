@@ -33,15 +33,23 @@
           v-model:pub="publisher"
           v-model:desc="description"></NovelMetadata>
       <div class="p-field p-col-3">
-        <Button icon="pi pi-external-link" label="Delete Selected" @click="deleteSel($event)" disabled="disabled"/>
+        <Button icon="pi pi-times" class="p-button-danger" label="Delete Selected" @click="deleteSel($event)"
+                :disabled="btn_disabled"/>
+      </div>
+      <div class="p-field p-col-2">
+        <ParserSelector
+            :chap_only="true"
+            :parser_obj="parsers"
+            v-model="selectedParser"></ParserSelector>
+      </div>
+      <div class="p-field p-col-1">
+        <Button icon="pi pi-user-edit" class="p-button-info" label="Set Parser" @click="setParser($event)"
+                :disabled="btn_disabled"/>
       </div>
       <div class="p-field p-col-3">
-        <Button icon="pi pi-external-link" label="Set Parser" @click="setParser($event)" disabled="disabled"/>
       </div>
       <div class="p-field p-col-3">
-      </div>
-      <div class="p-field p-col-3">
-        <Button icon="pi pi-external-link" label="Export CSV" @click="exportCSV($event)"/>
+        <Button icon="pi pi-external-link" class="p-button-info" label="Export CSV" @click="exportCSV($event)"/>
       </div>
       <div class="p-field p-col-12">
         <DataTable :value="chapts"
@@ -84,10 +92,10 @@
         <ProgressBar :value="progress_val" :showValue="true" style="height: .5em"/>
       </div>
       <div class="p-field p-col-6">
-        <Button label="Extract Chapters" @click="extract_chaps()" :disabled="btn_disabled"/>
+        <Button label="Extract Chapters" class="p-button-success" @click="extract_chaps()" :disabled="btn_disabled"/>
       </div>
       <div class="p-field p-col-6">
-        <Button label="Compile Epub" @click="gen_epub()" :disabled="btn_comp_disabled"/>
+        <Button label="Compile Epub" class="p-button-success" @click="gen_epub()" :disabled="btn_comp_disabled"/>
       </div>
     </div>
   </div>
@@ -121,11 +129,13 @@ import {generate_epub} from "../../common/epub_generator";
 import {load_parsers} from "../../common/parser_loader";
 
 import NovelMetadata from "../../components/NovelMetadata.vue";
+import ParserSelector from "../../components/ParserSelector.vue";
 
 export default defineComponent({
   name: 'App',
   components: {
     NovelMetadata,
+    ParserSelector,
     Message,
     DataTable,
     Column,
@@ -151,6 +161,7 @@ export default defineComponent({
       selected_chaps: [] as Chapter[],
       chapts: null as Chapter[],
       parsers: null,
+      selectedParser: null,
       diag_show: false,
       diag_tab: 0,
       parsedoc: "",
@@ -209,10 +220,18 @@ export default defineComponent({
         vm.status_txt = "Loaded chapters.";
       }
     },
-    deleteSel(){
+    deleteSel() {
+      this.chapts = this.chapts.filter(val => !this.selected_chaps.includes(val));
+      this.selected_chaps = [];
     },
-    setParser(){
-
+    setParser() {
+      for (let i in this.selected_chaps) {
+        if (this.selectedParser == "main||chap_main_parser") {
+          this.selected_chaps[i].parser = null
+        } else {
+          this.selected_chaps[i].parser = this.selectedParser
+        }
+      }
     },
     exportCSV() {
       let adt = this.$refs.dt as any;
@@ -235,7 +254,7 @@ export default defineComponent({
             let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
             iframe.contentWindow.postMessage({
               parser: JSON.stringify(vm.parsers),
-              selparser: vm.parsedoc + "||chap_main_parser",
+              selparser: vm.selected_chaps[id].parser ? vm.selected_chaps[id].parser : vm.parsedoc + "||chap_main_parser",
               doc: f_txt,
               id: id,
               url: vm.selected_chaps[id].url,

@@ -134,3 +134,8 @@ chap_parsers:
       }
       var out = helpers["readability"](dom);
       return {title: out.title, html: out.content};
+
+  chaps_raw:
+    name: No Parse
+    code: |
+      return {title: title, html: source}

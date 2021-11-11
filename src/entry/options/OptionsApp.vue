@@ -4,9 +4,12 @@
       <div class="p-field p-col-12">
         <Message :closable="false">{{ status_txt }}</Message>
       </div>
-      <ParserSelector
-          :parser_obj="parsers"
-          v-model="selectedParser"></ParserSelector>
+      <div class="p-field p-col-8 p-md-8">
+        <label>Parser:</label>
+        <ParserSelector
+            :parser_obj="parsers"
+            v-model="selectedParser"></ParserSelector>
+      </div>
       <div class="p-field p-col-4 p-md-4">
         <label>Add/Remove parser:</label>
         <div class="p-inputgroup">
@@ -98,7 +101,7 @@ export default defineComponent({
         delete this.parsers[pdoc][pcat][pars];
         this.selectedParser = "main||main_parser"
         this.status_txt = `Removed ${pdoc} - ${pcat}: ${pars}`
-      } else if(pdoc != "main") {
+      } else if (pdoc != "main") {
         delete this.parsers[pdoc];
         this.status_txt = `Removed ${pdoc}`
         this.selectedParser = "main||main_parser"

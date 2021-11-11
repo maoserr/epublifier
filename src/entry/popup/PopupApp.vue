@@ -8,10 +8,13 @@
         <label for="url">Page URL</label>
         <InputText id="url" type="text" :value="url" disabled="disabled"/>
       </div>
-      <ParserSelector
-          :parser_obj="parsers"
-          :toc_only="true"
-          v-model="selectedParser"></ParserSelector>
+      <div class="p-field p-col-8 p-md-8">
+        <label>Parser:</label>
+        <ParserSelector
+            :parser_obj="parsers"
+            :toc_only="true"
+            v-model="selectedParser"></ParserSelector>
+      </div>
       <NovelMetadata
           edit="disable"
           v-model:tit="title"

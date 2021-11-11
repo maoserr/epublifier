@@ -1,6 +1,6 @@
 {
   "name": "epublifier",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Converts Web Novels to Epub",
   "private": true,
   "scripts": {
