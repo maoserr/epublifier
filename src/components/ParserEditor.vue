@@ -37,33 +37,22 @@ export default defineComponent({
     txt: String
   },
   emits: ['status', 'update:txt'],
-  computed:{
-    txt_val:{
-      set(newval){
+  mounted() {
+    this.update_txt(this.parser);
+  },
+  computed: {
+    txt_val: {
+      set(newval) {
         this.$emit('update:txt', newval)
       },
-      get():string {
+      get(): string {
         return this.txt
       }
     }
   },
   watch: {
     async parser(newparser) {
-      if (newparser == null) {
-        return
-      }
-      let p_sp = newparser.split("||");
-      let pdoc = p_sp[0];
-      let pcat = p_sp[1];
-      let pars = null;
-      if (p_sp.length > 2) {
-        pars = p_sp[2];
-      }
-      if ((pcat == "main_parser") || (pcat == "chap_main_parser")) {
-        this.txt_val = this.parser_obj[pdoc][pcat]
-      } else if ((pcat == "toc_parsers") || (pcat == "chap_parsers")) {
-        this.txt_val = this.parser_obj[pdoc][pcat][pars]["code"]
-      }
+      this.update_txt(newparser)
     },
     async parser_obj(newobj) {
       if (this.parser == null) {
@@ -84,6 +73,23 @@ export default defineComponent({
     }
   },
   methods: {
+    update_txt(newparser) {
+      if (newparser == null) {
+        return
+      }
+      let p_sp = newparser.split("||");
+      let pdoc = p_sp[0];
+      let pcat = p_sp[1];
+      let pars = null;
+      if (p_sp.length > 2) {
+        pars = p_sp[2];
+      }
+      if ((pcat == "main_parser") || (pcat == "chap_main_parser")) {
+        this.txt_val = this.parser_obj[pdoc][pcat]
+      } else if ((pcat == "toc_parsers") || (pcat == "chap_parsers")) {
+        this.txt_val = this.parser_obj[pdoc][pcat][pars]["code"]
+      }
+    },
     highlighter(code) {
       return highlight(code, languages.js);
     }

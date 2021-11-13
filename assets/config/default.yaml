@@ -98,18 +98,25 @@ chap_parsers:
     code: |
       var parser = new DOMParser();
       var dom = parser.parseFromString(source, "text/html");
-      console.log(helpers["readability"](dom))
+
       var new_link = null;
       var subchaps = [];
 
       // Wordpress content
       var main_cont = dom.querySelector(".entry-content")
-      if(main_cont != null){
+      if(helpers["readerable"](dom, {"minContentLength":1000})){
+        console.log("Readable");
+        var out = helpers["readability"](dom);
+        return {title: out.title, html: out.content};
+      } else if(main_cont != null){
+        console.log("Checking for intro page/subchapt");
         var ancs = main_cont.querySelectorAll("a");
         ancs.forEach((element) => {
               if(RegExp(/click here to read|read here|continue reading/i).test(element.innerText)){
+                console.log("Intro page found");
                 new_link = helpers["link_fixer"](element.href, url);
               } else if (RegExp(/^chapter|^part/i).test(element.innerText)) {
+                console.log("Subchapters found");
                 subchaps.push(helpers["link_fixer"](element.href, url))
               }
         });

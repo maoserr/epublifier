@@ -1,9 +1,22 @@
 <template>
   <div id="app">
-    <Dialog header="Header" v-model:visible="diagparser_show" :modal="true" class="p-fluid">
-
+    <Dialog header="Parser Edit" v-model:visible="diagparser_show" :modal="true" class="p-fluid">
+      <div class="p-field">
+        <TabView v-model:activeIndex="activePIndex">
+          <TabPanel header="Parser">
+            <ParserEditor
+                :parser_obj="parsers"
+                :parser="selectedParser"
+                v-model:txt="parser_txt"
+                @status="status_txt=$event"></ParserEditor>
+          </TabPanel>
+        </TabView>
+      </div>
+      <template #footer>
+        <Button label="Save" icon="pi pi-check" class="p-button-text" @click="save_options"/>
+      </template>
     </Dialog>
-    <Dialog header="Header" v-model:visible="diag_show" :modal="true" class="p-fluid">
+    <Dialog header="Chapter Edit" v-model:visible="diag_show" :modal="true" class="p-fluid">
       <div class="p-field">
         <label for="title">Name</label>
         <InputText id="title" v-model.trim="chap.title" required="true" autofocus :class="{'p-invalid': !chap.title}"/>
@@ -45,14 +58,15 @@
             :parser_obj="parsers"
             v-model="selectedParser"></ParserSelector>
       </div>
-      <div class="p-field p-col-1">
-        <Button icon="pi pi-user-edit" class="p-button-info" label="Set Parser" @click="setParser($event)"
+      <div class="p-field p-col-2">
+        <Button class="p-button-info" label="Set Parser" @click="setParser"
                 :disabled="btn_disabled"/>
       </div>
-      <div class="p-field p-col-3">
+      <div class="p-field p-col-2">
+        <Button icon="pi pi-user-edit" class="p-button-info" label="Edit Parser" @click="edit_parser"/>
       </div>
       <div class="p-field p-col-3">
-        <Button icon="pi pi-external-link" class="p-button-info" label="Export CSV" @click="exportCSV($event)"/>
+        <Button icon="pi pi-external-link" class="p-button-info" label="Export CSV" @click="exportCSV"/>
       </div>
       <div class="p-field p-col-12">
         <DataTable :value="chapts"
@@ -130,16 +144,18 @@ import 'primevue/resources/themes/md-light-indigo/theme.css';
 
 import {NovelData, Chapter} from "../../common/novel_data";
 import {generate_epub} from "../../common/epub_generator";
-import {load_parsers} from "../../common/parser_loader";
+import {load_parsers, save_parsers} from "../../common/parser_loader";
 
 import NovelMetadata from "../../components/NovelMetadata.vue";
 import ParserSelector from "../../components/ParserSelector.vue";
+import ParserEditor from "../../components/ParserEditor.vue";
 
 export default defineComponent({
   name: 'App',
   components: {
     NovelMetadata,
     ParserSelector,
+    ParserEditor,
     Message,
     DataTable,
     Column,
@@ -154,6 +170,8 @@ export default defineComponent({
   },
   data() {
     return {
+      activeIndex: 0,
+      activePIndex: 0,
       status_txt: "",
       progress_val: 0,
       title: "Epublifier",
@@ -166,6 +184,7 @@ export default defineComponent({
       chapts: null as Chapter[],
       parsers: null,
       selectedParser: null,
+      parser_txt: "",
       diag_show: false,
       diagparser_show: false,
       diag_tab: 0,
@@ -195,7 +214,8 @@ export default defineComponent({
   },
   async mounted() {
     let vm = this;
-    vm.parsers = await load_parsers();
+    this.parsers = await load_parsers();
+    this.selectedParser = "main||chap_main_parser";
     window.addEventListener('message', function (event) {
       let command = event.data.command;
       vm.status_txt = event.data.message;
@@ -209,6 +229,11 @@ export default defineComponent({
           break;
       }
     });
+  },
+  watch: {
+    status_txt(newtxt) {
+      console.log("Status:", newtxt)
+    }
   },
   methods: {
     msg_func(request: any, sender: any) {
@@ -281,6 +306,32 @@ export default defineComponent({
     edit_chap(chap: Chapter) {
       this.chap = chap;
       this.diag_show = true;
+    },
+    edit_parser() {
+      this.diagparser_show = true;
+    },
+    async save_options() {
+      if (this.selectedParser == null) {
+        return
+      }
+      let p_sp = this.selectedParser.split("||");
+      let pdoc = p_sp[0];
+      let pcat = p_sp[1];
+      let pars = null;
+      if (p_sp.length > 2) {
+        pars = p_sp[2];
+      }
+      let save_msg
+      if ((pcat == "main_parser") || (pcat == "chap_main_parser")) {
+        this.parsers[pdoc][pcat] = this.parser_txt;
+        save_msg = `Parser saved: ${pdoc} - ${pcat}`
+      } else if ((pcat == "toc_parsers") || (pcat == "chap_parsers")) {
+        this.parsers[pdoc][pcat][pars]["code"] = this.parser_txt;
+        save_msg = `Parser saved: ${pdoc} - ${pcat} - ${pars}`
+      }
+      await save_parsers(this.parsers);
+      this.status_txt = save_msg;
+      this.diagparser_show = false;
     },
     save_chap() {
       this.diag_show = false;

@@ -1,10 +1,13 @@
 import {Parser} from "../common/parser_loader";
-import {Readability} from "@mozilla/readability";
+import {Readability, isProbablyReaderable} from "@mozilla/readability";
 
 let ext_url = new URL(window.location.origin);
 let helper_funcs = {
     "readability": function (dom: Document) {
         return new Readability(dom).parse();
+    },
+    "readerable": function (dom: Document, opt){
+        return isProbablyReaderable(dom, opt)
     },
     "link_fixer": function (link: string, base_url: string) {
         let c_url = new URL(base_url);
