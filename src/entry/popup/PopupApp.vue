@@ -177,7 +177,7 @@ export default defineComponent({
     async extract_curr_source() {
       let vm = this
       try {
-        await browser.tabs.executeScript(null, {file: "js/getPageSource.js",})
+        await browser.scripting.executeScript( {files: ["js/getPageSource.js"]})
       } catch (error) {
         vm.status_txt = "Injection failed: " + error.message;
       }

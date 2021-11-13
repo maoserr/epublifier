@@ -11,21 +11,39 @@ function modify_manifest(buffer, browser_type, mode) {
 
     if (browser_type === "firefox") {
         // Firefox specific
+        manifest.manifest_version = 2
         manifest.browser_specific_settings = {
             "gecko": {
                 "id": "epublifier@maoserr.com"
             }
         }
+        manifest.permissions.push("<all_urls>")
+        manifest.browser_action = {
+            default_icon: {
+                16: "images/icon16.png",
+                32: "images/icon32.png",
+                48: "images/icon48.png",
+                128: "images/icon128.png"
+            },
+            default_title: "Epublifier",
+            default_popup: "popup.html"
+        }
         manifest.options_ui.open_in_tab = true
         manifest.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self';";
     } else {
         // Chrome specific
+        manifest.manifest_version = 3
+        manifest.host_permissions = ["<all_urls>"]
         manifest.sandbox = {"pages": ["sandbox.html"]};
-        if (mode === "development") {
-            manifest.background = {
-                "scripts": ["js/vender/hot-reload.js"],
-                "persistent": false
-            }
+        manifest.action = {
+            default_icon: {
+                16: "images/icon16.png",
+                32: "images/icon32.png",
+                48: "images/icon48.png",
+                128: "images/icon128.png"
+            },
+            default_title: "Epublifier",
+            default_popup: "popup.html"
         }
     }
     // Dynamic version

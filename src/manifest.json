@@ -2,19 +2,9 @@
   "name": "Epublifier",
   "author": "Mao Yu<maoserr@gmail.com",
   "description": "A tool to convert website based books or list of pages to ePub format to read on your eReader/Kindle/etc.",
-  "permissions": ["tabs", "<all_urls>", "downloads", "storage"],
+  "permissions": ["tabs", "downloads", "storage"],
   "options_ui": {
     "page": "options.html"
-  },
-  "browser_action": {
-    "default_icon": {
-      "16": "images/icon16.png",
-      "32": "images/icon32.png",
-      "48": "images/icon48.png",
-      "128": "images/icon128.png"
-    },
-    "default_title": "Epublifier",
-    "default_popup": "popup.html"
   },
   "icons": {
     "16": "images/icon16.png",
