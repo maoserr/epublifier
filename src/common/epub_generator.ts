@@ -43,16 +43,21 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
             let html_node = parser.parseFromString(nov_data.chapters[i].html_parsed, "text/html");
             let imgs = html_node.querySelectorAll("img");
             for (const img of imgs) {
-                let sp = html_node.createElement("span")
                 update_cb(`Fetching image ${img_id}`)
-                let img_resp = await fetch(img.src)
-                if (img_resp.ok) {
-                    let img_dat = await img_resp.blob();
-                    jepub.image(img_dat, img_id.toString())
-                    sp.innerHTML = `{{{ image[${img_id.toString()}] }}}`
-                    img_id++;
+                try {
+                    let img_resp = await fetch(img.src)
+                    if (img_resp.ok) {
+                        let img_dat = await img_resp.blob();
+                        jepub.image(img_dat, img_id.toString())
+                        let sp = html_node.createElement("span")
+                        sp.innerHTML = `{{{ image[${img_id.toString()}] }}}`
+                        img.replaceWith(sp)
+                        img_id++;
+                    }
+                } catch (err) {
+                    update_cb(`Unable to embed image ${img_id} - ${img.src}: ${err}`);
+                    console.log(err)
                 }
-                img.replaceWith(sp)
             }
             let s_html = s.serializeToString(html_node);
             let fixed_html = s_html.replaceAll(/{{{/g, "<%=").replaceAll(/}}}/g, "%>")

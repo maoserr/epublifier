@@ -98,7 +98,7 @@ chap_parsers:
     code: |
       var parser = new DOMParser();
       var dom = parser.parseFromString(source, "text/html");
-
+      console.log(helpers["readability"](dom))
       var new_link = null;
       var subchaps = [];
 
@@ -109,7 +109,7 @@ chap_parsers:
         ancs.forEach((element) => {
               if(RegExp(/click here to read|read here|continue reading/i).test(element.innerText)){
                 new_link = helpers["link_fixer"](element.href, url);
-              } else if (RegExp(/chapter|part/i).test(element.innerText)) {
+              } else if (RegExp(/^chapter|^part/i).test(element.innerText)) {
                 subchaps.push(helpers["link_fixer"](element.href, url))
               }
         });

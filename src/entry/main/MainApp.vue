@@ -1,5 +1,8 @@
 <template>
   <div id="app">
+    <Dialog header="Header" v-model:visible="diagparser_show" :modal="true" class="p-fluid">
+
+    </Dialog>
     <Dialog header="Header" v-model:visible="diag_show" :modal="true" class="p-fluid">
       <div class="p-field">
         <label for="title">Name</label>
@@ -58,6 +61,7 @@
                    :reorderableColumns="true"
                    @rowReorder="onRowReorder"
                    selectionMode="multiple"
+                   :metaKeySelection="false"
                    scrollable scrollHeight="500px"
                    :paginator="true" :rows="100"
                    class="p-datatable-sm"
@@ -163,6 +167,7 @@ export default defineComponent({
       parsers: null,
       selectedParser: null,
       diag_show: false,
+      diagparser_show: false,
       diag_tab: 0,
       parsedoc: "",
     }

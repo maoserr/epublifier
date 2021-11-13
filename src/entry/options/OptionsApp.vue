@@ -21,10 +21,21 @@
       <ParserEditor
           :parser_obj="parsers"
           :parser="selectedParser"
-          @save="save_options($event)"
-          @import="import_yaml($event)"
-          @reset="reset_options"
+          v-model:txt="txt"
           @status="status_txt=$event"></ParserEditor>
+      <div class="p-field p-col-3 p-md-3">
+        <FileUpload mode="basic" name="files[]" :auto="true" chooseLabel="Import YAML" :customUpload="true"
+                    @uploader="uploader"/>
+      </div>
+      <div class="p-field p-col-3 p-md-3">
+        <Button label="Export YAML" icon="pi pi-download" @click="export_yaml"/>
+      </div>
+      <div class="p-field p-col-3 p-md-3">
+        <Button label="Reset Initial" class="p-button-warning" icon="pi pi-minus-circle" @click="reset_options"/>
+      </div>
+      <div class="p-field p-col-3 p-md-3">
+        <Button label="Save" class="p-button-success" icon="pi pi-check" @click="save_options"/>
+      </div>
     </div>
   </div>
 </template>
@@ -35,6 +46,7 @@ import {defineComponent} from "vue";
 import ParserSelector from '../../components/ParserSelector.vue';
 import ParserEditor from '../../components/ParserEditor.vue';
 
+import FileUpload from 'primevue/fileupload';
 import InputText from 'primevue/inputtext';
 import Button from "primevue/button";
 import Message from 'primevue/message';
@@ -45,6 +57,8 @@ import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/md-light-indigo/theme.css';
 import {get_initial, load_parsers, save_parsers, load_yaml_doc} from "../../common/parser_loader";
+import {dump} from "js-yaml";
+import browser from "webextension-polyfill";
 
 export default defineComponent({
   name: 'Options UI',
@@ -52,6 +66,7 @@ export default defineComponent({
     ParserEditor,
     ParserSelector,
     Message,
+    FileUpload,
     InputText,
     Button
   },
@@ -60,7 +75,8 @@ export default defineComponent({
       selectedParser: null,
       parsers: null,
       new_parser: null,
-      status_txt: ""
+      status_txt: "",
+      txt: ""
     }
   },
   async mounted() {
@@ -109,6 +125,30 @@ export default defineComponent({
         this.status_txt = `Cannot delete main parser.`
       }
     },
+    async uploader(event) {
+      this.status_txt = 'Importing file.'
+      if (event.files.length < 1) {
+        return
+      }
+      let name = event.files[0].name
+      let file_txt = await event.files[0].text();
+      await this.import_yaml({name: name, text: file_txt});
+    },
+    export_yaml() {
+      if (this.selectedParser == null) {
+        return
+      }
+      let p_sp = this.selectedParser.split("||");
+      let pdoc = p_sp[0];
+      let yaml = dump(this.parsers[pdoc]);
+      let blob = new Blob([yaml], {type: "text/yaml"});
+      let url = URL.createObjectURL(blob);
+      browser.downloads.download({
+        url: url,
+        filename: pdoc + ".yaml",
+      });
+      this.status_txt = 'Parsers exported: ' + pdoc;
+    },
     async import_yaml(import_txt) {
       let fullname = import_txt.name
       let name = fullname.split(/[\\/]/).pop().split(".")[0];
@@ -119,7 +159,7 @@ export default defineComponent({
       this.parsers[name] = await load_yaml_doc(import_txt.text)
       this.status_txt = `Document ${name} imported.`
     },
-    async save_options(txt) {
+    async save_options() {
       if (this.selectedParser == null) {
         return
       }
@@ -132,10 +172,10 @@ export default defineComponent({
       }
       let save_msg
       if ((pcat == "main_parser") || (pcat == "chap_main_parser")) {
-        this.parsers[pdoc][pcat] = txt;
+        this.parsers[pdoc][pcat] = this.txt;
         save_msg = `Parser saved: ${pdoc} - ${pcat}`
       } else if ((pcat == "toc_parsers") || (pcat == "chap_parsers")) {
-        this.parsers[pdoc][pcat][pars]["code"] = txt;
+        this.parsers[pdoc][pcat][pars]["code"] = this.txt;
         save_msg = `Parser saved: ${pdoc} - ${pcat} - ${pars}`
       }
       await save_parsers(this.parsers);
