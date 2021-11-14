@@ -143,7 +143,6 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/md-light-indigo/theme.css';
 
 import {NovelData, Chapter} from "../../common/novel_data";
-import {generate_epub} from "../../common/epub_generator";
 import {load_parsers, save_parsers} from "../../common/parser_loader";
 
 import NovelMetadata from "../../components/NovelMetadata.vue";
@@ -227,6 +226,12 @@ export default defineComponent({
           vm.selected_chaps[id].html_parsed = html;
           vm.selected_chaps[id].title = title;
           break;
+        case 'epub_file':
+          let filecontent = event.data.file;
+          browser.downloads.download({
+            url: URL.createObjectURL(filecontent),
+            filename: event.data.filename,
+          });
       }
     });
   },
@@ -283,6 +288,7 @@ export default defineComponent({
             vm.status_txt = "Parsing chapter content: " + id;
             let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
             iframe.contentWindow.postMessage({
+              command: "parse",
               parser: JSON.stringify(vm.parsers),
               selparser: vm.selected_chaps[id].parser ? vm.selected_chaps[id].parser : vm.parsedoc + "||chap_main_parser",
               doc: f_txt,
@@ -346,15 +352,19 @@ export default defineComponent({
         description: vm.description,
         filename: vm.title.toLowerCase().replaceAll(/[\W_]+/g, "_") + ".epub"
       };
+      let cover = null;
       if (vm.cover != null) {
         let response = await fetch(vm.cover);
         if (response.ok) {
-          nov_data.cover = await response.blob();
+          cover = await response.blob();
         }
       }
-      await generate_epub(nov_data, function (msg: string) {
-        vm.status_txt = msg
-      });
+      let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
+      iframe.contentWindow.postMessage({
+        command: "epub_gen",
+        nov_data: JSON.stringify(nov_data),
+        cover: cover
+      }, '*');
     },
   }
 });

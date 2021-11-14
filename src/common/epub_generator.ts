@@ -1,26 +1,7 @@
 import {NovelData} from "./novel_data";
-import browser from "webextension-polyfill";
+import jEpub from "jepub/dist/jepub";
 
-interface metadata {
-    percent: number;
-    currentFile: string;
-}
-declare class jEpub {
-    constructor();
-    init(opts: unknown): jEpub;
-    cover(blob: Blob): jEpub;
-    notes(str: string): jEpub;
-    date(date: Date): jEpub;
-    image(data: object, id: string);
-    add(title: string, content: string | string[]): jEpub;
-    generate(
-        type: string,
-        updateCallback: (metadata: metadata) => unknown
-    ): Promise<Blob>;
-    static html2text(html: string): string;
-}
-
-export async function generate_epub(nov_data: NovelData, update_cb: CallableFunction) {
+export async function generate_epub(nov_data: NovelData, update_cb: CallableFunction):Promise<Blob> {
     try {
         const jepub = new jEpub();
         jepub.init({
@@ -74,11 +55,7 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
             }
             update_cb("Zip: " + metadata.percent.toFixed(2) + " %" + cf);
         })
-        let url = URL.createObjectURL(filecontent);
-        await browser.downloads.download({
-            url: url,
-            filename: nov_data.filename,
-        });
+        return filecontent;
     } catch (err) {
         update_cb(err);
         console.log(err)

@@ -33,6 +33,7 @@ function modify_manifest(buffer, browser_type, mode) {
     } else {
         // Chrome specific
         manifest.manifest_version = 3
+        manifest.permissions.push("scripting")
         manifest.host_permissions = ["<all_urls>"]
         manifest.sandbox = {"pages": ["sandbox.html"]};
         manifest.action = {
@@ -68,7 +69,7 @@ module.exports = (env,argv) => {
             sandbox: join(__dirname, "src/entry/sandbox.ts"),
             options: join(__dirname, "src/entry/options/options.ts"),
         },
-        devtool: "source-map",
+        devtool: 'cheap-module-source-map',
         module: {
             rules: [
                 {
@@ -127,9 +128,8 @@ module.exports = (env,argv) => {
             new CopyPlugin({
                 patterns: [
                     {from: "assets"},
-                    {from: "node_modules/jszip/dist/jszip.min.js", to: "js/vender"},
-                    {from: "node_modules/ejs/ejs.min.js", to: "js/vender"},
-                    {from: "node_modules/jepub/dist/jepub.min.js", to: "js/vender"},
+                    {from: "node_modules/jszip/dist/jszip.js", to: "js/vender"},
+                    {from: "node_modules/ejs/ejs.js", to: "js/vender"},
                     {
                         from: "src/manifest.json",
                         to: "manifest.json",

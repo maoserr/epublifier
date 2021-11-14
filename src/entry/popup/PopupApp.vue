@@ -177,7 +177,12 @@ export default defineComponent({
     async extract_curr_source() {
       let vm = this
       try {
-        await browser.scripting.executeScript( {files: ["js/getPageSource.js"]})
+        if ((browser.scripting != null) && (typeof browser.scripting.executeScript === 'function')) {
+          let curr_tab = await browser.tabs.query({active: true})
+          await browser.scripting.executeScript({target: {tabId: curr_tab[0].id}, files: ["js/getPageSource.js"]})
+        } else {
+          await browser.tabs.executeScript({file: "js/getPageSource.js"})
+        }
       } catch (error) {
         vm.status_txt = "Injection failed: " + error.message;
       }
@@ -188,6 +193,7 @@ export default defineComponent({
         vm.status_txt = "Parsing page content...";
         let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
         iframe.contentWindow.postMessage({
+          command: "parse",
           selparser: vm.selectedParser,
           parser: JSON.stringify(vm.parsers),
           doc: JSON.stringify(vm.page_src),

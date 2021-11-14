@@ -1,3 +1,4 @@
+import {generate_epub} from "../common/epub_generator";
 import {Parser} from "../common/parser_loader";
 import {Readability, isProbablyReaderable} from "@mozilla/readability";
 
@@ -6,7 +7,7 @@ let helper_funcs = {
     "readability": function (dom: Document) {
         return new Readability(dom).parse();
     },
-    "readerable": function (dom: Document, opt){
+    "readerable": function (dom: Document, opt) {
         return isProbablyReaderable(dom, opt)
     },
     "link_fixer": function (link: string, base_url: string) {
@@ -102,22 +103,45 @@ async function chap_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
     }
 }
 
+async function gen_epub_call(event, nov_data) {
+    let filecontent: Blob = await generate_epub(nov_data, function (msg: string) {
+        event.source.postMessage({
+            command: "status",
+            message: msg
+        })
+    });
+    event.source.postMessage({
+        command: "epub_file",
+        message: "Epub generated.",
+        file: filecontent,
+        filename: nov_data.filename
+    })
+}
+
 window.addEventListener('message', async function (event) {
-    let parser_sp = event.data.selparser.split("||")
-    let parse_doc = parser_sp[0];
-    let parse_cat = parser_sp[1];
-    let parse_par = null;
-    if (parser_sp.length > 2) {
-        parse_par = parser_sp[2]
-    }
     try {
-        switch (parse_cat) {
-            case 'main_parser':
-            case 'toc_parsers':
-                return main_parse(event, parse_doc, parse_cat, parse_par);
-            case 'chap_main_parser':
-            case 'chap_parsers':
-                return chap_parse(event, parse_doc, parse_cat, parse_par);
+        switch (event.data.command) {
+            case "parse":
+                let parser_sp = event.data.selparser.split("||")
+                let parse_doc = parser_sp[0];
+                let parse_cat = parser_sp[1];
+                let parse_par = null;
+                if (parser_sp.length > 2) {
+                    parse_par = parser_sp[2]
+                }
+                switch (parse_cat) {
+                    case 'main_parser':
+                    case 'toc_parsers':
+                        return main_parse(event, parse_doc, parse_cat, parse_par);
+                    case 'chap_main_parser':
+                    case 'chap_parsers':
+                        return chap_parse(event, parse_doc, parse_cat, parse_par);
+                }
+                break;
+            case 'epub_gen':
+                let nov_data = JSON.parse(event.data.nov_data);
+                nov_data.cover = event.data.cover;
+                return gen_epub_call(event, nov_data);
         }
     } catch (e) {
         event.source.postMessage({
