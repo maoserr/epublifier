@@ -45,7 +45,7 @@
     "primeflex": "^2.0.0",
     "primeicons": "^4.1.0",
     "primevue": "^3.8.2",
-    "prismjs": "^1.25.0",
+    "prismjs": "^1.27.0",
     "vue": "^3.2.19",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "webextension-polyfill": "^0.8.0"
