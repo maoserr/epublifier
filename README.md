@@ -16,11 +16,16 @@ For advanced users who can write javascript, you can add additional parser defin
 - Configurable parsers for table of contents and chapters
 
 ## How to Use ##
+- Install the extension
+  - Firefox: https://addons.mozilla.org/en-US/firefox/addon/epublifier/
+  - Chrome: https://chrome.google.com/webstore/detail/epublifier/eopjnahefjhnhfanplcjpbbdkpbagikk
 - Navigate to a table of content page
-  - Example: https://www.novelupdates.com/series/<series>
-- Open popup, it should automatically try to detect the page data
-- Click `Load Chapter List`
+  - Example: `https://www.novelupdates.com/series/<series>`
+  - 🛈 (*For novelupdates*) Click on the ☰ menu button (Show all chapters) above the chapter list
+- Click Epublifier's icon on your browser's extension bar, which will open a popup. It will automatically try to load the series' metadata.
+- Click `Load Chapter List`, which will create a new tab
 - Select some chapters (or all of them)
+  - 🛈 You may use Shift+Click to select a range of chapters to include or delete.
 - Click `Extract Chapters`, if all is well, it should say `Parsed` if parser worked
 - Click `Compile Epub` to generate the ePub as a download
 
