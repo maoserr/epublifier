@@ -1,5 +1,5 @@
 import {NovelData} from "./novel_data";
-import jEpub from "jepub/dist/jepub";
+import jEpub from "../jepub/jepub";
 
 export async function generate_epub(nov_data: NovelData, update_cb: CallableFunction):Promise<Blob> {
     try {
@@ -48,14 +48,13 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
             );
         }
         update_cb("Generating ePub");
-        let filecontent: Blob = await jepub.generate("blob", function updateCallback(metadata) {
+        return await jepub.generate("blob", function updateCallback(metadata) {
             let cf = ""
             if (metadata.currentFile) {
                 cf = ", current file = " + metadata.currentFile;
             }
             update_cb("Zip: " + metadata.percent.toFixed(2) + " %" + cf);
-        })
-        return filecontent;
+        }) as Blob;
     } catch (err) {
         update_cb(err);
         console.log(err)

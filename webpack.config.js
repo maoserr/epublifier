@@ -4,10 +4,20 @@ const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require("webpack");
 const pack = require('./package.json');
+const TerserPlugin = require("terser-webpack-plugin");
 
-function modify_manifest(buffer, browser_type, mode) {
+function modify_manifest(buffer, browser_type, version, mode) {
     // copy-webpack-plugin passes a buffer
     let manifest = JSON.parse(buffer.toString());
+    let icons = {
+        16: "images/icon16.png",
+        32: "images/icon32.png",
+        48: "images/icon48.png",
+        128: "images/icon128.png"
+    }
+    manifest.author = pack.author
+    manifest.description = pack.description
+    manifest.icons = icons
 
     if (browser_type === "firefox") {
         // Firefox specific
@@ -19,17 +29,12 @@ function modify_manifest(buffer, browser_type, mode) {
         }
         manifest.permissions.push("<all_urls>")
         manifest.browser_action = {
-            default_icon: {
-                16: "images/icon16.png",
-                32: "images/icon32.png",
-                48: "images/icon48.png",
-                128: "images/icon128.png"
-            },
-            default_title: "Epublifier",
+            default_icon: icons,
+            default_title: manifest.name,
             default_popup: "popup.html"
         }
         manifest.options_ui.open_in_tab = true
-        manifest.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self';";
+        manifest.content_security_policy = "script-src 'self'; object-src 'self';";
     } else {
         // Chrome specific
         manifest.manifest_version = 3
@@ -37,31 +42,42 @@ function modify_manifest(buffer, browser_type, mode) {
         manifest.host_permissions = ["<all_urls>"]
         manifest.sandbox = {"pages": ["sandbox.html"]};
         manifest.action = {
-            default_icon: {
-                16: "images/icon16.png",
-                32: "images/icon32.png",
-                48: "images/icon48.png",
-                128: "images/icon128.png"
-            },
-            default_title: "Epublifier",
+            default_icon: icons,
+            default_title: manifest.name,
             default_popup: "popup.html"
         }
     }
     // Dynamic version
-    manifest.version = pack.version;
+    manifest.version = version;
 
     // pretty print to JSON with two spaces
     return JSON.stringify(manifest, null, 2);
 }
 
-module.exports = (env,argv) => {
-    console.log(env)
-    console.log(argv)
-    let out_dir="dist"
+module.exports = (env, argv) => {
+    let out_dir = "dist/chrome"
+    let ver = "1.0.0"
+    if (env.version) {
+        ver = env.version
+    }
     if (env.browser_type === "firefox") {
-        out_dir = "dist_ff"
+        out_dir = "dist/firefox"
+    }
+    if (argv.mode === "production") {
+        out_dir = out_dir + "_prod"
     }
     return {
+        optimization: {
+            minimize: argv.mode === "production",
+            // EJS uses new Function
+            minimizer: [new TerserPlugin({
+                terserOptions: {
+                    keep_classnames: true,
+                    keep_fnames: true,
+                    mangle: false
+                }
+            })],
+        },
         entry: {
             popup: join(__dirname, "src/entry/popup/popup.ts"),
             main: join(__dirname, "src/entry/main/main.ts"),
@@ -90,6 +106,10 @@ module.exports = (env,argv) => {
                         'style-loader',
                         'css-loader'
                     ]
+                },
+                {
+                    test: /\.(ejs|xml)$/i,
+                    type: 'asset/source'
                 }
             ],
         },
@@ -102,6 +122,11 @@ module.exports = (env,argv) => {
             alias: {
                 'vue': '@vue/runtime-dom'
             },
+            fallback: {
+                "fs": false,
+                "buffer": require.resolve("buffer"),
+                "path": require.resolve("path-browserify")
+            }
         },
         plugins: [
             new VueLoaderPlugin(),
@@ -128,13 +153,11 @@ module.exports = (env,argv) => {
             new CopyPlugin({
                 patterns: [
                     {from: "assets"},
-                    {from: "node_modules/jszip/dist/jszip.js", to: "js/vender"},
-                    {from: "node_modules/ejs/ejs.js", to: "js/vender"},
                     {
                         from: "src/manifest.json",
                         to: "manifest.json",
                         transform(content, path) {
-                            return modify_manifest(content, env.browser_type, argv.mode)
+                            return modify_manifest(content, env.browser_type, ver, argv.mode)
                         }
                     }
                 ],
@@ -142,6 +165,19 @@ module.exports = (env,argv) => {
             new webpack.DefinePlugin({
                 __VUE_OPTIONS_API__: "true",
                 __VUE_PROD_DEVTOOLS__: "false",
+            }),
+            new webpack.NormalModuleReplacementPlugin(/node:/, (resource) => {
+                const mod = resource.request.replace(/^node:/, "");
+                switch (mod) {
+                    case "buffer":
+                        resource.request = "buffer";
+                        break;
+                    case "stream":
+                        resource.request = "readable-stream";
+                        break;
+                    default:
+                        throw new Error(`Not found ${mod}`);
+                }
             })
         ],
     }

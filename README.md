@@ -52,3 +52,7 @@ Build Steps
 - Run `npm install` in base directory 
 - Run `npm run build_ff` for Firefox
 - Run `npm run build` for Chrome
+
+
+## Acknowledgements ##
+1. [jEpub](https://lelinhtinh.github.io/jEpub/)

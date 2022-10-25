@@ -1,25 +1,24 @@
 {
   "name": "epublifier",
-  "version": "1.3.0",
-  "description": "Converts Web Novels to Epub",
+  "description": "A tool to convert website based books or list of pages to ePub format to read on your eReader/Kindle/etc.",
   "private": true,
   "scripts": {
     "watch": "webpack --env=browser_type=chrome --mode development --watch",
     "watch_ff": "webpack --env=browser_type=firefox --mode development --watch",
-    "build": "webpack --env=browser_type=chrome --mode development",
-    "build_ff": "webpack --env=browser_type=firefox --mode development"
+    "build": "webpack --env=browser_type=chrome --mode production",
+    "build_ff": "webpack --env=browser_type=firefox --mode production"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/maoserr/web_novel_to_epub.git"
+    "url": "https://github.com/maoserr/epublifier.git"
   },
   "keywords": [],
   "author": "Mao Yu<maoserr@gmail.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/maoserr/web_novel_to_epub/issues"
+    "url": "https://github.com/maoserr/epublifier/issues"
   },
-  "homepage": "https://github.com/maoserr/web_novel_to_epub#readme",
+  "homepage": "https://github.com/maoserr/epublifier#readme",
   "devDependencies": {
     "@mozilla/readability": "^0.4.1",
     "@types/ejs": "^3.1.0",
@@ -30,6 +29,7 @@
     "css-loader": "^6.5.1",
     "html-webpack-plugin": "^5.5.0",
     "style-loader": "^3.3.0",
+    "terser-webpack-plugin": "^5.3.6",
     "ts-loader": "^8.3.0",
     "typescript": "^4.4.3",
     "vue-loader": "^16.5.0",
@@ -38,14 +38,17 @@
   },
   "dependencies": {
     "async-parallel": "^1.2.3",
-    "ejs": "^3.1.7",
-    "jepub": "^2.1.4",
+    "buffer": "^6.0.3",
+    "ejs": "^3.1.8",
+    "image-type": "^5.1.0",
     "js-yaml": "^4.1.0",
     "jszip": "^3.7.1",
+    "path-browserify": "^1.0.1",
     "primeflex": "^2.0.0",
     "primeicons": "^4.1.0",
     "primevue": "^3.8.2",
     "prismjs": "^1.27.0",
+    "uuid": "^9.0.0",
     "vue": "^3.2.19",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "webextension-polyfill": "^0.8.0"

@@ -3,7 +3,6 @@
 # compiled output
 .firebase/
 dist
-dist_ff
 # dependencies
 node_modules
 
