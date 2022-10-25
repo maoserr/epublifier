@@ -28,6 +28,7 @@ jobs:
         working-directory: dist/firefox_prod
       - name: Create tag
         uses: actions/github-script@v5
+        if: startsWith(github.ref, 'refs/heads/master')
         with:
           script: |
             github.rest.git.createRef({
@@ -38,6 +39,7 @@ jobs:
             })
       - name: Release
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/heads/master')
         with:
           tag_name: ${{ github.run_number }}
           files: |
