@@ -42,4 +42,4 @@ jobs:
           tag_name: ${{ github.run_number }}
           files: |
             dist/chrome_prod/chrome_${{ github.run_number }}.zip
-            dist/firefox_pod/firefox_${{ github.run_number }}.zip
+            dist/firefox_prod/firefox_${{ github.run_number }}.zip
