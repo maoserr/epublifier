@@ -19,11 +19,16 @@ jobs:
           node-version: '16.x'
       - run: npm ci
       - run: npm run build -- --env=version=1.3.${{ github.run_number }}
+      - name: Zip chrome
+        run: zip -qq -r chrome.zip *
+        working-directory: dist/chrome_prod
       - run: npm run build_ff -- --env=version=1.3.${{ github.run_number }}
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v3
+      - name: Zip firefox
+        run: zip -qq -r firefox.zip *
+        working-directory: dist/firefox_prod
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          name: dist-chrome
-          path: |
-            dist/chrome_prod
-            dist/firefox_prod
+          files: |
+            dist/chrome_prod/chrome.zip
+            dist/firefox_pod/firefox.zip
