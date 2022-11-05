@@ -31,7 +31,7 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
                         let img_dat = await img_resp.blob();
                         jepub.image(img_dat, img_id.toString())
                         let sp = html_node.createElement("span")
-                        sp.innerHTML = `{{{ image[${img_id.toString()}] }}}`
+                        sp.textContent = `{{{ image[${img_id.toString()}] }}}`
                         img.replaceWith(sp)
                         img_id++;
                     }
