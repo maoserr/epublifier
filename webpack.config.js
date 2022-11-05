@@ -67,6 +67,13 @@ module.exports = (env, argv) => {
         out_dir = out_dir + "_prod"
     }
     return {
+        devServer: {
+            static: {
+                directory: join(__dirname, 'public'),
+            },
+            compress: true,
+            port: 9000,
+        },
         optimization: {
             minimize: argv.mode === "production",
             // EJS uses new Function
