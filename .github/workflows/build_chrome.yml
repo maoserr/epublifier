@@ -22,13 +22,35 @@ jobs:
       - name: Zip chrome
         run: zip -qq -r chrome_${{ github.run_number }}.zip *
         working-directory: dist/chrome_prod
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist-chrome
+          path: dist/chrome_prod/chrome_${{ github.run_number }}.zip
+      - name: Publish Chrome
+        uses: maoserr/gitaction_webextension_publish/chrome
+        if: github.ref == 'refs/heads/master'
+        with:
+          chrome_extension_id: eopjnahefjhnhfanplcjpbbdkpbagikk
+          client_id: ${{ secrets.CHROME_CLIENT_ID }}
+          refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          file: dist/chrome_prod/chrome_${{ github.run_number }}.zip
       - run: npm run build_ff -- --env=version=1.3.${{ github.run_number }}
       - name: Zip firefox
         run: zip -qq -r firefox_${{ github.run_number }}.zip *
         working-directory: dist/firefox_prod
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist-firefox
+          path: dist/firefox_prod/firefox_${{ github.run_number }}.zip
+      - name: Publish Firefox
+        uses: maoserr/gitaction_webextension_publish/firefox
+        if: github.ref == 'refs/heads/master'
+        with:
+          test: a
       - name: Create tag
         uses: actions/github-script@v5
-        if: startsWith(github.ref, 'refs/heads/master')
+        if: github.ref == 'refs/heads/master'
         with:
           script: |
             github.rest.git.createRef({
@@ -39,7 +61,7 @@ jobs:
             })
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/heads/master')
+        if: github.ref == 'refs/heads/master'
         with:
           tag_name: ${{ github.run_number }}
           files: |
