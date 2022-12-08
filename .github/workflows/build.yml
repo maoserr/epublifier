@@ -78,7 +78,7 @@ jobs:
         with:
           name: firefox
       - name: Publish Firefox
-        uses: maoserr/firefox_extension_publish@v1.0.1
+        uses: maoserr/firefox_extension_publish@v1.0.3
         with:
           firefox_extension_id: epublifier@maoserr.com
           api_key: ${{ secrets.FIREFOX_API_KEY }}
