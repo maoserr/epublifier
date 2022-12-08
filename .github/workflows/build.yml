@@ -43,11 +43,11 @@ jobs:
         run: zip -qq -r firefox.zip *
         working-directory: dist/firefox_prod
       - uses: actions/upload-artifact@v3
-        if: github.ref == 'refs/heads/master'
         with:
           name: dist-firefox.zip
           path: dist/firefox_prod/firefox.zip
       - run: git archive --format zip --output src.zip master
+        if: github.ref == 'refs/heads/master'
       - uses: actions/upload-artifact@v3
         if: github.ref == 'refs/heads/master'
         with:
