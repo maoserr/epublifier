@@ -57,7 +57,7 @@ jobs:
         with:
           name: chrome
       - name: Publish Chrome
-        uses: maoserr/chrome_extension_publish@v1.0.1
+        uses: maoserr/chrome_extension_publish@v1.0.3
         with:
           chrome_extension_id: eopjnahefjhnhfanplcjpbbdkpbagikk
           client_id: ${{ secrets.CHROME_CLIENT_ID }}
@@ -78,7 +78,7 @@ jobs:
         with:
           name: firefox
       - name: Publish Firefox
-        uses: maoserr/firefox_extension_publish@v1.0.3
+        uses: maoserr/firefox_extension_publish@v1.0.4
         with:
           firefox_extension_id: epublifier@maoserr.com
           api_key: ${{ secrets.FIREFOX_API_KEY }}
