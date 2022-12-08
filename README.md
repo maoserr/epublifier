@@ -53,6 +53,7 @@ Build Steps
 - Run `npm run build_ff` for Firefox
 - Run `npm run build` for Chrome
 
+CI/CD
 
 ## Acknowledgements ##
 1. [jEpub](https://lelinhtinh.github.io/jEpub/)

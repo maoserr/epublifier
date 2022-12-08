@@ -1,0 +1,112 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  MAJOR_VER: 1
+  MINOR_VER: 4
+
+jobs:
+  build_chrome:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+      - run: npm ci
+      - run: npm run build -- --env=version=$MAJOR_VER.$MINOR_VER.${{ github.run_number }}
+      - name: Zip chrome
+        run: zip -qq -r chrome.zip *
+        working-directory: dist/chrome_prod
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist-chrome.zip
+          path: dist/chrome_prod/chrome.zip
+
+  build_firefox:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+      - run: npm ci
+      - run: npm run build_ff -- --env=version=$MAJOR_VER.$MINOR_VER.${{ github.run_number }}
+      - name: Zip firefox
+        run: zip -qq -r firefox.zip *
+        working-directory: dist/firefox_prod
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist-firefox.zip
+          path: dist/firefox_prod/firefox.zip
+      - run: git archive --format zip --output src.zip master
+        if: github.ref == 'refs/heads/master'
+      - uses: actions/upload-artifact@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          name: dist-src.zip
+          path: src.zip
+
+  publish_chrome:
+    needs: build_chrome
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Download extension
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-chrome.zip
+      - name: Publish Chrome
+        uses: maoserr/chrome_extension_publish@v1.0.0
+        with:
+          chrome_extension_id: eopjnahefjhnhfanplcjpbbdkpbagikk
+          client_id: ${{ secrets.CHROME_CLIENT_ID }}
+          refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          file: dist-chrome.zip
+
+  publish_firefox:
+    needs: build_firefox
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Download extension
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-firefox.zip
+      - name: Download source
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-src.zip
+      - name: Publish Firefox
+        uses: maoserr/firefox_extension_publish@v1.0.0
+        with:
+          firefox_extension_id: epublifier@maoserr.com
+          api_key: ${{ secrets.FIREFOX_API_KEY }}
+          api_secret: ${{ secrets.FIREFOX_API_SECRET }}
+          file: dist-firefox.zip
+          src_file: dist-src.zip
+
+  publish_release:
+    needs: [build_firefox, build_chrome]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Download extension
+        uses: actions/download-artifact@v3
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v${{ env.MAJOR_VER }}.${{ env.MINOR_VER }}.${{ github.run_number }}
+          files: |
+            dist-firefox.zip
+            dist-chrome.zip
+
