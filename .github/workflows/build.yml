@@ -46,7 +46,7 @@ jobs:
         with:
           name: dist-firefox.zip
           path: dist/firefox_prod/firefox.zip
-      - run: git archive --format zip --output src.zip ${{ github.ref_name }}
+      - run: git archive --format zip --output src.zip master
       - uses: actions/upload-artifact@v3
         with:
           name: dist-src.zip
