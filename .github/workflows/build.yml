@@ -26,7 +26,7 @@ jobs:
         working-directory: dist/chrome_prod
       - uses: actions/upload-artifact@v3
         with:
-          name: dist-chrome.zip
+          name: chrome
           path: dist/chrome_prod/chrome.zip
 
   build_firefox:
@@ -44,15 +44,8 @@ jobs:
         working-directory: dist/firefox_prod
       - uses: actions/upload-artifact@v3
         with:
-          name: dist-firefox.zip
+          name: firefox
           path: dist/firefox_prod/firefox.zip
-      - run: git archive --format zip --output src.zip master
-        if: github.ref == 'refs/heads/master'
-      - uses: actions/upload-artifact@v3
-        if: github.ref == 'refs/heads/master'
-        with:
-          name: dist-src.zip
-          path: src.zip
 
   publish_chrome:
     needs: build_chrome
@@ -62,7 +55,7 @@ jobs:
       - name: Download extension
         uses: actions/download-artifact@v3
         with:
-          name: dist-chrome.zip
+          name: chrome
       - name: Publish Chrome
         uses: maoserr/chrome_extension_publish@v1.0.1
         with:
@@ -70,29 +63,28 @@ jobs:
           client_id: ${{ secrets.CHROME_CLIENT_ID }}
           refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
           client_secret: ${{ secrets.CHROME_CLIENT_SECRET }}
-          file: dist-chrome.zip
+          file: chrome.zip
 
   publish_firefox:
     needs: build_firefox
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
+      - uses: actions/checkout@v3
+      - name: Zip source
+        run: zip -qq -r src.zip *
       - name: Download extension
         uses: actions/download-artifact@v3
         with:
-          name: dist-firefox.zip
-      - name: Download source
-        uses: actions/download-artifact@v3
-        with:
-          name: dist-src.zip
+          name: firefox
       - name: Publish Firefox
         uses: maoserr/firefox_extension_publish@v1.0.1
         with:
           firefox_extension_id: epublifier@maoserr.com
           api_key: ${{ secrets.FIREFOX_API_KEY }}
           api_secret: ${{ secrets.FIREFOX_API_SECRET }}
-          file: dist-firefox.zip
-          src_file: dist-src.zip
+          file: firefox.zip
+          src_file: src.zip
 
   publish_release:
     needs: [build_firefox, build_chrome]
@@ -103,10 +95,9 @@ jobs:
         uses: actions/download-artifact@v3
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: github.ref == 'refs/heads/main'
         with:
           tag_name: v${{ env.MAJOR_VER }}.${{ env.MINOR_VER }}.${{ github.run_number }}
           files: |
-            dist-firefox.zip
-            dist-chrome.zip
+            firefox.zip
+            chrome.zip
 
