@@ -11,3 +11,9 @@ declare module "*.xml" {
     const content: any;
     export default content;
 }
+
+declare module "*.vue" {
+    // @ts-ignore
+    import Vue from "vue";
+    export default Vue;
+}

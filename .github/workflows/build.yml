@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Build and Publish
 
 on:
   push:
@@ -98,6 +98,6 @@ jobs:
         with:
           tag_name: v${{ env.MAJOR_VER }}.${{ env.MINOR_VER }}.${{ github.run_number }}
           files: |
-            firefox.zip
-            chrome.zip
+            firefox/firefox.zip
+            chrome/chrome.zip
 
