@@ -43,19 +43,19 @@ async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
                 parser: pdoc + "||toc_parsers||" + out_parser,
                 meta: out_meta || {},
                 chaps: chaps,
-            }, event.origin as WindowPostMessageOptions);
+            }, "*" as WindowPostMessageOptions);
             return;
         } else {
             event.source.postMessage({
                 command: "error",
                 message: "Unrecognized page type: please manually choose a parser."
-            }, event.origin as WindowPostMessageOptions);
+            }, "*" as WindowPostMessageOptions);
         }
     } catch (e) {
         event.source.postMessage({
             command: "error",
             message: "Main page parsing error: " + e.message + ", stack:" + e.stack
-        }, event.origin as WindowPostMessageOptions);
+        }, "*" as WindowPostMessageOptions);
     }
 }
 
@@ -88,18 +88,18 @@ async function chap_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
                 title: chap_title,
                 html: out_html,
                 id: id,
-            }, event.origin as WindowPostMessageOptions);
+            }, "*" as WindowPostMessageOptions);
         } else {
             event.source.postMessage({
                 command: "error",
                 message: "Unrecognized chapter type."
-            }, event.origin as WindowPostMessageOptions);
+            }, "*" as WindowPostMessageOptions);
         }
     } catch (e) {
         event.source.postMessage({
             command: "error",
             message: "Chapter page parsing error: " + e.stack
-        }, event.origin as WindowPostMessageOptions);
+        }, "*" as WindowPostMessageOptions);
     }
 }
 
@@ -108,14 +108,14 @@ async function gen_epub_call(event, nov_data) {
         event.source.postMessage({
             command: "status",
             message: msg
-        })
+        }, "*" as WindowPostMessageOptions)
     });
     event.source.postMessage({
         command: "epub_file",
         message: "Epub generated.",
         file: filecontent,
         filename: nov_data.filename
-    })
+    }, "*" as WindowPostMessageOptions)
 }
 
 window.addEventListener('message', async function (event) {
@@ -147,6 +147,6 @@ window.addEventListener('message', async function (event) {
         event.source.postMessage({
             command: "error",
             message: "Parser error: " + e,
-        }, event.origin as WindowPostMessageOptions);
+        }, "*" as WindowPostMessageOptions);
     }
 });
