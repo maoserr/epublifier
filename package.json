@@ -26,7 +26,7 @@
     "@types/js-yaml": "^4.0.4",
     "@types/webextension-polyfill": "^0.8.0",
     "@vue/compiler-sfc": "^3.2.19",
-    "copy-webpack-plugin": "^9.0.1",
+    "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.2",
     "html-webpack-plugin": "^5.5.0",
     "style-loader": "^3.3.1",
