@@ -51,7 +51,7 @@
     "primevue": "^3.23.0",
     "prismjs": "^1.29.0",
     "uuid": "^9.0.0",
-    "vue": "^3.2.45",
+    "vue": "^3.2.47",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "webextension-polyfill": "^0.10.0"
   }
