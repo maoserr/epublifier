@@ -22,7 +22,7 @@
   "homepage": "https://github.com/maoserr/epublifier#readme",
   "devDependencies": {
     "@mozilla/readability": "^0.4.2",
-    "@types/ejs": "^3.1.1",
+    "@types/ejs": "^3.1.2",
     "@types/js-yaml": "^4.0.5",
     "@types/webextension-polyfill": "^0.10.0",
     "@vue/compiler-sfc": "^3.2.19",
