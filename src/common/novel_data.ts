@@ -15,5 +15,5 @@ export interface NovelData {
     cover?: any;
     title: string;
     author: string;
-    tags?: string[];
+    tags?: [string];
 }

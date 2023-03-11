@@ -227,6 +227,7 @@ export default defineComponent({
           vm.selected_chaps[id].title = title;
           break;
         case 'epub_file':
+          console.log(event)
           let filecontent = event.data.file;
           browser.downloads.download({
             url: URL.createObjectURL(filecontent),
