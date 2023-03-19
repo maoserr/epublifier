@@ -1,15 +1,15 @@
 export interface Chapter {
     url: string;
     url_title: string;
-    parser?: string;
-    title?: string;
-    html?: string;
-    html_parsed?: string;
+    parser: string;
+    title: string;
+    html: string;
+    html_parsed: string;
 }
 
 export interface NovelData {
-    publisher?: string;
-    description?: string;
+    publisher: string;
+    description: string;
     filename: string;
     chapters: Chapter[];
     cover?: any;

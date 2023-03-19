@@ -1,7 +1,7 @@
 import {NovelData} from "./novel_data";
 import {TsEpub} from "tsepub"
 
-export async function generate_epub(nov_data: NovelData, update_cb: CallableFunction): Promise<Blob> {
+export async function generate_epub(nov_data: NovelData, update_cb: CallableFunction): Promise<Blob|undefined> {
     try {
         const tsepub = new TsEpub({
             i18n: "en",
@@ -29,7 +29,7 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
                     let img_resp = await fetch(img.src)
                     if (img_resp.ok) {
                         let img_dat = await img_resp.blob();
-                        tsepub.image(img_dat, img_id.toString())
+                        await tsepub.image(img_dat, img_id.toString())
                         let sp = html_node.createElement("span")
                         sp.innerText = `{{{ image[${img_id.toString()}] }}}`
                         img.replaceWith(sp)
@@ -42,21 +42,19 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
             }
             let s_html = s.serializeToString(html_node);
             let fixed_html = s_html.replaceAll(/{{{/g, "<%=").replaceAll(/}}}/g, "%>")
-            console.log(fixed_html)
             tsepub.add(
                 nov_data.chapters[i].title,
                 fixed_html
             );
         }
         update_cb("Generating ePub");
-        console.log(tsepub)
         return await tsepub.generate(function updateCallback(metadata) {
             let cf = ""
             if (metadata.currentFile) {
                 cf = ", current file = " + metadata.currentFile;
             }
             update_cb("Zip: " + metadata.percent.toFixed(2) + " %" + cf);
-        }) as Blob;
+        });
     } catch (err) {
         update_cb(err);
         console.log(err)

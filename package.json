@@ -22,8 +22,7 @@
   "homepage": "https://github.com/maoserr/epublifier#readme",
   "devDependencies": {
     "@mozilla/readability": "^0.4.2",
-    "@types/ejs": "^3.1.2",
-    "@types/js-yaml": "^4.0.5",
+    "@types/prismjs": "^1.26.0",
     "@types/webextension-polyfill": "^0.10.0",
     "@vue/compiler-sfc": "^3.2.19",
     "copy-webpack-plugin": "^11.0.0",
@@ -41,17 +40,12 @@
   "dependencies": {
     "async-parallel": "^1.2.3",
     "buffer": "^6.0.3",
-    "ejs": "^3.1.9",
-    "image-type": "^5.2.0",
-    "js-yaml": "^4.1.0",
-    "jszip": "^3.10.1",
     "path-browserify": "^1.0.1",
     "primeflex": "^3.3.0",
     "primeicons": "^6.0.1",
     "primevue": "^3.24.0",
     "prismjs": "^1.29.0",
     "tsepub": "^1.1.1",
-    "uuid": "^9.0.0",
     "vue": "^3.2.47",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "webextension-polyfill": "^0.10.0"

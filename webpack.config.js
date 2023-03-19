@@ -113,10 +113,6 @@ module.exports = (env, argv) => {
                         'style-loader',
                         'css-loader'
                     ]
-                },
-                {
-                    test: /\.(ejs|xml)$/i,
-                    type: 'asset/source'
                 }
             ],
         },

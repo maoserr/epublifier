@@ -1,26 +1,14 @@
 import {generate_epub} from "../common/epub_generator";
-import {Parser} from "../common/parser_loader";
-import {Readability, isProbablyReaderable} from "@mozilla/readability";
+import {get_helpers} from "../common/parser_manager";
+import { NovelData } from "../common/novel_data";
 
-let ext_url = new URL(window.location.origin);
-let helper_funcs = {
-    "readability": function (dom: Document) {
-        return new Readability(dom).parse();
-    },
-    "readerable": function (dom: Document, opt) {
-        return isProbablyReaderable(dom, opt)
-    },
-    "link_fixer": function (link: string, base_url: string) {
-        let c_url = new URL(base_url);
-        return link.replace(ext_url.origin, c_url.origin).replace(ext_url.protocol, c_url.protocol)
-    }
-}
+let helper_funcs = get_helpers(new URL(window.location.origin))
 let AsyncFunction = Object.getPrototypeOf(async function () {
 }).constructor;
 
 async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar: string) {
     try {
-        let parser: Record<string, Parser> = JSON.parse(event.data.parser) as Record<string, Parser>;
+        let parser: Record<string, string> = JSON.parse(event.data.parser) as Record<string, string>;
         let doc = JSON.parse(event.data.doc);
         let out_type = "toc"
         let out_parser
@@ -37,7 +25,7 @@ async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
             let toc_out = await toc_func(doc["url"], doc["source"], helper_funcs);
             let chaps = toc_out["chaps"]
             let out_meta = toc_out["meta"]
-            event.source.postMessage({
+            event.source!.postMessage({
                 command: "toc",
                 message: "Table of contents detected and parsed.",
                 parser: pdoc + "||toc_parsers||" + out_parser,
@@ -46,13 +34,13 @@ async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
             }, "*" as WindowPostMessageOptions);
             return;
         } else {
-            event.source.postMessage({
+            event.source!.postMessage({
                 command: "error",
                 message: "Unrecognized page type: please manually choose a parser."
             }, "*" as WindowPostMessageOptions);
         }
-    } catch (e) {
-        event.source.postMessage({
+    } catch (e:any) {
+        event.source!.postMessage({
             command: "error",
             message: "Main page parsing error: " + e.message + ", stack:" + e.stack
         }, "*" as WindowPostMessageOptions);
@@ -82,7 +70,7 @@ async function chap_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
             let out = await chap_func(url, html, title, helper_funcs)
             let chap_title: string = out["title"]
             let out_html: string = out["html"];
-            event.source.postMessage({
+            event.source!.postMessage({
                 command: "chap",
                 message: "Chapter " + id + " detected and parsed.",
                 title: chap_title,
@@ -90,27 +78,27 @@ async function chap_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
                 id: id,
             }, "*" as WindowPostMessageOptions);
         } else {
-            event.source.postMessage({
+            event.source!.postMessage({
                 command: "error",
                 message: "Unrecognized chapter type."
             }, "*" as WindowPostMessageOptions);
         }
-    } catch (e) {
-        event.source.postMessage({
+    } catch (e:any) {
+        event.source!.postMessage({
             command: "error",
             message: "Chapter page parsing error: " + e.stack
         }, "*" as WindowPostMessageOptions);
     }
 }
 
-async function gen_epub_call(event, nov_data) {
-    let filecontent: Blob = await generate_epub(nov_data, function (msg: string) {
-        event.source.postMessage({
+async function gen_epub_call(event: MessageEvent<any>, nov_data: NovelData) {
+    let filecontent: Blob | undefined = await generate_epub(nov_data, function (msg: string) {
+        event.source!.postMessage({
             command: "status",
             message: msg
         }, "*" as WindowPostMessageOptions)
     });
-    event.source.postMessage({
+    event.source!.postMessage({
         command: "epub_file",
         message: "Epub generated.",
         file: filecontent,
@@ -144,7 +132,7 @@ window.addEventListener('message', async function (event) {
                 return gen_epub_call(event, nov_data);
         }
     } catch (e) {
-        event.source.postMessage({
+        event.source!.postMessage({
             command: "error",
             message: "Parser error: " + e,
         }, "*" as WindowPostMessageOptions);
