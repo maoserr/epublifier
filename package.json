@@ -33,7 +33,7 @@
     "ts-loader": "^9.4.2",
     "typescript": "^5.0.2",
     "vue-loader": "^17.0.1",
-    "webpack": "^5.76.2",
+    "webpack": "^5.76.3",
     "webpack-cli": "^5.0.1",
     "webpack-dev-server": "^4.13.1"
   },
