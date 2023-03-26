@@ -58,7 +58,6 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/md-light-indigo/theme.css';
 
 import {Chapter} from "../../common/novel_data";
-import {load_parsers, Parser} from "../../common/parser_loader"
 
 
 export default defineComponent({
@@ -89,7 +88,7 @@ export default defineComponent({
   },
   computed: {
     main_disable(): string {
-      return this.chaps.length == 0 ? "disabled" : null;
+      return ""
     },
     chap_cnt(): number {
       return this.chaps.length;
@@ -100,10 +99,8 @@ export default defineComponent({
    */
   async mounted() {
     let vm = this;
-    vm.parsers = await load_parsers();
 
     let tabs = await browser.tabs.query({active: true, currentWindow: true})
-    vm.url = tabs[0].url;
     window.addEventListener('message', function (event) {
       let command = event.data.command;
       vm.status_txt = event.data.message;
@@ -127,7 +124,7 @@ export default defineComponent({
     setTimeout(this.extract_curr_source, 100);
   },
   methods: {
-    source_received(request) {
+    source_received(request: { action: string; data: string | null; }) {
       let vm = this;
       browser.runtime.onMessage.removeListener(this.source_received);
       vm.status_txt = "Received response.";
@@ -167,7 +164,7 @@ export default defineComponent({
       // in case we're faster than page load (usually):
       browser.tabs.onUpdated.addListener(handler)
       // just in case we're too late with the listener:
-      setTimeout(() => browser.tabs.sendMessage(tab.id, tab_msg).catch(e => vm.status_txt = "Done: " + e),
+      setTimeout(() => browser.tabs.sendMessage(tab.id!, tab_msg).catch(e => vm.status_txt = "Done: " + e),
           500);
       vm.status_txt = "Done";
     },
@@ -179,11 +176,11 @@ export default defineComponent({
       try {
         if ((browser.scripting != null) && (typeof browser.scripting.executeScript === 'function')) {
           let curr_tab = await browser.tabs.query({active: true})
-          await browser.scripting.executeScript({target: {tabId: curr_tab[0].id}, files: ["js/getPageSource.js"]})
+          await browser.scripting.executeScript({target: {tabId: curr_tab[0].id!}, files: ["js/getPageSource.js"]})
         } else {
           await browser.tabs.executeScript({file: "js/getPageSource.js"})
         }
-      } catch (error) {
+      } catch (error: any) {
         vm.status_txt = "Injection failed: " + error.message;
       }
     },
@@ -192,7 +189,7 @@ export default defineComponent({
       try {
         vm.status_txt = "Parsing page content...";
         let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
-        iframe.contentWindow.postMessage({
+        iframe.contentWindow!.postMessage({
           command: "parse",
           selparser: vm.selectedParser,
           parser: JSON.stringify(vm.parsers),

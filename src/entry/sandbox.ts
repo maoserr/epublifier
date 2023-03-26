@@ -13,7 +13,7 @@ async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
         let out_type = "toc"
         let out_parser
         if (pcat == "main_parser") {
-            let main_func = AsyncFunction('url', 'source', 'helpers', parser[pdoc]["main_parser"]);
+            let main_func = AsyncFunction('url', 'source', 'helpers', parser[pdoc]);
             let main_out = await main_func(doc["url"], doc["source"], helper_funcs);
             out_type = main_out["page_type"]
             out_parser = main_out["parser"]
@@ -21,7 +21,7 @@ async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
             out_parser = ppar
         }
         if (out_type == "toc") {
-            let toc_func = AsyncFunction('url', 'source', 'helpers', parser[pdoc]["toc_parsers"][out_parser]["code"])
+            let toc_func = AsyncFunction('url', 'source', 'helpers', parser[pdoc][out_parser])
             let toc_out = await toc_func(doc["url"], doc["source"], helper_funcs);
             let chaps = toc_out["chaps"]
             let out_meta = toc_out["meta"]
@@ -50,7 +50,7 @@ async function main_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
 
 async function chap_parse(event: MessageEvent, pdoc: string, pcat: string, ppar: string) {
     try {
-        let parser: Record<string, Parser> = JSON.parse(event.data.parser) as Record<string, Parser>;
+        let parser: Record<string, string> = JSON.parse(event.data.parser) as Record<string, string>;
         let html = event.data.doc;
         let url = event.data.url;
         let id = event.data.id;
@@ -58,7 +58,7 @@ async function chap_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
         let out_type = "chap"
         let out_parser
         if (pcat == "chap_main_parser") {
-            let chap_main_func = AsyncFunction('url', 'source', 'helpers', parser[pdoc]["chap_main_parser"])
+            let chap_main_func = AsyncFunction('url', 'source', 'helpers', parser[pdoc])
             let chap_main_out = await chap_main_func(url, html, helper_funcs)
             out_type = chap_main_out["chap_type"]
             out_parser = chap_main_out["parser"]
@@ -66,7 +66,7 @@ async function chap_parse(event: MessageEvent, pdoc: string, pcat: string, ppar:
             out_parser = ppar
         }
         if (out_type == "chap") {
-            let chap_func = AsyncFunction('url', 'source', 'title', 'helpers', parser[pdoc]["chap_parsers"][out_parser]["code"])
+            let chap_func = AsyncFunction('url', 'source', 'title', 'helpers', parser[pdoc][out_parser])
             let out = await chap_func(url, html, title, helper_funcs)
             let chap_title: string = out["title"]
             let out_html: string = out["html"];

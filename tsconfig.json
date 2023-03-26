@@ -3,7 +3,8 @@
     "target": "es2021",
     "module": "commonjs",
     "strict": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
+    "esModuleInterop": true
   },
   "baseUrl": "./src",
   "include": [

@@ -57,6 +57,5 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
         });
     } catch (err) {
         update_cb(err);
-        console.log(err)
     }
 }

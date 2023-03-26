@@ -14,7 +14,7 @@
   <div class="p-field p-col-4 p-md-4">
     <label for="cover">Cover:</label>
     <div id="coverdiv">
-      <img id="cover" :src="cov"/>
+      <img id="cover" :src="cov" alt="cover"/>
     </div>
   </div>
   <div class="p-field p-col-8 p-md-8">
@@ -41,7 +41,7 @@ export default defineComponent({
     InputText,
   },
   props: {
-    edit: String,
+    edit: Boolean,
     tit: String,
     auth: String,
     pub: String,

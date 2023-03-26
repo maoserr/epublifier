@@ -20,10 +20,6 @@
   padding: 5px;
 }
 
-/* optional class for removing the outline */
-.prism-editor__textarea:focus {
-  outline: none;
-}
 </style>
 <script lang="ts">
 import {defineComponent} from "vue";
@@ -73,23 +69,6 @@ export default defineComponent({
     async parser(newparser) {
       this.update_txt(newparser)
     },
-    async parser_obj(newobj) {
-      if (this.parser == null) {
-        return
-      }
-      let p_sp = this.parser.split("||");
-      let pdoc = p_sp[0];
-      let pcat = p_sp[1];
-      let pars = null;
-      if (p_sp.length > 2) {
-        pars = p_sp[2];
-      }
-      if ((pcat == "main_parser") || (pcat == "chap_main_parser")) {
-        this.txt_val = newobj[pdoc][pcat]
-      } else if ((pcat == "toc_parsers") || (pcat == "chap_parsers")) {
-        this.txt_val = newobj[pdoc][pcat][pars]["code"]
-      }
-    }
   },
   methods: {
     update_txt(newparser: string | null | undefined) {
