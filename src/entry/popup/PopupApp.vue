@@ -40,7 +40,7 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue';
-import browser from "webextension-polyfill";
+import {browser} from '../../common/browser_utils'
 
 import ParserSelector from "../../components/ParserSelector.vue";
 import NovelMetadata from "../../components/NovelMetadata.vue";
@@ -164,7 +164,8 @@ export default defineComponent({
       // in case we're faster than page load (usually):
       browser.tabs.onUpdated.addListener(handler)
       // just in case we're too late with the listener:
-      setTimeout(() => browser.tabs.sendMessage(tab.id!, tab_msg).catch(e => vm.status_txt = "Done: " + e),
+      setTimeout(() => browser.tabs.sendMessage(tab.id!, tab_msg)
+              .catch( (e:any) => vm.status_txt = "Done: " + e),
           500);
       vm.status_txt = "Done";
     },

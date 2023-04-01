@@ -68,11 +68,10 @@ module.exports = (env, argv) => {
     }
     return {
         devServer: {
-            static: {
-                directory: join(__dirname, 'public'),
-            },
+            static: false,
             compress: true,
             port: 9000,
+            allowedHosts: 'all'
         },
         optimization: {
             minimize: argv.mode === "production",

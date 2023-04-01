@@ -1,5 +1,5 @@
-import browser from "webextension-polyfill";
 import {isProbablyReaderable, Readability} from "@mozilla/readability";
+import {browser} from './browser_utils'
 
 export function get_helpers(ext_url: URL) {
     return {
