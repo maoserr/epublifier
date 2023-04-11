@@ -50,9 +50,17 @@ function chap_list() {
 
 }
 
+function event_handler(event: any) {
+    let command = event.data.command;
+    status_txt.value = event.data.message;
+
+
+}
+
 onMounted(() => {
     url.value = "test"
     status_txt.value = "Done"
+    window.addEventListener('message', event_handler)
 })
 </script>
 
