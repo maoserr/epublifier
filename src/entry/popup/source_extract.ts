@@ -24,7 +24,12 @@ async function extract_curr_source() {
     )
 }
 
+/**
+ * Extracts source from current tab (extension) or url
+ * @param url
+ */
 export async function extract_source(url?: string): Promise<string> {
+
     let res: Promise<string>
     if (url != undefined) {
         let fres = await fetch(url)
@@ -40,14 +45,12 @@ export async function extract_source(url?: string): Promise<string> {
         })
         try {
             await extract_curr_source()
-        } catch(error: any) {
+        } catch (error: any) {
             browser.runtime.onMessage.removeListener(source_received)
-            res = new Promise((resolve, reject) => reject(error))
+            res = Promise.reject(error)
         }
     } else {
-        return new Promise((resolve, reject) => {
-            reject("No URL passed in and not in browser")
-        })
+        res = Promise.reject("No URL passed in and not in browser")
     }
     return res
 }

@@ -2,10 +2,6 @@ export let browser:any;
 
 let is_loaded = false;
 
-const browser_stub = {
-
-}
-
 declare global {
     var chrome: any;
 }

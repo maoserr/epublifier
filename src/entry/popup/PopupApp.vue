@@ -1,5 +1,5 @@
 <template>
-    <div id="app" class="grid">
+    <div id="app">
         <div class="card">
             <h5>Inputs</h5>
             <div class="field">
@@ -8,7 +8,10 @@
             </div>
             <div class="field">
                 <label for="url">Page URL</label>
-                <InputText id="url" type="text" :value="url" class="w-full"/>
+                <div class="p-inputgroup flex-1">
+                    <InputText id="url" type="text" v-model="url" class="w-full"/>
+                    <Button @click="update_src()" icon="pi pi-search" severity="warning"/>
+                </div>
             </div>
             <div class="field">
                 <label>Parser:</label>
@@ -39,8 +42,13 @@ import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/md-light-indigo/theme.css';
 
+import {browser} from "../../common/browser_utils";
+import {extract_source} from './source_extract'
+
 const url = ref("https://www.test.com")
 const status_txt = ref("Loading...")
+const src = ref('')
+let iframe: HTMLIFrameElement;
 
 function first_chap() {
 
@@ -51,16 +59,46 @@ function chap_list() {
 }
 
 function event_handler(event: any) {
+    if (event.origin !== window.location.origin)
+        return;
     let command = event.data.command;
-    status_txt.value = event.data.message;
-
-
+    switch (command) {
+        case 'toc':
+            status_txt.value = event.data.message;
+            break;
+        case 'fetch':
+            break;
+        default:
+            break;
+    }
 }
 
-onMounted(() => {
-    url.value = "test"
+async function update_src(){
+    src.value = await extract_source(url.value)
+    console.log(src.value)
+}
+
+async function parse_source(){
+    try {
+        iframe.contentWindow!.postMessage({
+            command: "parse",
+
+            },
+            window.location.origin)
+    } catch(e) {
+        status_txt.value = "Unable to parse content: "+ e;
+    }
+}
+
+onMounted(async () => {
+    url.value = window.location.href
     status_txt.value = "Done"
+    iframe = document.getElementById("sandbox") as HTMLIFrameElement;
     window.addEventListener('message', event_handler)
+    if (browser !== undefined) {
+        src.value = await extract_source()
+        status_txt.value = "Source parsed."
+    }
 })
 </script>
 
