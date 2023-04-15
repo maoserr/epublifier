@@ -1,6 +1,24 @@
-import {generate_epub} from "../common/epub_generator";
-import {get_helpers} from "../common/parser_manager";
-import { NovelData } from "../common/novel_data";
+import {generate_epub} from "../../common/epub_generator";
+import { NovelData } from "../../common/novel_data";
+import {isProbablyReaderable, Readability} from "@mozilla/readability";
+
+export function get_helpers(ext_url: URL) {
+    return {
+        "readability": function (dom: Document) {
+            return new Readability(dom).parse();
+        },
+        "readerable": function (dom: Document, opt: any) {
+            return isProbablyReaderable(dom, opt)
+        },
+        "link_fixer": function (link: string, base_url: string) {
+            let c_url = new URL(base_url);
+            return link
+                .replace(ext_url.origin, c_url.origin)
+                .replace(ext_url.protocol, c_url.protocol)
+        }
+    }
+}
+
 
 let helper_funcs = get_helpers(new URL(window.location.origin))
 let AsyncFunction = Object.getPrototypeOf(async function () {

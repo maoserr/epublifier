@@ -1,56 +1,51 @@
-import {browser} from "../../common/browser_utils"
+import browser from "webextension-polyfill"
 
-interface RequestResponse {
-    action: string
-    data: string | null
+interface ExtractorRes {
+    error?: string
+    source: string
+    url: string
 }
 
-function source_received(request: RequestResponse): string | null {
-    browser.runtime.onMessage.removeListener(source_received)
-    if (request.action == "getSource") {
-        return request.data;
-    } else {
-        return null
+/**
+ * Function to inject to extract source
+ */
+function injected_extractor(): ExtractorRes {
+    try {
+        let s = new XMLSerializer();
+        return {
+            source: s.serializeToString(document),
+            url: window.location.href
+        };
+    } catch (error) {
+        let message = (error instanceof Error) ? error.message : String(error)
+        return {
+            error: message,
+            source: "",
+            url: window.location.href
+        };
     }
-}
-
-async function extract_curr_source() {
-    let curr_tab = await browser.tabs.query({active: true})
-    browser.scripting.executeScript(
-        {
-            target: {tabId: curr_tab[0].id!},
-            files: ["js/getPageSource.js"]
-        }
-    )
 }
 
 /**
  * Extracts source from current tab (extension) or url
- * @param url
  */
-export async function extract_source(url?: string): Promise<string> {
-
-    let res: Promise<string>
-    if (url != undefined) {
-        let fres = await fetch(url)
-        res = fres.text()
-    } else if (browser != undefined) {
-        res = new Promise((resolve, reject) => {
-            browser.runtime.onMessage.addListener(
-                (request: RequestResponse) => {
-                    let res = source_received(request)
-                    if (res == null) reject("Failed to inject")
-                    resolve(res!)
-                })
-        })
-        try {
-            await extract_curr_source()
-        } catch (error: any) {
-            browser.runtime.onMessage.removeListener(source_received)
-            res = Promise.reject(error)
-        }
-    } else {
-        res = Promise.reject("No URL passed in and not in browser")
+export async function extract_source(): Promise<ExtractorRes> {
+    try {
+        let curr_tab = await browser.tabs.query(
+            {active: true})
+        let inj_res = await browser.scripting.executeScript(
+            {
+                target: {tabId: curr_tab[0].id!},
+                func: injected_extractor
+            }
+        )
+        return inj_res[0].result
+    } catch (error) {
+        let message = (error instanceof Error) ? error.message : String(error)
+        return {
+            error: message,
+            source: "",
+            url: window.location.href
+        };
     }
-    return res
 }

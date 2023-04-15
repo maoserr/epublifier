@@ -1,22 +1,5 @@
-import {isProbablyReaderable, Readability} from "@mozilla/readability";
-import {browser} from './browser_utils'
 
-export function get_helpers(ext_url: URL) {
-    return {
-        "readability": function (dom: Document) {
-            return new Readability(dom).parse();
-        },
-        "readerable": function (dom: Document, opt: any) {
-            return isProbablyReaderable(dom, opt)
-        },
-        "link_fixer": function (link: string, base_url: string) {
-            let c_url = new URL(base_url);
-            return link
-                .replace(ext_url.origin, c_url.origin)
-                .replace(ext_url.protocol, c_url.protocol)
-        }
-    }
-}
+import browser from "webextension-polyfill"
 
 /**
  * Sets up the parser as a function, only runnable from sandbox env
