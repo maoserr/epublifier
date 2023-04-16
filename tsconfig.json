@@ -13,7 +13,7 @@
   ],
   "exclude": [
     "./node_modules/",
-    "./tests/",
+    "./test/",
     "./int_tests/"
   ]
 }

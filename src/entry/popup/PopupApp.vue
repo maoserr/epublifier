@@ -52,7 +52,8 @@ function chap_list() {
 onMounted(async () => {
     status_txt.value = "Done"
     iframe = document.getElementById("sandbox") as HTMLIFrameElement;
-    window.addEventListener('message', event_handler)
+    window.addEventListener('message',
+        (event)=>event_handler(status_txt, event))
 
     // Source extraction
     let res = await extract_source()
@@ -66,6 +67,10 @@ onMounted(async () => {
     }
 
     // Parser Loading
+    let pres = parse_source(iframe,url.value, src.value)
+    if (pres != "success") {
+        status_txt.value = pres
+    }
 })
 </script>
 
