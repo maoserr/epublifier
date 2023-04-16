@@ -33,7 +33,7 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/md-light-indigo/theme.css';
 
 import {extract_source} from './source_extract'
-import {event_handler, parse_source } from './pop_messages'
+import {parser_load, parse_source } from './pop_messages'
 
 const url = ref("")
 const status_txt = ref("Loading...")
@@ -52,8 +52,7 @@ function chap_list() {
 onMounted(async () => {
     status_txt.value = "Done"
     iframe = document.getElementById("sandbox") as HTMLIFrameElement;
-    window.addEventListener('message',
-        (event)=>event_handler(status_txt, event))
+
 
     // Source extraction
     let res = await extract_source()
@@ -66,8 +65,12 @@ onMounted(async () => {
         status_txt.value = "Source parsed."
     }
 
-    // Parser Loading
-    let pres = parse_source(iframe,url.value, src.value)
+    // Load Parser
+    let pars = await parser_load()
+
+
+    // Run Parser
+    let pres = await parse_source(iframe,url.value, src.value)
     if (pres != "success") {
         status_txt.value = pres
     }

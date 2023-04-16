@@ -8,10 +8,10 @@ window.addEventListener('message',
                     message: "Parser error: ",
                 }, "*" as WindowPostMessageOptions);
         }
-    } catch (e) {
+    } catch (error) {
         event.source!.postMessage({
             command: "error",
-            message: "Parser error: " + e,
+            message: ((error instanceof Error) ? error.message : String(error))
         }, "*" as WindowPostMessageOptions);
     }
 });
