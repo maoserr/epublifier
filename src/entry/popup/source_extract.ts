@@ -30,22 +30,17 @@ function injected_extractor(): ExtractorRes {
  * Extracts source from current tab (extension) or url
  */
 export async function extract_source(): Promise<ExtractorRes> {
-    try {
-        let curr_tab = await browser.tabs.query(
-            {active: true})
-        let inj_res = await browser.scripting.executeScript(
-            {
-                target: {tabId: curr_tab[0].id!},
-                func: injected_extractor
-            }
-        )
-        return inj_res[0].result
-    } catch (error) {
-        let message = (error instanceof Error) ? error.message : String(error)
-        return {
-            error: message,
-            source: "",
-            url: window.location.href
-        };
+    let curr_tab = await browser.tabs.query(
+        {active: true})
+    let inj_res = await browser.scripting.executeScript(
+        {
+            target: {tabId: curr_tab[0].id!},
+            func: injected_extractor
+        }
+    )
+    let res = inj_res[0].result
+    if ('error' in res) {
+        throw Error(res.error)
     }
+    return res
 }
