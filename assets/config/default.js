@@ -1,4 +1,10 @@
+function load() {
+    console.debug("Parser loaded.")
+    return {'main': main}
+}
+
 function main() {
+    console.debug("Running main")
     let link = new URL(url);
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
@@ -34,33 +40,35 @@ function toc_parser() {
     let desc = dom.querySelector("#editdescription").innerHTML;
     let auth = dom.querySelector("#authtag").innerText;
     let img = dom.querySelector(".serieseditimg > img");
-    if (img == null){
+    if (img == null) {
         img = dom.querySelector(".seriesimg > img");
     }
-    return {"chaps":chaps,
-        meta:{title:tit, description: desc, author: auth, cover: img.src, publisher: "Novel Update"}
+    return {
+        "chaps": chaps,
+        meta: {title: tit, description: desc, author: auth, cover: img.src, publisher: "Novel Update"}
     };
 }
 
-function chap_name_search(){
+function chap_name_search() {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
     let ancs = dom.querySelectorAll("a");
     let chaps = []
     ancs.forEach((element) => {
-        if(RegExp(/chap|part/i).test(element.innerText)){
+        if (RegExp(/chap|part/i).test(element.innerText)) {
             chaps.push({
                 url_title: element.innerText,
                 url: helpers["link_fixer"](element.href, url),
             });
         }
     });
-    return {"chaps":chaps,
-        meta:{}
+    return {
+        "chaps": chaps,
+        meta: {}
     };
 }
 
-function chap_all_links(){
+function chap_all_links() {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
     let ancs = dom.querySelectorAll("a");
@@ -71,22 +79,23 @@ function chap_all_links(){
             url: helpers["link_fixer"](element.href, url),
         });
     });
-    return {"chaps":chaps,
-        meta:{}
+    return {
+        "chaps": chaps,
+        meta: {}
     };
 }
 
-function readability(){
+function readability() {
     let url = new URL(url);
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
 
     // Generic parser
-    return {chap_type: "chap", parser:"chaps_readability"};
+    return {chap_type: "chap", parser: "chaps_readability"};
 }
 
 
-async function readability_ex(){
+async function readability_ex() {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
 
@@ -95,15 +104,15 @@ async function readability_ex(){
 
     // Wordpress content
     let main_cont = dom.querySelector(".entry-content")
-    if(helpers["readerable"](dom, {"minContentLength":1000})){
+    if (helpers["readerable"](dom, {"minContentLength": 1000})) {
         console.log("Readable");
         let out = helpers["readability"](dom);
         return {title: out.title, html: out.content};
-    } else if(main_cont != null){
+    } else if (main_cont != null) {
         console.log("Checking for intro page/subchapt");
         let ancs = main_cont.querySelectorAll("a");
         ancs.forEach((element) => {
-            if(RegExp(/click here to read|read here|continue reading/i).test(element.innerText)){
+            if (RegExp(/click here to read|read here|continue reading/i).test(element.innerText)) {
                 console.log("Intro page found");
                 new_link = helpers["link_fixer"](element.href, url);
             } else if (RegExp(/^chapter|^part/i).test(element.innerText)) {
@@ -120,13 +129,13 @@ async function readability_ex(){
         return {title: out.title, html: out.content};
     } else if (subchaps.length > 0) {
         let html = "";
-        for(let subc in subchaps){
+        for (let subc in subchaps) {
             console.log(subchaps[subc]);
             let cres = await fetch(subchaps[subc]);
             let c_txt = await cres.text();
             let cdom = parser.parseFromString(c_txt, "text/html");
             let out = helpers["readability"](cdom);
-            html += "<h1>"+out.title+"</h1>"+ out.content
+            html += "<h1>" + out.title + "</h1>" + out.content
         }
         return {title: title, html: html};
     }
@@ -134,6 +143,7 @@ async function readability_ex(){
     return {title: out.title, html: out.content};
 }
 
-async function raw_chap(){
+async function raw_chap() {
     return {title: title, html: source}
 }
+

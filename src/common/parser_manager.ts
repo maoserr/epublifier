@@ -1,19 +1,5 @@
-
 import browser from "webextension-polyfill"
 
-/**
- * Sets up the parser as a function, only runnable from sandbox env
- * @param parser_str
- */
-export async function setup_parser(parser_str: string): Promise<Function> {
-
-    let AsyncFunction = Object.getPrototypeOf(
-        async function () {
-        }
-    ).constructor;
-    let parser = AsyncFunction('url', 'source', 'helpers', parser_str)
-    return parser
-}
 
 export async function get_initial(): Promise<Record<string, string>> {
     let result = await fetch(browser.runtime.getURL("config/default.js"));

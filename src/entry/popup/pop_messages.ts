@@ -1,34 +1,9 @@
-import {Ref} from "vue";
 import {get_parsers} from "../../common/parser_manager"
 import {
     SbxCommand,
     SendSandboxCmd,
     ChkIsSandboxReply
 } from "../../common/sandbox_util"
-
-export function event_handler(status: Ref<string>, event: any) {
-    console.debug(event)
-    if (event.origin !== "null") {
-        console.warn("Invalid origin: " + window.location.origin)
-        status.value = "Invalid origin: " + window.location.origin
-        return;
-    }
-    if (!("data" in event))
-        return
-    if (!("command" in event.data))
-        return
-    status.value = event.data.message;
-    let command = event.data.command;
-    switch (command) {
-        case 'toc':
-            break;
-        case 'fetch':
-            break;
-
-        default:
-            break;
-    }
-}
 
 export async function parser_load() {
     let parser_txt = await get_parsers()

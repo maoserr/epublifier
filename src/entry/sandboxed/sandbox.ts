@@ -1,4 +1,5 @@
 import {SbxCommand, SbxReply} from "../../common/sandbox_util"
+import {setup_parser} from "./parser_util"
 
 function send_reply(source: MessageEventSource,
                     reply: SbxReply,
@@ -12,10 +13,14 @@ function send_reply(source: MessageEventSource,
 }
 
 function parse_source(source: MessageEventSource) {
+
     send_reply(source, SbxReply.Error, 'Parser error: ')
 }
 
-function load_parsers(source: MessageEventSource) {
+function load_parsers(source: MessageEventSource, data:any) {
+    for (let k in data){
+        setup_parser(k, data[k])
+    }
 
 }
 
@@ -37,7 +42,7 @@ async function window_listener(event: MessageEvent) {
         }
         let cmd: number = event.data.command
         if (cmd in listener_cmds) {
-            listener_cmds[cmd](event.source!)
+            listener_cmds[cmd](event.source!, event.data.data)
             return
         } else {
             send_reply(event.source!, SbxReply.Error,
