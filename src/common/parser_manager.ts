@@ -1,6 +1,5 @@
 import browser from "webextension-polyfill"
 
-
 export async function get_initial(): Promise<Record<string, string>> {
     let result = await fetch(browser.runtime.getURL("config/default.js"));
     let parser = await result.text();

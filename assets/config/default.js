@@ -1,41 +1,47 @@
+/**
+ * Initialization function
+ * @returns
+ */
 function load() {
     console.debug("Parser loaded.")
-    return {'main': main}
+    return {
+        'main': main
+    }
 }
 
-function main() {
+/**
+ * Auto detect function given url and source
+ * @param url Page URL
+ * @param source Page source
+ * @param helpers Helpers
+ * @returns
+ */
+function main(inputs, url, source, helpers) {
     console.debug("Running main")
     let link = new URL(url);
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
     switch (link.hostname) {
         case "www.novelupdates.com":
-            var paths = link.pathname.split("/");
-            if (paths.length > 1 && paths[1] == "series") {
-                return {page_type: "toc", parser: "chaps_nu"};
+            let paths = link.pathname.split("/");
+            if (paths.length > 1 && paths[1] === "series") {
+                return nu_toc_parser(url, source, helpers)
             }
     }
 // Default to all links
     return {page_type: "toc", parser: "chaps_all_links"};
 }
 
-function toc_parser() {
+/**
+ * Parse novel update series
+ * @param url Series URL
+ * @param source Source text
+ * @param helpers Help functions
+ * @returns
+ */
+function nu_toc_parser(url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
-    let chap_popup = dom.querySelector("#my_popupreading");
-    if (chap_popup == null) {
-        return []
-    }
-    let chap_lis = chap_popup.querySelectorAll("a");
-    let chaps = [];
-    chap_lis.forEach((element) => {
-        if (element.href.includes("extnu")) {
-            chaps.unshift({
-                url_title: element.innerText,
-                url: helpers["link_fixer"](element.href, url),
-            });
-        }
-    });
     let tit = dom.querySelector(".seriestitlenu").innerText;
     let desc = dom.querySelector("#editdescription").innerHTML;
     let auth = dom.querySelector("#authtag").innerText;
@@ -43,9 +49,31 @@ function toc_parser() {
     if (img == null) {
         img = dom.querySelector(".seriesimg > img");
     }
+    let chaps = [];
+
+    let chap_popup = dom.querySelector("#my_popupreading");
+    if (chap_popup != null) {
+        let chap_lis = chap_popup.querySelectorAll("a");
+        chap_lis.forEach((element) => {
+            if (element.href.includes("extnu")) {
+                chaps.unshift({
+                    url_title: element.innerText,
+                    url: helpers["link_fixer"](element.href, url),
+                });
+            }
+        });
+    }
     return {
-        "chaps": chaps,
-        meta: {title: tit, description: desc, author: auth, cover: img.src, publisher: "Novel Update"}
+        chaps: chaps,
+        type: "toc",
+        parser: "Novel Update Series",
+        meta: {
+            title: tit,
+            description: desc,
+            author: auth,
+            cover: img.src,
+            publisher: "Novel Update"
+        }
     };
 }
 

@@ -1,3 +1,11 @@
+export interface NovelMetaData {
+    title: string;
+    description: string;
+    cover?: string;
+    publisher?: string
+}
+
+
 export interface Chapter {
     url: string;
     url_title: string;
