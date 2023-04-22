@@ -26,15 +26,15 @@
     "@vue/compiler-sfc": "^3.2.19",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.3",
-    "html-webpack-plugin": "^5.5.0",
+    "html-webpack-plugin": "^5.5.1",
     "style-loader": "^3.3.2",
     "terser-webpack-plugin": "^5.3.7",
     "ts-loader": "^9.4.2",
     "typescript": "^5.0.4",
     "vue-loader": "^17.0.1",
-    "webpack": "^5.79.0",
-    "webpack-cli": "^5.0.1",
-    "webpack-dev-server": "^4.13.2"
+    "webpack": "^5.80.0",
+    "webpack-cli": "^5.0.2",
+    "webpack-dev-server": "^4.13.3"
   },
   "dependencies": {
     "async-parallel": "^1.2.3",
@@ -42,7 +42,7 @@
     "path-browserify": "^1.0.1",
     "primeflex": "^3.3.0",
     "primeicons": "^6.0.1",
-    "primevue": "^3.26.1",
+    "primevue": "^3.27.0",
     "prismjs": "^1.29.0",
     "tsepub": "^1.1.1",
     "vue": "^3.2.47",
