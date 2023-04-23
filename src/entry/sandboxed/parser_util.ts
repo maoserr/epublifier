@@ -55,6 +55,7 @@ export async function parse_source(data: any): Promise<SbxResult> {
     }
     return Promise.resolve({
         reply: SbxReply.Ok,
-        message: `Page parsed as ${res!.parser}.`, data: res
+        message: res!.parser_msg,
+        data: res
     })
 }

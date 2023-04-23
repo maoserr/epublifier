@@ -32,6 +32,7 @@ export interface ParserResult {
     chaps?: any;
     type: "toc"|"chap";
     parser: string;
+    parser_msg: string,
     meta: NovelMetaData;
 }
 

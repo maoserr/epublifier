@@ -5,18 +5,22 @@
 function load() {
     console.debug("Parser loaded.")
     return {
-        'main': main
+        main: main_parser,
+        parsers:{
+            nu_toc:{func: nu_toc_parser, inputs:{}}
+        }
     }
 }
 
 /**
  * Auto detect function given url and source
+ * @param inputs User inputs (if any)
  * @param url Page URL
  * @param source Page source
  * @param helpers Helpers
  * @returns
  */
-function main(inputs, url, source, helpers) {
+function main_parser(inputs, url, source, helpers) {
     console.debug("Running main")
     let link = new URL(url);
     let parser = new DOMParser();
@@ -52,21 +56,26 @@ function nu_toc_parser(url, source, helpers) {
     let chaps = [];
 
     let chap_popup = dom.querySelector("#my_popupreading");
+    let parser_msg = "Please expand all chapters!"
     if (chap_popup != null) {
         let chap_lis = chap_popup.querySelectorAll("a");
         chap_lis.forEach((element) => {
             if (element.href.includes("extnu")) {
+                console.debug(helpers["link_fixer"](element.href, url))
                 chaps.unshift({
-                    url_title: element.innerText,
+                    title: element.innerText,
                     url: helpers["link_fixer"](element.href, url),
                 });
             }
         });
+        if (chaps.length > 0)
+            parser_msg = "Page parsed as Novel Update Series"
     }
     return {
         chaps: chaps,
         type: "toc",
-        parser: "Novel Update Series",
+        parser: "nu_toc",
+        parser_msg: parser_msg,
         meta: {
             title: tit,
             description: desc,
@@ -77,7 +86,7 @@ function nu_toc_parser(url, source, helpers) {
     };
 }
 
-function chap_name_search() {
+function chap_name_search(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
     let ancs = dom.querySelectorAll("a");
@@ -96,7 +105,7 @@ function chap_name_search() {
     };
 }
 
-function chap_all_links() {
+function all_links_toc_parser(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
     let ancs = dom.querySelectorAll("a");

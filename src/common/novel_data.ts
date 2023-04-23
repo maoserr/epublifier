@@ -5,6 +5,10 @@ export interface NovelMetaData {
     publisher?: string
 }
 
+export interface ChapterInfo {
+    title: string;
+    url: string
+}
 
 export interface Chapter {
     url: string;
