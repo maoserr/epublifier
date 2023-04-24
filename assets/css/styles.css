@@ -4,9 +4,7 @@ html {
 
 body {
     font-size: 14px;
-    width: 700px;
-    /*min-height: 550px;*/
     color: var(--text-color);
     background-color: var(--surface-card);
-    padding: 1rem;
+    padding: .5rem;
 }

@@ -40,8 +40,14 @@
     </div>
 </template>
 
-<script setup lang="ts">
+<style>
+body {
+    width: 700px;
+    min-height: 550px;
+}
+</style>
 
+<script setup lang="ts">
 import Message from 'primevue/message';
 import Button from 'primevue/button';
 import TabView from 'primevue/tabview';
@@ -60,25 +66,27 @@ import {ChapterInfo, NovelMetaData} from "../../common/novel_data";
 import browser from "webextension-polyfill";
 
 // App data
-const url = ref("")
+const url = ref("N/A")
 const status_txt = ref("Loading...")
 const src = ref('')
 
 // Novel data
-const meta = ref({title: 'Loading...', description: 'Loading...'} as NovelMetaData)
+const meta = ref({title: 'N/A', description: 'N/A'} as NovelMetaData)
 const chaps = ref([] as ChapterInfo[])
 
 function first_chap() {
 
 }
 
+/**
+ * Loads chapter list page
+ */
 async function chap_list() {
     let tab = await browser.tabs.create({url: "main.html", active: true});
     let tab_msg = {
-        action: "newTabSource",
-        data: JSON.stringify(chaps),
-        parser: "",
-        metadata: meta
+        action: "newChapList",
+        chaps: JSON.stringify(chaps.value),
+        metadata: JSON.stringify(meta.value)
     }
     let handler = function (tabid: number, changeInfo: any) {
         if (tabid === tab.id && changeInfo.status === "complete") {
@@ -90,7 +98,7 @@ async function chap_list() {
     browser.tabs.onUpdated.addListener(handler)
     // just in case we're too late with the listener:
     setTimeout(() => browser.tabs.sendMessage(tab.id!, tab_msg)
-            .catch( (e:any) => status_txt.value = "Done: " + e),
+            .catch( (e:any) => status_txt.value = "Done: Loaded main page."),
         500);
 }
 
@@ -118,3 +126,4 @@ onMounted(async () => {
     }
 })
 </script>
+
