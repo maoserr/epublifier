@@ -5,10 +5,12 @@
             </Message>
         </div>
         <div class="col-12">
-            <Button label="Treat as first chapter" @click="first_chap"
-                    class="p-button-success" icon="pi pi-check"/>
-            <Button label="Load Chapter List" @click="chap_list"
-                    class="p-button-success" icon="pi pi-check"/>
+            <div style="float:right" class="flex gap-2">
+                <Button label="First Chapter" @click="first_chap"
+                        icon="pi pi-file"/>
+                <Button label="Load Chapters" @click="chap_list"
+                        icon="pi pi-book"/>
+            </div>
         </div>
         <div class="col-12">
             <TabView>
@@ -74,6 +76,18 @@ const src = ref('')
 const meta = ref({title: 'N/A', description: 'N/A'} as NovelMetaData)
 const chaps = ref([] as ChapterInfo[])
 
+function newTabEvent(request: any, sender: any, sendResponse: any) {
+    if (('cmd' in request) && (request.cmd == "mainCreated")) {
+        browser.runtime.onMessage.removeListener(newTabEvent)
+        let tab_msg = {
+            action: "newChapList",
+            chaps: JSON.stringify(chaps.value),
+            metadata: JSON.stringify(meta.value)
+        }
+        sendResponse(tab_msg);
+    }
+}
+
 function first_chap() {
 
 }
@@ -82,24 +96,8 @@ function first_chap() {
  * Loads chapter list page
  */
 async function chap_list() {
-    let tab = await browser.tabs.create({url: "main.html", active: true});
-    let tab_msg = {
-        action: "newChapList",
-        chaps: JSON.stringify(chaps.value),
-        metadata: JSON.stringify(meta.value)
-    }
-    let handler = function (tabid: number, changeInfo: any) {
-        if (tabid === tab.id && changeInfo.status === "complete") {
-            browser.tabs.onUpdated.removeListener(handler);
-            browser.tabs.sendMessage(tabid, tab_msg);
-        }
-    };
-    // in case we're faster than page load (usually):
-    browser.tabs.onUpdated.addListener(handler)
-    // just in case we're too late with the listener:
-    setTimeout(() => browser.tabs.sendMessage(tab.id!, tab_msg)
-            .catch( (e:any) => status_txt.value = "Done: Loaded main page."),
-        500);
+    browser.runtime.onMessage.addListener(newTabEvent)
+    await browser.tabs.create({url: "main.html", active: true});
 }
 
 onMounted(async () => {

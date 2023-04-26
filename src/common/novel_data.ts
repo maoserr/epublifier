@@ -1,5 +1,6 @@
 export interface NovelMetaData {
     title: string;
+    author: string;
     description: string;
     cover?: string;
     publisher?: string
@@ -7,25 +8,21 @@ export interface NovelMetaData {
 
 export interface ChapterInfo {
     title: string;
-    url: string
+    url: string;
+    parser: string;
 }
 
 export interface Chapter {
-    url: string;
-    url_title: string;
-    parser: string;
+    info: ChapterInfo
     title: string;
     html: string;
     html_parsed: string;
 }
 
 export interface NovelData {
-    publisher: string;
-    description: string;
+    meta: NovelMetaData;
     filename: string;
     chapters: Chapter[];
     cover?: any;
-    title: string;
-    author: string;
     tags?: [string];
 }
