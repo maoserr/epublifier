@@ -75,6 +75,7 @@ const src = ref('')
 // Novel data
 const meta = ref({title: 'N/A', description: 'N/A'} as NovelMetaData)
 const chaps = ref([] as ChapterInfo[])
+const parser = ref('')
 
 function newTabEvent(request: any, sender: any, sendResponse: any) {
     if (('cmd' in request) && (request.cmd == "mainCreated")) {
@@ -82,7 +83,8 @@ function newTabEvent(request: any, sender: any, sendResponse: any) {
         let tab_msg = {
             action: "newChapList",
             chaps: JSON.stringify(chaps.value),
-            metadata: JSON.stringify(meta.value)
+            metadata: JSON.stringify(meta.value),
+            parser: parser.value
         }
         sendResponse(tab_msg);
     }
@@ -118,6 +120,7 @@ onMounted(async () => {
         status_txt.value = pres.message
         meta.value = pres.data.meta
         chaps.value = pres.data.chaps
+        parser.value = pres.data.parse_doc
     } catch (error) {
         status_txt.value = "Error: " +
             ((error instanceof Error) ? error.message : String(error))

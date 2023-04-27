@@ -101,6 +101,8 @@ import browser from "webextension-polyfill";
 
 import {Chapter, ChapterInfo, NovelMetaData} from "../../common/novel_data";
 import {parse_chaps, compile_epub, addSandboxListener} from "./parse_funcs"
+import {get_parsers} from "../../common/parser_manager";
+import {SbxCommand, SendSandboxCmdWReply} from "../../common/sandbox_util";
 
 
 const status_txt = ref("Loading...")
@@ -117,7 +119,12 @@ async function onLoadGetChapters() {
         let chap_infos = JSON.parse(request.chaps)
         chaps.value = chap_infos.map((x:ChapterInfo)=>{
             return {
-                info: x,
+                info: {
+                    title: x.title,
+                    url: x.url,
+                    parser: x.parser,
+                    parse_doc: request.parser
+                },
                 title: x.title,
                 html: '',
                 html_parsed: ''
@@ -138,7 +145,15 @@ function onRowReorder(event: any) {
 
 onMounted(async () => {
     try {
+        // Load initial chapters
         await onLoadGetChapters()
+
+        // Load Parser
+        let parser_txt = await get_parsers()
+        await SendSandboxCmdWReply(SbxCommand.LoadParsers,
+            parser_txt)
+
+        // Setup permanent message pipeline
         addSandboxListener(chaps.value, status_txt);
         status_txt.value = "Loaded."
     } catch (error) {

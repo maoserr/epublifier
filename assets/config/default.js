@@ -7,7 +7,8 @@ function load() {
     return {
         main: main_parser,
         parsers:{
-            nu_toc:{func: nu_toc_parser, inputs:{}}
+            nu_toc:{func: nu_toc_parser, inputs:{}},
+            readability_ex:{func: readability_ex, inputs:{}}
         }
     }
 }
@@ -65,6 +66,7 @@ function nu_toc_parser(url, source, helpers) {
                 chaps.unshift({
                     title: element.innerText,
                     url: helpers["link_fixer"](element.href, url),
+                    parser: 'readability_ex'
                 });
             }
         });
@@ -132,7 +134,7 @@ function readability() {
 }
 
 
-async function readability_ex() {
+async function readability_ex(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
 
@@ -163,7 +165,7 @@ async function readability_ex() {
         let r_txt = await res.text();
         dom = parser.parseFromString(r_txt, "text/html");
         let out = helpers["readability"](dom);
-        return {title: out.title, html: out.content};
+        return {title: out.title, html: out.content, msg: "Parsed redirected chapter"};
     } else if (subchaps.length > 0) {
         let html = "";
         for (let subc in subchaps) {
@@ -174,10 +176,13 @@ async function readability_ex() {
             let out = helpers["readability"](cdom);
             html += "<h1>" + out.title + "</h1>" + out.content
         }
-        return {title: title, html: html};
+        return {title: title, html: html, msg: "Parsed sub chapters"};
     }
     let out = helpers["readability"](dom);
-    return {title: out.title, html: out.content};
+    return {title: out.title,
+        html: out.content,
+        msg: "Parsed chapter"
+    };
 }
 
 async function raw_chap() {

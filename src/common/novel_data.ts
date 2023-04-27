@@ -10,6 +10,7 @@ export interface ChapterInfo {
     title: string;
     url: string;
     parser: string;
+    parse_doc: string;
 }
 
 export interface Chapter {

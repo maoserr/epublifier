@@ -1,5 +1,5 @@
 import {SbxCommand, SbxReply, SbxResult} from "../../common/sandbox_util"
-import {load_parsers, parse_source} from "./parser_util"
+import {load_parsers, parse_chapter, parse_source} from "./parser_util"
 
 /**
  * Sends reply to main window
@@ -24,7 +24,8 @@ export function send_reply(source: MessageEventSource,
  */
 const listener_cmds: Record<number, (data:any)=>Promise<SbxResult>> = {
     [SbxCommand.ParseSource]: parse_source,
-    [SbxCommand.LoadParsers]: load_parsers
+    [SbxCommand.LoadParsers]: load_parsers,
+    [SbxCommand.ParseChapter]: parse_chapter
 }
 
 /**

@@ -1,21 +1,27 @@
-import {Chapter, ChapterInfo, NovelMetaData} from "../../common/novel_data";
+import {Chapter, NovelMetaData} from "../../common/novel_data";
 import * as Parallel from 'async-parallel';
 import browser from "webextension-polyfill";
 import {Ref} from "vue";
+import {SbxCommand, SbxReply, SendSandboxCmd, ValidateMsg} from "../../common/sandbox_util";
 
 export function addSandboxListener(chaps: Chapter[], status_txt: Ref<string>) {
     window.addEventListener('message', function (event) {
+        const res = ValidateMsg(event)
+        if (res !== undefined) {
+            status_txt.value = `Error: ${res}`
+            return
+        }
         let command = event.data.command;
         status_txt.value = event.data.message;
         switch (command) {
-            case 'chap':
+            case SbxReply.Chap:
                 let id = event.data.id;
                 let title = event.data.title;
                 let html = event.data.html;
                 chaps[id].html_parsed = html;
                 chaps[id].title = title;
                 break;
-            case 'epub_file':
+            case SbxReply.Epub:
                 console.log(event)
                 let filecontent = event.data.file;
                 browser.downloads.download({
@@ -39,16 +45,12 @@ export async function parse_chaps(chaps: Chapter[],
                 let f_txt = await f_res.text()
                 chaps[id].html = f_txt;
                 status_txt.value = "Parsing chapter content: " + id;
-                let iframe: HTMLIFrameElement = document.getElementById("sandbox") as HTMLIFrameElement;
-                iframe.contentWindow?.postMessage({
-                    command: "parse",
-                    // parser: JSON.stringify(vm.parsers),
+                SendSandboxCmd(SbxCommand.ParseChapter, {
+                    inputs: {},
                     doc: f_txt,
                     id: id,
                     chap: JSON.stringify(chaps[id])
-                }, '*');
-            } else {
-                // Is a single page book, no additional parsing needed.
+                })
             }
         } catch (e) {
             status_txt.value = "Unable to parse content: " + e;
