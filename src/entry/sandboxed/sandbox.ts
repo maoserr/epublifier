@@ -1,5 +1,19 @@
-import {SbxCommand, SbxReply, SbxResult} from "../../common/sandbox_util"
-import {load_parsers, parse_chapter, parse_source} from "./parser_util"
+import {SbxCommand, SbxReply, SbxResult} from './messages';
+import {load_parsers} from "../../common/parser_sbx";
+import {parse_source} from '../popup/source_sbx';
+import {parse_chapter} from '../main/parse_sbx';
+import {ListenerResults} from "../../common/parser_types";
+
+
+/**
+ * Command to function mappings
+ */
+const listener_cmds: Record<number, (data: any) =>
+    Promise<SbxResult<ListenerResults>>> = {
+    [SbxCommand.ParseSource]: parse_source,
+    [SbxCommand.LoadParsers]: load_parsers,
+    [SbxCommand.ParseChapter]: parse_chapter
+}
 
 /**
  * Sends reply to main window
@@ -8,24 +22,15 @@ import {load_parsers, parse_chapter, parse_source} from "./parser_util"
  * @param msg Message
  * @param data Reply data
  */
-export function send_reply(source: MessageEventSource,
-                           reply: SbxReply,
-                           msg: string,
-                           data?: string) {
+function send_reply(source: MessageEventSource,
+                    reply: SbxReply,
+                    msg: string,
+                    data?: ListenerResults) {
     source.postMessage({
-        command: reply,
+        reply: reply,
         message: msg,
         data: data
     }, "*" as WindowPostMessageOptions);
-}
-
-/**
- * Command to function mappings
- */
-const listener_cmds: Record<number, (data:any)=>Promise<SbxResult>> = {
-    [SbxCommand.ParseSource]: parse_source,
-    [SbxCommand.LoadParsers]: load_parsers,
-    [SbxCommand.ParseChapter]: parse_chapter
 }
 
 /**
@@ -41,7 +46,7 @@ async function window_listener(event: MessageEvent) {
         }
         let cmd: number = event.data.command
         if (cmd in listener_cmds) {
-            let res:SbxResult = await listener_cmds[cmd](event.data.data)
+            let res: SbxResult<ListenerResults> = await listener_cmds[cmd](event.data.data)
             send_reply(event.source!, res.reply, res.message, res.data)
             return
         } else {

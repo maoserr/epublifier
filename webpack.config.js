@@ -18,17 +18,17 @@ function modify_manifest(buffer, browser_type, version, mode) {
     manifest.author = pack.author
     manifest.description = pack.description
     manifest.icons = icons
+    manifest.manifest_version = 3
+    manifest.permissions.push("scripting")
+    manifest.host_permissions = ["<all_urls>"]
+    manifest.action = {
+        default_icon: icons,
+        default_title: manifest.name,
+        default_popup: "popup.html"
+    }
 
     if (browser_type === "firefox") {
         // Firefox specific
-        manifest.manifest_version = 3
-        manifest.permissions.push("scripting")
-        manifest.host_permissions = ["<all_urls>"]
-        manifest.action = {
-            default_icon: icons,
-            default_title: manifest.name,
-            default_popup: "popup.html"
-        }
         manifest.browser_specific_settings = {
             "gecko": {
                 "id": "epublifier@maoserr.com"
@@ -37,14 +37,6 @@ function modify_manifest(buffer, browser_type, version, mode) {
         manifest.options_ui.open_in_tab = true
     } else {
         // Chrome specific
-        manifest.manifest_version = 3
-        manifest.permissions.push("scripting")
-        manifest.host_permissions = ["<all_urls>"]
-        manifest.action = {
-            default_icon: icons,
-            default_title: manifest.name,
-            default_popup: "popup.html"
-        }
         manifest.sandbox = {"pages": ["sandbox.html"]};
     }
     // Dynamic version

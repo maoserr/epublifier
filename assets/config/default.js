@@ -6,9 +6,12 @@ function load() {
     console.debug("Parser loaded.")
     return {
         main: main_parser,
-        parsers:{
-            nu_toc:{func: nu_toc_parser, inputs:{}},
-            readability_ex:{func: readability_ex, inputs:{}}
+        toc_parsers: {
+            nu_toc: {func: nu_toc_parser, inputs: {}},
+            chaps_name_search: {func: chap_name_search, inputs: {}},
+        },
+        chap_parsers: {
+            readability_ex: {func: readability_ex, inputs: {}}
         }
     }
 }
@@ -30,21 +33,29 @@ function main_parser(inputs, url, source, helpers) {
         case "www.novelupdates.com":
             let paths = link.pathname.split("/");
             if (paths.length > 1 && paths[1] === "series") {
-                return nu_toc_parser(url, source, helpers)
+                return {
+                    parser: "nu_toc",
+                    type: "toc",
+                    result: nu_toc_parser(inputs, url, source, helpers)
+                }
             }
     }
-// Default to all links
-    return {page_type: "toc", parser: "chaps_all_links"};
+    return {
+        parser: "chaps_name_search",
+        type: "toc",
+        result: chap_name_search(inputs, url, source, helpers)
+    };
 }
 
 /**
  * Parse novel update series
+ * @param inputs Inputs
  * @param url Series URL
  * @param source Source text
  * @param helpers Help functions
  * @returns
  */
-function nu_toc_parser(url, source, helpers) {
+function nu_toc_parser(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
     let tit = dom.querySelector(".seriestitlenu").innerText;
@@ -75,9 +86,7 @@ function nu_toc_parser(url, source, helpers) {
     }
     return {
         chaps: chaps,
-        type: "toc",
-        parser: "nu_toc",
-        parser_msg: parser_msg,
+        message: parser_msg,
         meta: {
             title: tit,
             description: desc,
@@ -107,23 +116,6 @@ function chap_name_search(inputs, url, source, helpers) {
     };
 }
 
-function all_links_toc_parser(inputs, url, source, helpers) {
-    let parser = new DOMParser();
-    let dom = parser.parseFromString(source, "text/html");
-    let ancs = dom.querySelectorAll("a");
-    let chaps = []
-    ancs.forEach((element) => {
-        chaps.push({
-            url_title: element.innerText,
-            url: helpers["link_fixer"](element.href, url),
-        });
-    });
-    return {
-        "chaps": chaps,
-        meta: {}
-    };
-}
-
 function readability() {
     let url = new URL(url);
     let parser = new DOMParser();
@@ -146,7 +138,7 @@ async function readability_ex(inputs, url, source, helpers) {
     if (helpers["readerable"](dom, {"minContentLength": 1000})) {
         console.log("Readable");
         let out = helpers["readability"](dom);
-        return {title: out.title, html: out.content};
+        return {title: out.title, html: out.content, message:"Parsed normal chapter."};
     } else if (main_cont != null) {
         console.log("Checking for intro page/subchapt");
         let ancs = main_cont.querySelectorAll("a");
@@ -165,23 +157,28 @@ async function readability_ex(inputs, url, source, helpers) {
         let r_txt = await res.text();
         dom = parser.parseFromString(r_txt, "text/html");
         let out = helpers["readability"](dom);
-        return {title: out.title, html: out.content, msg: "Parsed redirected chapter"};
+        return {title: out.title, html: out.content, message: "Parsed redirected chapter"};
     } else if (subchaps.length > 0) {
         let html = "";
+        let title = "";
         for (let subc in subchaps) {
             console.log(subchaps[subc]);
             let cres = await fetch(subchaps[subc]);
             let c_txt = await cres.text();
             let cdom = parser.parseFromString(c_txt, "text/html");
             let out = helpers["readability"](cdom);
+            if (title === ""){
+                title = out.title + "...(more)"
+            }
             html += "<h1>" + out.title + "</h1>" + out.content
         }
-        return {title: title, html: html, msg: "Parsed sub chapters"};
+        return {title: title, html: html, message: "Parsed sub chapters"};
     }
     let out = helpers["readability"](dom);
-    return {title: out.title,
+    return {
+        title: out.title,
         html: out.content,
-        msg: "Parsed chapter"
+        message: "Parsed short chapter"
     };
 }
 

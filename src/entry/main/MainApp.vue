@@ -51,17 +51,22 @@
                             <Button label="Parse" icon="pi pi-play"
                                     @click="run_parsers" rounded raised/>
                             <Button label="Epub" icon="pi pi-download"
-                                    @click="compile_epub" rounded raised/>
+                                    @click="run_epub" rounded raised/>
                         </div>
                     </div>
                 </template>
                 <Column :rowReorder="true" headerStyle="width: 3rem" :reorderableColumn="false"/>
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column field="title" header="URL Title" :sortable="true"></Column>
+                <Column field="title" header="Title" :sortable="true"></Column>
                 <Column field="url" header="URL" :sortable="true">
                     <template #body="{data}:any">
-                        <a :href="(data as any).url" target="_blank" rel="noopener noreferrer">
-                            {{ (data as any).url }}</a>
+                        <a :href="(data as any).info.url" target="_blank" rel="noopener noreferrer">
+                            {{ (data as any).info.url.slice(0,25) }}...</a>
+                    </template>
+                </Column>
+                <Column field="html_parsed" header="Parsed">
+                    <template #body="{data}:any">
+                        <i class="pi" :class="(!(data as any).html_parsed)?'pi-circle':'pi-check'"></i>
                     </template>
                 </Column>
             </DataTable>
@@ -100,9 +105,10 @@ import {onMounted, ref} from 'vue'
 import browser from "webextension-polyfill";
 
 import {Chapter, ChapterInfo, NovelMetaData} from "../../common/novel_data";
-import {parse_chaps, compile_epub, addSandboxListener} from "./parse_funcs"
-import {get_parsers} from "../../common/parser_manager";
-import {SbxCommand, SendSandboxCmdWReply} from "../../common/sandbox_util";
+import {parse_chaps, compile_epub, addSandboxListener} from "./parse_main"
+import {get_parsers_definitions} from "../../common/parser_manager";
+import {SendSandboxCmdWReply} from "../sandboxed/send_message";
+import {SbxCommand} from "../sandboxed/messages";
 
 
 const status_txt = ref("Loading...")
@@ -117,7 +123,7 @@ async function onLoadGetChapters() {
         {cmd: "mainCreated"})
     if (request.action == "newChapList") {
         let chap_infos = JSON.parse(request.chaps)
-        chaps.value = chap_infos.map((x:ChapterInfo)=>{
+        chaps.value = chap_infos.map((x: ChapterInfo) => {
             return {
                 info: {
                     title: x.title,
@@ -139,6 +145,10 @@ function run_parsers() {
     parse_chaps(selected_chaps.value, meta.value, status_txt, progress)
 }
 
+function run_epub(){
+    compile_epub(meta.value, selected_chaps.value, status_txt)
+}
+
 function onRowReorder(event: any) {
     chaps.value = event.value;
 }
@@ -149,7 +159,7 @@ onMounted(async () => {
         await onLoadGetChapters()
 
         // Load Parser
-        let parser_txt = await get_parsers()
+        let parser_txt = await get_parsers_definitions()
         await SendSandboxCmdWReply(SbxCommand.LoadParsers,
             parser_txt)
 

@@ -1,0 +1,95 @@
+import {SbxReply, SbxResult} from "../entry/sandboxed/messages";
+import {ParserParams, ParserResultChap, ParserResultAuto} from "./parser_types";
+import {isProbablyReaderable, Readability} from "@mozilla/readability";
+
+
+let main_parser: any
+let parsers: Record<string, any> = {}
+
+/**
+ * Parser Document
+ */
+interface ParseDoc {
+    main: CallableFunction;
+    toc_parsers: Record<string, ParserDefinition>;
+    chap_parsers: Record<string, ParserDefinition>;
+}
+
+/**
+ * Parser definition
+ */
+interface ParserDefinition {
+    func: CallableFunction;
+    inputs: Record<string, any>
+}
+
+/**
+ * Get helper functions
+ */
+function get_helpers() {
+    const ext_url = new URL(window.location.origin)
+    return {
+        "readability": function (dom: Document) {
+            return new Readability(dom).parse();
+        },
+        "readerable": isProbablyReaderable,
+        "link_fixer": function (link: string, base_url: string) {
+            let c_url = new URL(base_url);
+            return link
+                .replace(ext_url.origin, c_url.origin)
+                .replace(ext_url.protocol, c_url.protocol)
+        }
+    }
+}
+
+
+/**
+ * Load parsers from config
+ * @param data
+ */
+export async function load_parsers(data: any): Promise<SbxResult<void>> {
+    for (let k in data) {
+        let func = new Function(data[k] + "\nreturn load()")()
+        if (k == 'main')
+            main_parser = func
+        else
+            parsers[k] = func
+    }
+    return Promise.resolve({reply: SbxReply.Source, message: 'Loaded'})
+}
+
+
+/**
+ * Runs chapter parser
+ * @param doc Parser doc
+ * @param data input data
+ * @param parser Parser
+ */
+export async function run_chap_parser(doc: string,
+                                      data: ParserParams,
+                                      parser: string): Promise<ParserResultChap> {
+    let parsedoc: ParseDoc
+    if (doc == 'main') {
+        parsedoc = main_parser
+    } else {
+        parsedoc = parsers[doc]
+    }
+    return await parsedoc.chap_parsers[parser].func(data.inputs, data.url, data.src, get_helpers())
+}
+
+/**
+ * Runs the popup parser, or auto page source parser
+ * @param data
+ */
+export async function run_auto_parser(data: ParserParams): Promise<ParserResultAuto> {
+    for (let k in parsers) {
+        let res = await parsers[k].main(data.inputs, data.url, data.src, get_helpers())
+        if (res !== undefined) {
+            res['parse_doc'] = k
+            return Promise.resolve(res)
+        }
+    }
+    let res: ParserResultAuto = await main_parser.main(data.inputs, data.url, data.src, get_helpers())
+    res.parse_doc = 'main'
+    return Promise.resolve(res)
+}

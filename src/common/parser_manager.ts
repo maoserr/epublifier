@@ -7,7 +7,7 @@ export async function get_initial(): Promise<Record<string, string>> {
 }
 
 
-export async function get_parsers(): Promise<Record<string, string>> {
+export async function get_parsers_definitions(): Promise<Record<string, string>> {
     // let config = await browser.storage.local.get("parsers")
     // if (config.hasOwnProperty('parsers') && (config["parsers"] != null)) {
     //     return JSON.parse(config["parsers"]);

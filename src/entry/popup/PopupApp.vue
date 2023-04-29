@@ -62,10 +62,12 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
 import {extract_source} from './source_extract'
-import {SbxCommand, SendSandboxCmdWReply} from "../../common/sandbox_util";
-import {get_parsers} from "../../common/parser_manager";
+import {SbxCommand} from "../sandboxed/messages";
+import {SendSandboxCmdWReply} from "../sandboxed/send_message";
+import {get_parsers_definitions} from "../../common/parser_manager";
 import {ChapterInfo, NovelMetaData} from "../../common/novel_data";
 import browser from "webextension-polyfill";
+import {ParserResultAuto, ParserResultToc} from "../../common/parser_types";
 
 // App data
 const url = ref("N/A")
@@ -111,16 +113,21 @@ onMounted(async () => {
         status_txt.value = "Source parsed."
 
         // Load Parser
-        let parser_txt = await get_parsers()
+        let parser_txt = await get_parsers_definitions()
         await SendSandboxCmdWReply(SbxCommand.LoadParsers,
             parser_txt)
         // Run Parser
         let pres = await SendSandboxCmdWReply(SbxCommand.ParseSource,
             {inputs: {}, url: url.value, src: src.value})
         status_txt.value = pres.message
-        meta.value = pres.data.meta
-        chaps.value = pres.data.chaps
-        parser.value = pres.data.parse_doc
+        const auto_res = pres.data as ParserResultAuto
+        parser.value = auto_res.parse_doc
+        if (auto_res.type === 'toc') {
+            const toc_res = auto_res.result as ParserResultToc
+            meta.value = toc_res.meta
+            chaps.value = toc_res.chaps
+
+        }
     } catch (error) {
         status_txt.value = "Error: " +
             ((error instanceof Error) ? error.message : String(error))
