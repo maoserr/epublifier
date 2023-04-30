@@ -7,7 +7,7 @@ import {SendSandboxCmd, SetupSbxListener} from "../sandboxed/send_message";
 import {ParserResultChap} from "../../common/parser_types";
 import {generate_epub} from "../../common/epub_generator";
 
-export function addSandboxListener(chaps: Chapter[], status_txt: Ref<string>) {
+export function addSandboxListener(chaps: Ref<Chapter[]>, status_txt: Ref<string>) {
     SetupSbxListener((err: string) => {
             console.error(err);
             status_txt.value = err
@@ -17,11 +17,11 @@ export function addSandboxListener(chaps: Chapter[], status_txt: Ref<string>) {
                 let this_chap = data.data as ParserResultChap
                 let id = this_chap.id;
                 let title = this_chap.title;
-                chaps[id].html_parsed = this_chap.html;
+                chaps.value[id].html_parsed = this_chap.html;
                 if (title !== undefined)
-                    chaps[id].title = title;
+                    chaps.value[id].title = title;
                 console.log(data.message)
-                status_txt.value = "Chapter "+ chaps[id].title+": " + data.message;
+                status_txt.value = "Chapter " + chaps.value[id].title + ": " + data.message;
             }
         }
     )
@@ -36,8 +36,16 @@ export async function parse_chaps(chaps: Chapter[],
     let extract_chap = async function (id: number) {
         try {
             if (chaps[id].info.url != "none") {
-                let f_res = await fetch(chaps[id].info.url)
-                let f_txt = await f_res.text()
+                let f_res
+                let f_txt = ''
+                try {
+                    f_res = await fetch(chaps[id].info.url);
+                    f_txt = await f_res.text();
+                }catch (e) {
+                    status_txt.value = "Can't download. Please check permissions in extension page "
+                        + "-> permission -> Access your data for all websites"
+                    return
+                }
                 chaps[id].html = f_txt;
                 status_txt.value = "Parsing chapter content: " + id;
                 SendSandboxCmd(SbxCommand.ParseChapter, {
@@ -48,7 +56,7 @@ export async function parse_chaps(chaps: Chapter[],
                 })
             }
         } catch (e) {
-            status_txt.value = "Unable to parse content: " + e;
+            status_txt.value = "Error: "+e
             console.log(e)
         }
         progress_val.value += cnt_slice;

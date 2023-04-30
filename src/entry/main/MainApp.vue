@@ -30,6 +30,18 @@
                         </div>
                     </div>
                 </TabPanel>
+                <TabPanel header="Preview">
+                    <iframe :srcdoc="selected_chaps[0]?.html_parsed" id="preview"></iframe>
+                </TabPanel>
+                <TabPanel header="Edit">
+                    <Textarea v-if="selected_chaps.length>0"
+                              v-model="selected_chaps[0].html_parsed"
+                              style="width: 100%; max-width: 100%; height: 70vh"
+                    ></Textarea>
+                </TabPanel>
+                <TabPanel header="Original">
+                    <iframe :srcdoc="selected_chaps[0]?.html" id="preview"></iframe>
+                </TabPanel>
             </TabView>
         </div>
         <div class="col-6">
@@ -61,7 +73,7 @@
                 <Column field="url" header="URL" :sortable="true">
                     <template #body="{data}:any">
                         <a :href="(data as any).info.url" target="_blank" rel="noopener noreferrer">
-                            {{ (data as any).info.url.slice(0,25) }}...</a>
+                            {{ (data as any).info.url.slice(0, 25) }}...</a>
                     </template>
                 </Column>
                 <Column field="html_parsed" header="Parsed">
@@ -85,6 +97,13 @@
     max-height: 100%;
     object-fit: contain;
 }
+
+#preview {
+    border-width: 1px;
+    width: 100%;
+    height: 75vh;
+    overflow: auto;
+}
 </style>
 
 <script setup lang="ts">
@@ -95,6 +114,7 @@ import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
+import Textarea from "primevue/textarea";
 
 import 'primeflex/primeflex.css';
 import 'primevue/resources/primevue.min.css';
@@ -145,7 +165,7 @@ function run_parsers() {
     parse_chaps(selected_chaps.value, meta.value, status_txt, progress)
 }
 
-function run_epub(){
+function run_epub() {
     compile_epub(meta.value, selected_chaps.value, status_txt)
 }
 
@@ -164,7 +184,7 @@ onMounted(async () => {
             parser_txt)
 
         // Setup permanent message pipeline
-        addSandboxListener(chaps.value, status_txt);
+        addSandboxListener(selected_chaps, status_txt);
         status_txt.value = "Loaded."
     } catch (error) {
         status_txt.value = "Error: " +
