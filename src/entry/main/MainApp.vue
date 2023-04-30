@@ -45,32 +45,36 @@
             </TabView>
         </div>
         <div class="col-6">
-            <DataTable :value="chaps"
+
+            <Toolbar>
+                <template #start>
+                    <Button label="New" icon="pi pi-plus" class="mr-2" rounded raised/>
+                    <Button icon="pi pi-times" @click="onDelete" class="mr-2" severity="danger" rounded raised/>
+                    <Button label="CSV" @click="onCSV" icon="pi pi-download" rounded raised/>
+                </template>
+
+                <template #end>
+                    <Button label="Parse" icon="pi pi-play" class="mr-2"
+                            @click="run_parsers" :disabled="parse_disable" rounded raised/>
+                    <Button label="Epub" icon="pi pi-download" severity="success"
+                            @click="run_epub" :disabled="epub_disable" rounded raised/>
+                </template>
+            </Toolbar>
+            <ProgressBar :value="progress"></ProgressBar>
+            <DataTable :value="chaps" ref="dt"
                        v-model:selection="selected_chaps"
                        :reorderableColumns="true"
                        @rowReorder="onRowReorder($event)"
                        selectionMode="multiple"
-                       :metaKeySelection="false"
                        scrollable scrollHeight="70vh"
                        :paginator="true" :rows="100"
                        class="p-datatable-sm"
                        :rowsPerPageOptions="[100, 200,500]"
                        responsiveLayout="scroll">
-                <template #header>
-                    <div class="flex justify-content-between">
-                        <span class="text-xl text-900 font-bold">Chapters</span>
-                        <div style="float:right" class="flex gap-2">
-                            <Button label="Parse" icon="pi pi-play"
-                                    @click="run_parsers" rounded raised/>
-                            <Button label="Epub" icon="pi pi-download"
-                                    @click="run_epub" rounded raised/>
-                        </div>
-                    </div>
-                </template>
-                <Column :rowReorder="true" headerStyle="width: 3rem" :reorderableColumn="false"/>
+                <Column :rowReorder="true" headerStyle="width: 3rem" :exportable="false" :reorderableColumn="false"/>
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
                 <Column field="title" header="Title" :sortable="true"></Column>
-                <Column field="url" header="URL" :sortable="true">
+                <Column field="info.url" header="URL" :sortable="true">
                     <template #body="{data}:any">
                         <a :href="(data as any).info.url" target="_blank" rel="noopener noreferrer">
                             {{ (data as any).info.url.slice(0, 25) }}...</a>
@@ -115,13 +119,16 @@ import Button from 'primevue/button';
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import Textarea from "primevue/textarea";
+import ProgressBar from 'primevue/progressbar';
+import Toolbar from 'primevue/toolbar';
+
 
 import 'primeflex/primeflex.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
-import {onMounted, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import browser from "webextension-polyfill";
 
 import {Chapter, ChapterInfo, NovelMetaData} from "../../common/novel_data";
@@ -135,8 +142,24 @@ const status_txt = ref("Loading...")
 const meta = ref({title: 'N/A', description: 'N/A'} as NovelMetaData)
 const chaps = ref([] as Chapter[])
 const selected_chaps = ref([] as Chapter[])
-const parser = ref('')
 const progress = ref(0)
+const dt = ref();
+const parse_disable = computed({
+    get(){return selected_chaps.value.length==0},
+    set(){}
+})
+const epub_disable = computed({
+    get(){
+        if (selected_chaps.value.length == 0)
+            return true
+        for (let c in selected_chaps.value) {
+            if (!selected_chaps.value[c].html_parsed)
+                return true
+        }
+        return false
+    },
+    set(){}
+})
 
 async function onLoadGetChapters() {
     const request = await browser.runtime.sendMessage(
@@ -171,6 +194,15 @@ function run_epub() {
 
 function onRowReorder(event: any) {
     chaps.value = event.value;
+}
+
+function onDelete(event:any) {
+    chaps.value = chaps.value.filter(val => !selected_chaps.value.includes(val));
+    selected_chaps.value = [];
+}
+
+function onCSV(event:any) {
+    dt.value.exportCSV()
 }
 
 onMounted(async () => {

@@ -19,6 +19,8 @@
                         <div class="grid">
                             <div class="col-2"><b>Title</b></div>
                             <div class="col-10">{{ meta?.title }}</div>
+                            <div class="col-2"><b>Author</b></div>
+                            <div class="col-10">{{ meta?.author }}</div>
                             <div class="col-2"><b>Publisher</b></div>
                             <div class="col-10">{{ meta?.publisher }}</div>
                             <div class="col-2"><b>URL</b></div>
@@ -38,6 +40,11 @@
                             </li>
                         </ol>
                     </TabPanel>
+                    <TabPanel header="Parsing">
+                        <div>
+                            <Listbox v-model="parser" :options="parsers" optionLabel="name" listStyle="max-height:6rem"/>
+                        </div>
+                    </TabPanel>
                 </TabView>
             </div>
         </div>
@@ -45,7 +52,7 @@
 </template>
 
 <style>
-html{
+html {
     width: 700px;
     min-height: 550px;
 }
@@ -56,13 +63,14 @@ import Message from 'primevue/message';
 import Button from 'primevue/button';
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';
-import {onMounted, ref} from 'vue'
+import Listbox from 'primevue/listbox';
 
 import 'primeflex/primeflex.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
+import {onMounted, ref} from 'vue'
 import browser from "webextension-polyfill";
 import {extract_source} from './source_extract'
 import {SbxCommand} from "../sandboxed/messages";
@@ -79,7 +87,12 @@ const src = ref('')
 // Novel data
 const meta = ref({title: 'N/A', description: 'N/A'} as NovelMetaData)
 const chaps = ref([] as ChapterInfo[])
-const parser = ref('')
+const parser = ref()
+const parsers = ref([{name: 'New York', code: 'NY'},
+    {name: 'Rome', code: 'RM'},
+    {name: 'London', code: 'LDN'},
+    {name: 'Istanbul', code: 'IST'},
+    {name: 'Paris', code: 'PRS'}])
 
 function newTabEvent(request: any, sender: any, sendResponse: any) {
     if (('cmd' in request) && (request.cmd == "mainCreated")) {
