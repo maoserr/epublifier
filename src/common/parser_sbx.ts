@@ -1,5 +1,5 @@
 import {SbxReply, SbxResult} from "../entry/sandboxed/messages";
-import {ParserParams, ParserResultChap, ParserResultAuto} from "./parser_types";
+import {ParserDocDef, ParserParams, ParserResultChap, ParserResultAuto} from "./parser_types";
 import {isProbablyReaderable, Readability} from "@mozilla/readability";
 
 
@@ -47,15 +47,26 @@ function get_helpers() {
  * Load parsers from config
  * @param data
  */
-export async function load_parsers(data: any): Promise<SbxResult<void>> {
+export async function load_parsers(data: any): Promise<SbxResult<ParserDocDef[]>> {
+    let parse_defs: ParserDocDef[] = []
     for (let k in data) {
         let func = new Function(data[k] + "\nreturn load()")()
         if (k == 'main')
             main_parser = func
         else
             parsers[k] = func
+        parse_defs = parse_defs.concat(
+            Object.keys(func.toc_parsers).map(x=>{return {parse_doc:k,type:"toc", parser:x}})
+        )
+        parse_defs = parse_defs.concat(
+            Object.keys(func.chap_parsers).map(x=>{return {parse_doc:k,type:"chap", parser:x}})
+        )
     }
-    return Promise.resolve({reply: SbxReply.Source, message: 'Loaded'})
+    return Promise.resolve({
+        reply: SbxReply.Source,
+        message: 'Loaded',
+        data: parse_defs
+    })
 }
 
 

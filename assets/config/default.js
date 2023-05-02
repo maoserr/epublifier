@@ -7,11 +7,11 @@ function load() {
     return {
         main: main_parser,
         toc_parsers: {
-            nu_toc: {func: nu_toc_parser, inputs: {}},
-            chaps_name_search: {func: chap_name_search, inputs: {}},
+            'Novel Updates': {func: nu_toc_parser, inputs: {}},
+            'Chapter Links': {func: chap_name_search, inputs: {}},
         },
         chap_parsers: {
-            readability_ex: {func: readability_ex, inputs: {}}
+            'Default': {func: readability_ex, inputs: {}}
         }
     }
 }
@@ -34,14 +34,14 @@ function main_parser(inputs, url, source, helpers) {
             let paths = link.pathname.split("/");
             if (paths.length > 1 && paths[1] === "series") {
                 return {
-                    parser: "nu_toc",
+                    parser: "Novel Updates",
                     type: "toc",
                     result: nu_toc_parser(inputs, url, source, helpers)
                 }
             }
     }
     return {
-        parser: "chaps_name_search",
+        parser: "Chapter Links",
         type: "toc",
         result: chap_name_search(inputs, url, source, helpers)
     };
@@ -73,11 +73,10 @@ function nu_toc_parser(inputs, url, source, helpers) {
         let chap_lis = chap_popup.querySelectorAll("a");
         chap_lis.forEach((element) => {
             if (element.href.includes("extnu")) {
-                console.debug(helpers["link_fixer"](element.href, url))
                 chaps.unshift({
                     title: element.innerText,
                     url: helpers["link_fixer"](element.href, url),
-                    parser: 'readability_ex'
+                    parser: 'Default'
                 });
             }
         });

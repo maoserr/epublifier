@@ -8,8 +8,10 @@
             <div class="col-12">
                 <div style="float:right" class="flex gap-2">
                     <Button label="First Chapter" @click="first_chap"
+                            :disabled="parser_type != 'chap'"
                             icon="pi pi-file"/>
                     <Button label="Load Chapters" @click="chap_list"
+                            :disabled="parser_type != 'toc'"
                             icon="pi pi-book"/>
                 </div>
             </div>
@@ -42,7 +44,10 @@
                     </TabPanel>
                     <TabPanel header="Parsing">
                         <div>
-                            <Listbox v-model="parser" :options="parsers" optionLabel="name" listStyle="max-height:6rem"/>
+                            <Button label="Re-Parse" @click="reparse"
+                                    icon="pi pi-file"/>
+                            <Listbox v-model="parser" :options="parsers"
+                                     optionLabel="parser" listStyle="max-height:12rem"/>
                         </div>
                     </TabPanel>
                 </TabView>
@@ -70,14 +75,14 @@ import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
-import {onMounted, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import browser from "webextension-polyfill";
 import {extract_source} from './source_extract'
-import {SbxCommand} from "../sandboxed/messages";
+import {SbxCommand, SbxResult} from "../sandboxed/messages";
 import {SendSandboxCmdWReply} from "../sandboxed/send_message";
 import {get_parsers_definitions} from "../../common/parser_manager";
 import {ChapterInfo, NovelMetaData} from "../../common/novel_data";
-import {ParserResultAuto, ParserResultToc} from "../../common/parser_types";
+import {ParserDocDef, ParserResultAuto, ParserResultToc} from "../../common/parser_types";
 
 // App data
 const url = ref("N/A")
@@ -87,16 +92,14 @@ const src = ref('')
 // Novel data
 const meta = ref({title: 'N/A', description: 'N/A'} as NovelMetaData)
 const chaps = ref([] as ChapterInfo[])
-const parser = ref()
-const parsers = ref([{name: 'New York', code: 'NY'},
-    {name: 'Rome', code: 'RM'},
-    {name: 'London', code: 'LDN'},
-    {name: 'Istanbul', code: 'IST'},
-    {name: 'Paris', code: 'PRS'}])
 
-function newTabEvent(request: any, sender: any, sendResponse: any) {
+const parser = ref()
+const parser_type = ref()
+const parsers = ref([])
+
+function newTabEventToc(request: any, sender: any, sendResponse: any) {
     if (('cmd' in request) && (request.cmd == "mainCreated")) {
-        browser.runtime.onMessage.removeListener(newTabEvent)
+        browser.runtime.onMessage.removeListener(newTabEventToc)
         let tab_msg = {
             action: "newChapList",
             chaps: JSON.stringify(chaps.value),
@@ -107,36 +110,58 @@ function newTabEvent(request: any, sender: any, sendResponse: any) {
     }
 }
 
-function first_chap() {
+function newTabEventChap(request: any, sender: any, sendResponse: any){
+    if (('cmd' in request) && (request.cmd == "mainCreated")) {
+        browser.runtime.onMessage.removeListener(newTabEventToc)
+        let tab_msg = {
+            action: "newChapList",
+            chaps: JSON.stringify(chaps.value),
+            metadata: JSON.stringify(meta.value),
+            parser: parser.value
+        }
+        sendResponse(tab_msg);
+    }
+}
 
+async function first_chap() {
+    browser.runtime.onMessage.addListener(newTabEventChap)
+    await browser.tabs.create({url: "main.html", active: true});
 }
 
 /**
  * Loads chapter list page
  */
 async function chap_list() {
-    browser.runtime.onMessage.addListener(newTabEvent)
+    browser.runtime.onMessage.addListener(newTabEventToc)
     await browser.tabs.create({url: "main.html", active: true});
+}
+
+function reparse(){
+    
 }
 
 onMounted(async () => {
     try {
         // Source extraction
-        let res = await extract_source()
+        const res = await extract_source()
         url.value = res.url
         src.value = res.source
         status_txt.value = "Source parsed."
 
         // Load Parser
-        let parser_txt = await get_parsers_definitions()
-        await SendSandboxCmdWReply(SbxCommand.LoadParsers,
-            parser_txt)
+        const parser_txt = await get_parsers_definitions()
+        const parsedefs_rep:SbxResult<any> = await SendSandboxCmdWReply(
+            SbxCommand.LoadParsers, parser_txt)
+        status_txt.value = parsedefs_rep.message
+        parsers.value = parsedefs_rep.data
+
         // Run Parser
-        let pres = await SendSandboxCmdWReply(SbxCommand.ParseSource,
+        const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource,
             {inputs: {}, url: url.value, src: src.value})
         status_txt.value = pres.message
         const auto_res = pres.data as ParserResultAuto
         parser.value = auto_res.parse_doc
+        parser_type.value = auto_res.type
         if (auto_res.type === 'toc') {
             const toc_res = auto_res.result as ParserResultToc
             meta.value = toc_res.meta
