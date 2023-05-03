@@ -47,11 +47,11 @@
                             <Button label="Re-Parse" @click="reparse"
                                     icon="pi pi-file"/>
                             <Listbox v-model="parser" :options="parsers" listStyle="max-height:12rem">
-                                <template #option="slotProps">
+                                <template #option="{option}:any">
                                     <div class="flex align-items-center">
-                                        <div>[{{ slotProps.option.parse_doc }}]
-                                            ({{ slotProps.option.type }})
-                                            {{ slotProps.option.parser }}
+                                        <div>[{{ (option as any).parse_doc }}]
+                                            ({{ (option as any).type }})
+                                            {{ (option as any).parser }}
                                         </div>
                                     </div>
                                 </template>
@@ -112,7 +112,7 @@ function newTabEventToc(request: any, sender: any, sendResponse: any) {
             action: "newChapList",
             chaps: JSON.stringify(chaps.value),
             metadata: JSON.stringify(meta.value),
-            parser: parser.value
+            parser: parser.value?.parse_doc
         }
         sendResponse(tab_msg);
     }
@@ -125,7 +125,7 @@ function newTabEventChap(request: any, sender: any, sendResponse: any) {
             action: "newChapList",
             chaps: JSON.stringify(chaps.value),
             metadata: JSON.stringify(meta.value),
-            parser: parser.value
+            parser: parser.value?.parse_doc
         }
         sendResponse(tab_msg);
     }
