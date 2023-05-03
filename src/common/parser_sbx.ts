@@ -1,5 +1,5 @@
 import {SbxReply, SbxResult} from "../entry/sandboxed/messages";
-import {ParserDocDef, ParserParams, ParserResultChap, ParserResultAuto} from "./parser_types";
+import {ParserDocDef, ParserParams, ParserResultChap, ParserResultAuto, ParserResultToc} from "./parser_types";
 import {isProbablyReaderable, Readability} from "@mozilla/readability";
 
 
@@ -69,6 +69,19 @@ export async function load_parsers(data: any): Promise<SbxResult<ParserDocDef[]>
     })
 }
 
+
+export async function run_toc_parser(doc:string,
+                                     data:ParserParams,
+                                     parser: string):Promise<ParserResultToc> {
+    let parsedoc: ParseDoc
+    if (doc == 'main') {
+        parsedoc = main_parser
+    } else {
+        parsedoc = parsers[doc]
+    }
+    return await parsedoc.toc_parsers[parser].func(data.inputs, data.url, data.src, get_helpers())
+
+}
 
 /**
  * Runs chapter parser

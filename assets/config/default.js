@@ -11,7 +11,9 @@ function load() {
             'Chapter Links': {func: chap_name_search, inputs: {}},
         },
         chap_parsers: {
-            'Default': {func: readability_ex, inputs: {}}
+            'Default': {func: readability_ex, inputs: {}},
+            'Simple':{func: readability, inputs:{}},
+            'Raw':{func: raw_chap, inputs:{}}
         }
     }
 }
@@ -96,6 +98,14 @@ function nu_toc_parser(inputs, url, source, helpers) {
     };
 }
 
+/**
+ * Search for chapter by link names
+ * @param inputs
+ * @param url
+ * @param source
+ * @param helpers
+ * @returns {{meta: {title: string}, chaps: *[], message: string}}
+ */
 function chap_name_search(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
@@ -104,27 +114,49 @@ function chap_name_search(inputs, url, source, helpers) {
     ancs.forEach((element) => {
         if (RegExp(/chap|part/i).test(element.innerText)) {
             chaps.push({
-                url_title: element.innerText,
+                title: element.innerText,
                 url: helpers["link_fixer"](element.href, url),
             });
         }
     });
     return {
-        "chaps": chaps,
-        meta: {}
+        chaps: chaps,
+        message:"Parsing links with prefix chapter",
+        meta: {
+            title:'No title parsed'
+        }
     };
 }
 
-function readability() {
-    let url = new URL(url);
+/**
+ * Parse using readability
+ * @param inputs
+ * @param url
+ * @param source
+ * @param helpers
+ * @returns {{html, title, message: string}}
+ */
+function readability(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
-
+    let out = helpers["readability"](dom);
     // Generic parser
-    return {chap_type: "chap", parser: "chaps_readability"};
+    return {
+        title: out.title,
+        html: out.content,
+        message: "Parsed simple chapter"
+    };
 }
 
 
+/**
+ * Parse using extended readability logic
+ * @param inputs
+ * @param url
+ * @param source
+ * @param helpers
+ * @returns {Promise<{html: string, title: string, message: string}|{html: *, title: *, message: string}>}
+ */
 async function readability_ex(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
@@ -181,7 +213,15 @@ async function readability_ex(inputs, url, source, helpers) {
     };
 }
 
-async function raw_chap() {
-    return {title: title, html: source}
+/**
+ * Don't parse anything, just return HTML
+ * @param inputs
+ * @param url
+ * @param source
+ * @param helpers
+ * @returns {Promise<{html}>}
+ */
+async function raw_chap(inputs, url, source, helpers) {
+    return {html: source}
 }
 

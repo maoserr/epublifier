@@ -1,7 +1,7 @@
 import {ChapterInfo, NovelData, NovelMetaData} from "./novel_data";
 
 export type ListenerResults =
-    ParserDocDef[]|ParserResultAuto|ParserResultChap|NovelData
+    ParserDocDef[]|ParserResultAuto|ParserResultChap|ParserResultToc|NovelData
 
 /**
  * Parser Parameters

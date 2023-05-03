@@ -46,8 +46,16 @@
                         <div>
                             <Button label="Re-Parse" @click="reparse"
                                     icon="pi pi-file"/>
-                            <Listbox v-model="parser" :options="parsers"
-                                     optionLabel="parser" listStyle="max-height:12rem"/>
+                            <Listbox v-model="parser" :options="parsers" listStyle="max-height:12rem">
+                                <template #option="slotProps">
+                                    <div class="flex align-items-center">
+                                        <div>[{{ slotProps.option.parse_doc }}]
+                                            ({{ slotProps.option.type }})
+                                            {{ slotProps.option.parser }}
+                                        </div>
+                                    </div>
+                                </template>
+                            </Listbox>
                         </div>
                     </TabPanel>
                 </TabView>
@@ -75,14 +83,14 @@ import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
-import {computed, onMounted, ref} from 'vue'
+import {onMounted, Ref, ref} from 'vue'
 import browser from "webextension-polyfill";
 import {extract_source} from './source_extract'
 import {SbxCommand, SbxResult} from "../sandboxed/messages";
 import {SendSandboxCmdWReply} from "../sandboxed/send_message";
 import {get_parsers_definitions} from "../../common/parser_manager";
 import {ChapterInfo, NovelMetaData} from "../../common/novel_data";
-import {ParserDocDef, ParserResultAuto, ParserResultToc} from "../../common/parser_types";
+import {ParserDocDef, ParserResultAuto, ParserResultChap, ParserResultToc} from "../../common/parser_types";
 
 // App data
 const url = ref("N/A")
@@ -93,9 +101,9 @@ const src = ref('')
 const meta = ref({title: 'N/A', description: 'N/A'} as NovelMetaData)
 const chaps = ref([] as ChapterInfo[])
 
-const parser = ref()
+const parser: Ref<ParserDocDef | undefined> = ref()
 const parser_type = ref()
-const parsers = ref([])
+const parsers = ref([] as ParserDocDef[])
 
 function newTabEventToc(request: any, sender: any, sendResponse: any) {
     if (('cmd' in request) && (request.cmd == "mainCreated")) {
@@ -110,7 +118,7 @@ function newTabEventToc(request: any, sender: any, sendResponse: any) {
     }
 }
 
-function newTabEventChap(request: any, sender: any, sendResponse: any){
+function newTabEventChap(request: any, sender: any, sendResponse: any) {
     if (('cmd' in request) && (request.cmd == "mainCreated")) {
         browser.runtime.onMessage.removeListener(newTabEventToc)
         let tab_msg = {
@@ -136,8 +144,34 @@ async function chap_list() {
     await browser.tabs.create({url: "main.html", active: true});
 }
 
-function reparse(){
-    
+function set_parse_result(type:'toc'|'chap',
+                          pres:ParserResultToc|ParserResultChap){
+    parser_type.value = type
+    if (type === 'toc') {
+        const toc_res = pres as ParserResultToc
+        meta.value = toc_res.meta
+        chaps.value = toc_res.chaps
+    } else {
+
+    }
+}
+
+async function reparse() {
+    if (parser.value === undefined) {
+        return
+    }
+    const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource, {
+        doc: parser.value!.parse_doc,
+        type: parser.value!.type,
+        parser: parser.value!.parser,
+        params: {inputs: {}, url: url.value, src: src.value}
+    })
+    status_txt.value = pres.message
+    if(parser.value!.type ==='toc'){
+        set_parse_result(parser.value!.type, pres.data as ParserResultToc)
+    } else {
+        set_parse_result(parser.value!.type, pres.data as ParserResultChap)
+    }
 }
 
 onMounted(async () => {
@@ -150,7 +184,7 @@ onMounted(async () => {
 
         // Load Parser
         const parser_txt = await get_parsers_definitions()
-        const parsedefs_rep:SbxResult<any> = await SendSandboxCmdWReply(
+        const parsedefs_rep: SbxResult<any> = await SendSandboxCmdWReply(
             SbxCommand.LoadParsers, parser_txt)
         status_txt.value = parsedefs_rep.message
         parsers.value = parsedefs_rep.data
@@ -160,14 +194,13 @@ onMounted(async () => {
             {inputs: {}, url: url.value, src: src.value})
         status_txt.value = pres.message
         const auto_res = pres.data as ParserResultAuto
-        parser.value = auto_res.parse_doc
-        parser_type.value = auto_res.type
-        if (auto_res.type === 'toc') {
-            const toc_res = auto_res.result as ParserResultToc
-            meta.value = toc_res.meta
-            chaps.value = toc_res.chaps
-
+        parser.value = {
+            parse_doc: auto_res.parse_doc,
+            type: auto_res.type,
+            parser: auto_res.parser
         }
+
+        set_parse_result(auto_res.type, auto_res.result)
     } catch (error) {
         status_txt.value = "Error: " +
             ((error instanceof Error) ? error.message : String(error))
