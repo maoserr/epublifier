@@ -1,19 +1,29 @@
-export interface Chapter {
+export interface NovelMetaData {
+    title: string;
+    author: string;
+    description: string;
+    cover?: string;
+    publisher?: string
+}
+
+export interface ChapterInfo {
+    title: string;
     url: string;
-    url_title: string;
-    parser?: string;
-    title?: string;
-    html?: string;
-    html_parsed?: string;
+    parser: string;
+    parse_doc: string;
+}
+
+export interface Chapter {
+    info: ChapterInfo
+    title: string;
+    html: string;
+    html_parsed: string;
 }
 
 export interface NovelData {
-    publisher?: string;
-    description?: string;
+    meta: NovelMetaData;
     filename: string;
     chapters: Chapter[];
     cover?: any;
-    title: string;
-    author: string;
-    tags?: string[];
+    tags?: [string];
 }

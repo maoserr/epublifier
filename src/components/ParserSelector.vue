@@ -39,9 +39,9 @@ export default defineComponent({
   computed: {
     value: {
       get() {
-        return {[this.modelValue]: true};
+        return {"": true};
       },
-      set(value) {
+      set(value: { [s: string]: unknown; } | ArrayLike<unknown>) {
         this.$emit('update:modelValue', Object.entries(value)[0][0])
       }
     }
@@ -50,43 +50,6 @@ export default defineComponent({
     parser_obj: {
       handler() {
         let parserd = []
-        Object.entries(this.parser_obj).forEach(
-            ([key, val]) => {
-              let doc_child = []
-              if (!this.chap_only) {
-                doc_child.push({key: key + "||main_parser", label: "Table of Content Auto Detector"})
-                let toc_childs = []
-                Object.entries(val["toc_parsers"]).forEach(
-                    ([tkey, tval]) => {
-                      toc_childs.push({key: key + "||toc_parsers||" + tkey, label: tval["name"]})
-                    }
-                )
-                doc_child.push({
-                  key: key + "||toc_parsers",
-                  label: "Table of Content Parsers",
-                  selectable: false,
-                  children: toc_childs
-                })
-              }
-              if (!this.toc_only) {
-                doc_child.push({key: key + "||chap_main_parser", label: "Chapter Auto Detector"})
-                let chap_childs = []
-                Object.entries(val["chap_parsers"]).forEach(
-                    ([tkey, tval]) => {
-                      chap_childs.push({key: key + "||chap_parsers||" + tkey, label: tval["name"]})
-                    }
-                )
-                doc_child.push({
-                  key: key + "||chap_parsers",
-                  label: "Chapter Parsers",
-                  selectable: false,
-                  children: chap_childs
-                })
-              }
-              parserd.push({key: key, label: "Doc: " + key, selectable: false, children: doc_child});
-            }
-        );
-        this.parsers_nodes = parserd;
       },
       deep: true
     }

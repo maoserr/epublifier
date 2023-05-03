@@ -1,21 +1,21 @@
 import {NovelData} from "./novel_data";
-import jEpub from "../jepub/jepub";
+import {TsEpub} from "tsepub"
 
-export async function generate_epub(nov_data: NovelData, update_cb: CallableFunction):Promise<Blob> {
+export async function generate_epub(nov_data: NovelData, update_cb: CallableFunction): Promise<Blob | undefined> {
     try {
-        const jepub = new jEpub();
-        jepub.init({
+        const tsepub = new TsEpub({
             i18n: "en",
-            title: nov_data.title,
-            author: nov_data.author,
-            publisher: nov_data.publisher,
-            description: nov_data.description,
+            title: nov_data.meta.title,
+            author: nov_data.meta.author,
+            publisher: nov_data.meta.publisher ?? "N/A",
+            description: nov_data.meta.description,
             tags: nov_data.tags
         });
+
         if (nov_data.cover != null) {
-            jepub.cover(nov_data.cover);
+            tsepub.cover(nov_data.cover);
         }
-        jepub.date(new Date());
+        tsepub.date(new Date());
 
         let img_id = 0;
         let parser = new DOMParser();
@@ -29,7 +29,7 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
                     let img_resp = await fetch(img.src)
                     if (img_resp.ok) {
                         let img_dat = await img_resp.blob();
-                        jepub.image(img_dat, img_id.toString())
+                        await tsepub.image(img_dat, img_id.toString())
                         let sp = html_node.createElement("span")
                         sp.innerText = `{{{ image[${img_id.toString()}] }}}`
                         img.replaceWith(sp)
@@ -42,21 +42,20 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
             }
             let s_html = s.serializeToString(html_node);
             let fixed_html = s_html.replaceAll(/{{{/g, "<%=").replaceAll(/}}}/g, "%>")
-            jepub.add(
+            tsepub.add(
                 nov_data.chapters[i].title,
                 fixed_html
             );
         }
         update_cb("Generating ePub");
-        return await jepub.generate("blob", function updateCallback(metadata) {
+        return await tsepub.generate(function updateCallback(metadata) {
             let cf = ""
             if (metadata.currentFile) {
                 cf = ", current file = " + metadata.currentFile;
             }
             update_cb("Zip: " + metadata.percent.toFixed(2) + " %" + cf);
-        }) as Blob;
+        });
     } catch (err) {
         update_cb(err);
-        console.log(err)
     }
 }

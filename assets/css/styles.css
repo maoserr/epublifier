@@ -1,16 +1,10 @@
 html {
-    font-size: 0.9em;
+    font-size: 14px;
+    padding: .5rem;
 }
-label {
-    font-size: 1em;
-}
+
 body {
-    margin: 10px;
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-    background-color: var(--surface-a);
-    font-family: var(--font-family);
-    font-weight: 400;
+    font-size: 14px;
     color: var(--text-color);
+    background-color: var(--surface-card);
 }

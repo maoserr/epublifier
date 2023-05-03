@@ -1,16 +1,19 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "strict": false,
-    "moduleResolution": "node",
+    "target": "es2021",
+    "module": "commonjs",
+    "strict": true,
     "noImplicitThis": true,
-    "allowJs": true
+    "esModuleInterop": true
   },
   "baseUrl": "./src",
   "include": [
     "./src/**/*.ts",
     "./src/**/*.vue"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "./node_modules/",
+    "./test/",
+    "./int_tests/"
+  ]
 }

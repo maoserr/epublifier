@@ -18,34 +18,26 @@ function modify_manifest(buffer, browser_type, version, mode) {
     manifest.author = pack.author
     manifest.description = pack.description
     manifest.icons = icons
+    manifest.manifest_version = 3
+    manifest.permissions.push("scripting")
+    manifest.host_permissions = ["<all_urls>"]
+    manifest.action = {
+        default_icon: icons,
+        default_title: manifest.name,
+        default_popup: "popup.html"
+    }
 
     if (browser_type === "firefox") {
         // Firefox specific
-        manifest.manifest_version = 2
         manifest.browser_specific_settings = {
             "gecko": {
                 "id": "epublifier@maoserr.com"
             }
         }
-        manifest.permissions.push("<all_urls>")
-        manifest.browser_action = {
-            default_icon: icons,
-            default_title: manifest.name,
-            default_popup: "popup.html"
-        }
         manifest.options_ui.open_in_tab = true
-        manifest.content_security_policy = "script-src 'self'; object-src 'self';";
     } else {
         // Chrome specific
-        manifest.manifest_version = 3
-        manifest.permissions.push("scripting")
-        manifest.host_permissions = ["<all_urls>"]
         manifest.sandbox = {"pages": ["sandbox.html"]};
-        manifest.action = {
-            default_icon: icons,
-            default_title: manifest.name,
-            default_popup: "popup.html"
-        }
     }
     // Dynamic version
     manifest.version = version;
@@ -68,11 +60,10 @@ module.exports = (env, argv) => {
     }
     return {
         devServer: {
-            static: {
-                directory: join(__dirname, 'public'),
-            },
+            static: false,
             compress: true,
             port: 9000,
+            allowedHosts: 'all'
         },
         optimization: {
             minimize: argv.mode === "production",
@@ -88,8 +79,7 @@ module.exports = (env, argv) => {
         entry: {
             popup: join(__dirname, "src/entry/popup/popup.ts"),
             main: join(__dirname, "src/entry/main/main.ts"),
-            getPageSource: join(__dirname, "src/entry/getPageSource.ts"),
-            sandbox: join(__dirname, "src/entry/sandbox.ts"),
+            sandbox: join(__dirname, "src/entry/sandboxed/sandbox.ts"),
             options: join(__dirname, "src/entry/options/options.ts"),
         },
         devtool: 'cheap-module-source-map',
@@ -113,10 +103,6 @@ module.exports = (env, argv) => {
                         'style-loader',
                         'css-loader'
                     ]
-                },
-                {
-                    test: /\.(ejs|xml)$/i,
-                    type: 'asset/source'
                 }
             ],
         },
