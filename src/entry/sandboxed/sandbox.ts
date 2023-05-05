@@ -46,7 +46,7 @@ async function window_listener(event: MessageEvent) {
         }
         let cmd: number = event.data.command
         if (cmd in listener_cmds) {
-            let res: SbxResult<ListenerResults> = await listener_cmds[cmd](event.data.data)
+            let res: SbxResult<ListenerResults> = await listener_cmds[cmd](JSON.parse(event.data.data))
             send_reply(event.source!, res.reply, res.message, res.data)
             return
         } else {

@@ -43,19 +43,35 @@
                         </ol>
                     </TabPanel>
                     <TabPanel header="Parsing">
-                        <div>
-                            <Button label="Re-Parse" @click="reparse"
-                                    icon="pi pi-file"/>
-                            <Listbox v-model="parser" :options="parsers" listStyle="max-height:12rem">
-                                <template #option="{option}:any">
-                                    <div class="flex align-items-center">
-                                        <div>[{{ (option as any).parse_doc }}]
-                                            ({{ (option as any).type }})
-                                            {{ (option as any).parser }}
+                        <div class="grid">
+                            <div class="col-12">
+                                <Button label="Re-Parse" @click="reparse"
+                                        icon="pi pi-file"/>
+                            </div>
+                            <div class="col-12">
+                                <Listbox v-model="parser" :options="parsers" @change="parser_sel_change"
+                                         listStyle="max-height:12rem">
+                                    <template #option="{option}:any">
+                                        <div class="flex align-items-center">
+                                            <div>[{{ (option as any).parse_doc }}]
+                                                ({{ (option as any).type }})
+                                                {{ (option as any).parser }}
+                                            </div>
                                         </div>
+                                    </template>
+                                </Listbox>
+                            </div>
+                            <div class="col-12">
+                                <Panel header="Parser Options">
+                                    <div v-for="(inp, k) in p_inputs">
+                                        <span class="p-float-label">
+                                            <InputText v-if="inp.type=='text'" :id="k" type="text"
+                                                       v-model="p_inputs_val[k]"/>
+                                            <label v-if="inp.type=='text'" :for="k">{{ k }}</label>
+                                        </span>
                                     </div>
-                                </template>
-                            </Listbox>
+                                </Panel>
+                            </div>
                         </div>
                     </TabPanel>
                 </TabView>
@@ -72,11 +88,13 @@ html {
 </style>
 
 <script setup lang="ts">
+import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
 import Button from 'primevue/button';
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';
-import Listbox from 'primevue/listbox';
+import Listbox, {ListboxChangeEvent} from 'primevue/listbox';
+import Panel from 'primevue/panel';
 
 import 'primeflex/primeflex.css';
 import 'primevue/resources/primevue.min.css';
@@ -104,6 +122,8 @@ const chaps = ref([] as ChapterInfo[])
 const parser: Ref<ParserDocDef | undefined> = ref()
 const parser_type = ref()
 const parsers = ref([] as ParserDocDef[])
+const p_inputs = ref({})
+const p_inputs_val = ref({})
 
 function newTabEventToc(request: any, sender: any, sendResponse: any) {
     if (('cmd' in request) && (request.cmd == "mainCreated")) {
@@ -144,8 +164,8 @@ async function chap_list() {
     await browser.tabs.create({url: "main.html", active: true});
 }
 
-function set_parse_result(type:'toc'|'chap',
-                          pres:ParserResultToc|ParserResultChap){
+function set_parse_result(type: 'toc' | 'chap',
+                          pres: ParserResultToc | ParserResultChap) {
     parser_type.value = type
     if (type === 'toc') {
         const toc_res = pres as ParserResultToc
@@ -160,18 +180,48 @@ async function reparse() {
     if (parser.value === undefined) {
         return
     }
-    const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource, {
-        doc: parser.value!.parse_doc,
-        type: parser.value!.type,
-        parser: parser.value!.parser,
-        params: {inputs: {}, url: url.value, src: src.value}
-    })
-    status_txt.value = pres.message
-    if(parser.value!.type ==='toc'){
-        set_parse_result(parser.value!.type, pres.data as ParserResultToc)
-    } else {
-        set_parse_result(parser.value!.type, pres.data as ParserResultChap)
+    try {
+        const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource, {
+            doc: parser.value!.parse_doc,
+            type: parser.value!.type,
+            parser: parser.value!.parser,
+            params: {inputs: p_inputs_val.value, url: url.value, src: src.value}
+        })
+        status_txt.value = pres.message
+        if (parser.value!.type === 'toc') {
+            set_parse_result(parser.value!.type, pres.data as ParserResultToc)
+        } else {
+            set_parse_result(parser.value!.type, pres.data as ParserResultChap)
+        }
+    } catch (error) {
+        status_txt.value = "Error: " +
+            ((error instanceof Error) ? error.message : String(error))
     }
+}
+
+async function setup_parser() {
+    // Load Parser
+    const parser_txt = await get_parsers_definitions()
+    const parsedefs_rep: SbxResult<any> = await SendSandboxCmdWReply(
+        SbxCommand.LoadParsers, parser_txt)
+    status_txt.value = parsedefs_rep.message
+    parsers.value = parsedefs_rep.data
+
+
+}
+
+function parser_sel_change(event: ListboxChangeEvent) {
+    set_parser_inps(event.value)
+}
+
+function set_parser_inps(parser:ParserDocDef){
+    p_inputs.value = parser.inputs
+    let new_vals: Record<string, any> = {}
+    Object.keys(parser.inputs).forEach(
+        (x: any) =>
+            new_vals[x] = parser.inputs[x].default ?? ''
+    )
+    p_inputs_val.value = new_vals
 }
 
 onMounted(async () => {
@@ -182,24 +232,21 @@ onMounted(async () => {
         src.value = res.source
         status_txt.value = "Source parsed."
 
-        // Load Parser
-        const parser_txt = await get_parsers_definitions()
-        const parsedefs_rep: SbxResult<any> = await SendSandboxCmdWReply(
-            SbxCommand.LoadParsers, parser_txt)
-        status_txt.value = parsedefs_rep.message
-        parsers.value = parsedefs_rep.data
+        await setup_parser()
 
         // Run Parser
         const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource,
             {inputs: {}, url: url.value, src: src.value})
         status_txt.value = pres.message
         const auto_res = pres.data as ParserResultAuto
-        parser.value = {
-            parse_doc: auto_res.parse_doc,
-            type: auto_res.type,
-            parser: auto_res.parser
-        }
+        parser.value = parsers.value.filter(
+            (x: ParserDocDef) =>
+                (x.parse_doc == auto_res.parse_doc)
+                && (x.parser == auto_res.parser)
+                && (x.type = auto_res.type)
+        )[0]
 
+        set_parser_inps(parser.value)
         set_parse_result(auto_res.type, auto_res.result)
     } catch (error) {
         status_txt.value = "Error: " +

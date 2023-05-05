@@ -11,7 +11,7 @@ export function SendSandboxCmd(cmd: SbxCommand, data: any): void {
     let iframe =
         document.getElementById("sandbox") as HTMLIFrameElement;
     iframe.contentWindow!.postMessage(
-        {command: cmd, data: data}, '*' as WindowPostMessageOptions)
+        {command: cmd, data: JSON.stringify(data)}, '*' as WindowPostMessageOptions)
 }
 
 export function SetupSbxListener(err_func: CallableFunction,
