@@ -85,7 +85,7 @@ jobs:
           src_file: src.zip
 
   publish_release:
-    needs: [build_firefox, build_chrome]
+    needs: [ build_firefox, build_chrome ]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:

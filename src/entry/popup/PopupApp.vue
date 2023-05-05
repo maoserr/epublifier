@@ -65,7 +65,7 @@
                                 <Panel header="Parser Options">
                                     <div v-for="(inp, k) in p_inputs">
                                         <span class="p-float-label">
-                                            <InputText v-if="inp.type=='text'" :id="k" type="text"
+                                            <InputText v-if="inp.type=='text'" :id="k.toString()" type="text"
                                                        v-model="p_inputs_val[k]"/>
                                             <label v-if="inp.type=='text'" :for="k">{{ k }}</label>
                                         </span>
@@ -122,8 +122,8 @@ const chaps = ref([] as ChapterInfo[])
 const parser: Ref<ParserDocDef | undefined> = ref()
 const parser_type = ref()
 const parsers = ref([] as ParserDocDef[])
-const p_inputs = ref({})
-const p_inputs_val = ref({})
+const p_inputs = ref({} as Record<string, {type:any}>)
+const p_inputs_val = ref({} as Record<string, any>)
 
 function newTabEventToc(request: any, sender: any, sendResponse: any) {
     if (('cmd' in request) && (request.cmd == "mainCreated")) {
