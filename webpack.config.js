@@ -68,13 +68,7 @@ module.exports = (env, argv) => {
         optimization: {
             minimize: argv.mode === "production",
             // EJS uses new Function
-            minimizer: [new TerserPlugin({
-                terserOptions: {
-                    keep_classnames: true,
-                    keep_fnames: true,
-                    mangle: false
-                }
-            })],
+            minimizer: [],
         },
         entry: {
             popup: join(__dirname, "src/entry/popup/popup.ts"),

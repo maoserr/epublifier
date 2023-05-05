@@ -2,9 +2,7 @@ name: Build and Publish
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    branches: [ master, develop ]
 
 env:
   MAJOR_VER: 2
@@ -87,7 +85,7 @@ jobs:
           src_file: src.zip
 
   publish_release:
-    needs: [build_firefox, build_chrome]
+    needs: [ build_firefox, build_chrome ]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:

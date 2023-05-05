@@ -56,10 +56,23 @@ export async function load_parsers(data: any): Promise<SbxResult<ParserDocDef[]>
         else
             parsers[k] = func
         parse_defs = parse_defs.concat(
-            Object.keys(func.toc_parsers).map(x=>{return {parse_doc:k,type:"toc", parser:x}})
+            Object.keys(func.toc_parsers).map(x=>{
+                return {
+                    parse_doc:k,
+                    type:"toc",
+                    parser:x,
+                    inputs:func.toc_parsers[x].inputs
+                }
+            })
         )
         parse_defs = parse_defs.concat(
-            Object.keys(func.chap_parsers).map(x=>{return {parse_doc:k,type:"chap", parser:x}})
+            Object.keys(func.chap_parsers).map(x=>{
+                return {
+                    parse_doc:k,
+                    type:"chap",
+                    parser:x,
+                    inputs:func.chap_parsers[x].inputs}
+            })
         )
     }
     return Promise.resolve({
@@ -109,11 +122,13 @@ export async function run_auto_parser(data: ParserParams): Promise<ParserResultA
     for (let k in parsers) {
         let res = await parsers[k].main(data.inputs, data.url, data.src, get_helpers())
         if (res !== undefined) {
-            res['parse_doc'] = k
+            res.parse_doc = k
+            res.inputs = {}
             return Promise.resolve(res)
         }
     }
     let res: ParserResultAuto = await main_parser.main(data.inputs, data.url, data.src, get_helpers())
     res.parse_doc = 'main'
+    res.inputs = {}
     return Promise.resolve(res)
 }
