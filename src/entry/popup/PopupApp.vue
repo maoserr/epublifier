@@ -7,7 +7,7 @@
             </div>
             <div class="col-12">
                 <div style="float:right" class="flex gap-2">
-                    <Button label="First Chapter" @click="first_chap"
+                    <Button label="First Chapter" @click="first_chap(this.parsers)"
                             :disabled="parser_type != 'chap'"
                             icon="pi pi-file"/>
                     <Button label="Load Chapters" @click="chap_list"
@@ -125,34 +125,10 @@ const parsers = ref([] as ParserDocDef[])
 const p_inputs = ref({} as Record<string, {type:any}>)
 const p_inputs_val = ref({} as Record<string, any>)
 
-function newTabEventToc(request: any, sender: any, sendResponse: any) {
-    if (('cmd' in request) && (request.cmd == "mainCreated")) {
-        browser.runtime.onMessage.removeListener(newTabEventToc)
-        let tab_msg = {
-            action: "newChapList",
-            chaps: JSON.stringify(chaps.value),
-            metadata: JSON.stringify(meta.value),
-            parser: parser.value?.parse_doc
-        }
-        sendResponse(tab_msg);
-    }
-}
 
-function newTabEventChap(request: any, sender: any, sendResponse: any) {
-    if (('cmd' in request) && (request.cmd == "mainCreated")) {
-        browser.runtime.onMessage.removeListener(newTabEventToc)
-        let tab_msg = {
-            action: "newChapList",
-            chaps: JSON.stringify(chaps.value),
-            metadata: JSON.stringify(meta.value),
-            parser: parser.value?.parse_doc
-        }
-        sendResponse(tab_msg);
-    }
-}
 
-async function first_chap() {
-    browser.runtime.onMessage.addListener(newTabEventChap)
+async function first_chap(parsers:any) {
+
     await browser.tabs.create({url: "main.html", active: true});
 }
 
@@ -160,7 +136,7 @@ async function first_chap() {
  * Loads chapter list page
  */
 async function chap_list() {
-    browser.runtime.onMessage.addListener(newTabEventToc)
+
     await browser.tabs.create({url: "main.html", active: true});
 }
 
@@ -182,16 +158,16 @@ async function reparse() {
     }
     try {
         const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource, {
-            doc: parser.value!.parse_doc,
-            type: parser.value!.type,
-            parser: parser.value!.parser,
+            doc: parser.value.parse_doc,
+            type: parser.value.type,
+            parser: parser.value.parser,
             params: {inputs: p_inputs_val.value, url: url.value, src: src.value}
         })
         status_txt.value = pres.message
-        if (parser.value!.type === 'toc') {
-            set_parse_result(parser.value!.type, pres.data as ParserResultToc)
+        if (parser.value.type === 'toc') {
+            set_parse_result(parser.value.type, pres.data as ParserResultToc)
         } else {
-            set_parse_result(parser.value!.type, pres.data as ParserResultChap)
+            set_parse_result(parser.value.type, pres.data as ParserResultChap)
         }
     } catch (error) {
         status_txt.value = "Error: " +
