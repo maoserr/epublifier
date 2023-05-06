@@ -10,6 +10,7 @@ assignees: maoserr
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**Desktop (please complete the following information):**
+**Required info (please complete the following information):**
+ - Url [e.g. specific series link]
  - Browser [e.g. chrome, firefox]
  - Extension Version [e.g. 2.0.24]
