@@ -7,10 +7,10 @@
             </div>
             <div class="col-12">
                 <div style="float:right" class="flex gap-2">
-                    <Button label="First Chapter" @click="first_chap(this.parsers)"
+                    <Button label="First Chapter" @click="setup_main(false, chaps, meta, parser!)"
                             :disabled="parser_type != 'chap'"
                             icon="pi pi-file"/>
-                    <Button label="Load Chapters" @click="chap_list"
+                    <Button label="Load Chapters" @click="setup_main(true, chaps, meta, parser!)"
                             :disabled="parser_type != 'toc'"
                             icon="pi pi-book"/>
                 </div>
@@ -49,7 +49,7 @@
                                         icon="pi pi-file"/>
                             </div>
                             <div class="col-12">
-                                <Listbox v-model="parser" :options="parsers" @change="parser_sel_change"
+                                <Listbox v-model="parser" :options="parsers" @change="set_parser_inps($event.value)"
                                          listStyle="max-height:12rem">
                                     <template #option="{option}:any">
                                         <div class="flex align-items-center">
@@ -102,7 +102,7 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
 import {onMounted, Ref, ref} from 'vue'
-import browser from "webextension-polyfill";
+import {setup_main} from './message_main'
 import {extract_source} from './source_extract'
 import {SbxCommand, SbxResult} from "../sandboxed/messages";
 import {SendSandboxCmdWReply} from "../sandboxed/send_message";
@@ -122,23 +122,8 @@ const chaps = ref([] as ChapterInfo[])
 const parser: Ref<ParserDocDef | undefined> = ref()
 const parser_type = ref()
 const parsers = ref([] as ParserDocDef[])
-const p_inputs = ref({} as Record<string, {type:any}>)
+const p_inputs = ref({} as Record<string, { type: any }>)
 const p_inputs_val = ref({} as Record<string, any>)
-
-
-
-async function first_chap(parsers:any) {
-
-    await browser.tabs.create({url: "main.html", active: true});
-}
-
-/**
- * Loads chapter list page
- */
-async function chap_list() {
-
-    await browser.tabs.create({url: "main.html", active: true});
-}
 
 function set_parse_result(type: 'toc' | 'chap',
                           pres: ParserResultToc | ParserResultChap) {
@@ -156,18 +141,19 @@ async function reparse() {
     if (parser.value === undefined) {
         return
     }
+    const curr_parser: ParserDocDef = parser.value!
     try {
         const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource, {
-            doc: parser.value.parse_doc,
-            type: parser.value.type,
-            parser: parser.value.parser,
+            doc: curr_parser.parse_doc,
+            type: curr_parser.type,
+            parser: curr_parser.parser,
             params: {inputs: p_inputs_val.value, url: url.value, src: src.value}
         })
         status_txt.value = pres.message
-        if (parser.value.type === 'toc') {
-            set_parse_result(parser.value.type, pres.data as ParserResultToc)
+        if (curr_parser.type === 'toc') {
+            set_parse_result(curr_parser.type, pres.data as ParserResultToc)
         } else {
-            set_parse_result(parser.value.type, pres.data as ParserResultChap)
+            set_parse_result(curr_parser.type, pres.data as ParserResultChap)
         }
     } catch (error) {
         status_txt.value = "Error: " +
@@ -182,15 +168,9 @@ async function setup_parser() {
         SbxCommand.LoadParsers, parser_txt)
     status_txt.value = parsedefs_rep.message
     parsers.value = parsedefs_rep.data
-
-
 }
 
-function parser_sel_change(event: ListboxChangeEvent) {
-    set_parser_inps(event.value)
-}
-
-function set_parser_inps(parser:ParserDocDef){
+function set_parser_inps(parser: ParserDocDef) {
     p_inputs.value = parser.inputs
     let new_vals: Record<string, any> = {}
     Object.keys(parser.inputs).forEach(
@@ -222,7 +202,7 @@ onMounted(async () => {
                 && (x.type = auto_res.type)
         )[0]
 
-        set_parser_inps(parser.value)
+        set_parser_inps(parser.value!)
         set_parse_result(auto_res.type, auto_res.result)
     } catch (error) {
         status_txt.value = "Error: " +

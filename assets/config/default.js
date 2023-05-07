@@ -1,26 +1,29 @@
+const main_def = {
+    main: main_parser,
+    toc_parsers: {
+        'Novel Updates': {
+            func: nu_toc_parser, inputs: {}
+        },
+        'Chapter Links': {
+            func: chap_name_search, inputs: {
+                'Link Regex': {type: 'text', default: '^c.*'}
+            }
+        },
+    }, chap_parsers: {
+        'Default': {func: readability_ex, inputs: {}},
+        'Simple': {func: readability, inputs: {}},
+        'Raw': {func: raw_chap, inputs: {}}
+    }
+}
+
+
 /**
  * Initialization function
  * @returns
  */
 function load() {
     console.debug("Parser loaded.")
-    return {
-        main: main_parser,
-        toc_parsers: {
-            'Novel Updates': {func: nu_toc_parser, inputs: {}},
-            'Chapter Links': {
-                func: chap_name_search,
-                inputs: {
-                    'Link Regex':{type:'text',default:'^c.*'}
-                }
-            },
-        },
-        chap_parsers: {
-            'Default': {func: readability_ex, inputs: {}},
-            'Simple': {func: readability, inputs: {}},
-            'Raw': {func: raw_chap, inputs: {}}
-        }
-    }
+    return main_def
 }
 
 /**
@@ -41,16 +44,13 @@ function main_parser(inputs, url, source, helpers) {
             let paths = link.pathname.split("/");
             if (paths.length > 1 && paths[1] === "series") {
                 return {
-                    parser: "Novel Updates",
-                    type: "toc",
-                    result: nu_toc_parser(inputs, url, source, helpers)
+                    parser: "Novel Updates", type: "toc", result: nu_toc_parser(inputs, url, source, helpers)
                 }
             }
     }
     return {
-        parser: "Chapter Links",
-        type: "toc",
-        result: chap_name_search(inputs, url, source, helpers)
+        parser: "Chapter Links", type: "toc",
+        result: chap_name_search({'Link Regex': '^c.*'}, url, source, helpers)
     };
 }
 
@@ -81,24 +81,17 @@ function nu_toc_parser(inputs, url, source, helpers) {
         chap_lis.forEach((element) => {
             if (element.href.includes("extnu")) {
                 chaps.unshift({
-                    title: element.innerText,
+                    title: element.innerText.trim(),
                     url: helpers["link_fixer"](element.href, url),
                     parser: 'Default'
                 });
             }
         });
-        if (chaps.length > 0)
-            parser_msg = 'Page parsed as Novel Update Series ('+chaps.length+' chapters)'
+        if (chaps.length > 0) parser_msg = 'Page parsed as Novel Update Series (' + chaps.length + ' chapters)'
     }
     return {
-        chaps: chaps,
-        message: parser_msg,
-        meta: {
-            title: tit,
-            description: desc,
-            author: auth,
-            cover: img.src,
-            publisher: "Novel Update"
+        chaps: chaps, message: parser_msg, meta: {
+            title: tit, description: desc, author: auth, cover: img.src, publisher: "Novel Update"
         }
     };
 }
@@ -116,20 +109,16 @@ function chap_name_search(inputs, url, source, helpers) {
     let dom = parser.parseFromString(source, "text/html");
     let ancs = dom.querySelectorAll("a");
     let chaps = []
-    const chap_reg = new RegExp(inputs['Link Regex'],'i')
+    const chap_reg = new RegExp(inputs['Link Regex'], 'i')
     ancs.forEach((element) => {
         if (chap_reg.test(element.innerText)) {
             chaps.push({
-                title: element.innerText,
-                url: helpers["link_fixer"](element.href, url),
-                parser: 'Default'
+                title: element.innerText, url: helpers["link_fixer"](element.href, url), parser: 'Default'
             });
         }
     });
     return {
-        chaps: chaps,
-        message: 'Parsing links with prefix chapter ('+chaps.length+' chapters)',
-        meta: {
+        chaps: chaps, message: 'Parsing links with prefix chapter (' + chaps.length + ' chapters)', meta: {
             title: 'No title parsed'
         }
     };
@@ -149,9 +138,7 @@ function readability(inputs, url, source, helpers) {
     let out = helpers["readability"](dom);
     // Generic parser
     return {
-        title: out.title,
-        html: out.content,
-        message: "Parsed simple chapter"
+        title: out.title, html: out.content, message: "Parsed simple chapter"
     };
 }
 
@@ -214,9 +201,7 @@ async function readability_ex(inputs, url, source, helpers) {
     }
     let out = helpers["readability"](dom);
     return {
-        title: out.title,
-        html: out.content,
-        message: "Parsed short chapter"
+        title: out.title, html: out.content, message: "Parsed short chapter"
     };
 }
 

@@ -1,36 +1,16 @@
 import browser from "webextension-polyfill";
+import {ChapterInfo, NovelMetaData} from "../../common/novel_data";
+import {ParserDocDef} from "../../common/parser_types";
 
-function newTabEventToc(request: any, sender: any, sendResponse: any) {
-    if (('cmd' in request) && (request.cmd == "mainCreated")) {
-        browser.runtime.onMessage.removeListener(newTabEventToc)
-        let tab_msg = {
-            action: "newChapList",
-            chaps: JSON.stringify(chaps.value),
-            metadata: JSON.stringify(meta.value),
-            parser: parser.value?.parse_doc
-        }
-        sendResponse(tab_msg);
-    }
-}
-
-function newTabEventChap(request: any, sender: any, sendResponse: any) {
-    if (('cmd' in request) && (request.cmd == "mainCreated")) {
-        browser.runtime.onMessage.removeListener(newTabEventToc)
-        let tab_msg = {
-            action: "newChapList",
-            chaps: JSON.stringify(chaps.value),
-            metadata: JSON.stringify(meta.value),
-            parser: parser.value?.parse_doc
-        }
-        sendResponse(tab_msg);
-    }
-}
-
-function setup_firstchap(){
-    browser.runtime.onMessage.addListener(newTabEventChap)
-}
-
-function setup_chaplist(){
-    browser.runtime.onMessage.addListener(newTabEventToc)
-    await browser.storage.local.set()
+export async function setup_main(toc: Boolean,
+                          chaps: ChapterInfo[],
+                          meta: NovelMetaData,
+                          parser: ParserDocDef) {
+    await browser.storage.local.set(
+        {last_parse:{chaps:JSON.stringify(chaps), meta:JSON.stringify(meta), parser:parser.parse_doc}}
+    )
+    await browser.windows.create({
+        url: "main.html",
+        type: "popup",
+    });
 }
