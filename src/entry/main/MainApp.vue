@@ -10,15 +10,15 @@
                     <div class="grid">
                         <div class="field col-4">
                             <label for="title">Title:</label>
-                            <InputText id="title" :value="meta?.title"/>
+                            <InputText id="title" v-model="meta.title"/>
                         </div>
                         <div class="field col-4">
                             <label for="author">Author:</label>
-                            <InputText id="author" :value="meta?.author"/>
+                            <InputText id="author" v-model="meta.author"/>
                         </div>
                         <div class="field col-4">
                             <label for="publisher">Publisher:</label>
-                            <InputText id="publisher" :value="meta?.publisher"/>
+                            <InputText id="publisher" v-model="meta.publisher"/>
                         </div>
                         <div class="col-4">
                             <div id="coverdiv">
@@ -30,17 +30,20 @@
                         </div>
                     </div>
                 </TabPanel>
-                <TabPanel header="Preview">
-                    <iframe :srcdoc="selected_chaps[0]?.html_parsed" id="preview"></iframe>
+                <TabPanel header="Preview Chap">
+                    <iframe :srcdoc="selected_chaps[0]?.html_parsed || 'No data'"
+                            id="preview"></iframe>
                 </TabPanel>
-                <TabPanel header="Edit">
-                    <Textarea v-if="selected_chaps.length>0"
-                              v-model="selected_chaps[0].html_parsed"
-                              style="width: 100%; max-width: 100%; height: 70vh"
-                    ></Textarea>
+                <TabPanel header="Edit Chap">
+                    <span v-if="selected_chaps.length==0">No chapter selected</span>
+                    <div v-if="selected_chaps.length>0">
+                        <InputText id="chap_title" v-model="selected_chaps[0].title"></InputText>
+                        <Textarea v-model="selected_chaps[0].html_parsed"
+                                  style="width: 100%; max-width: 100%; height: 70vh"/>
+                    </div>
                 </TabPanel>
-                <TabPanel header="Original">
-                    <iframe :srcdoc="selected_chaps[0]?.html" id="preview"></iframe>
+                <TabPanel header="Original Chap">
+                    <iframe :srcdoc="selected_chaps[0]?.html || 'No data'" id="preview"></iframe>
                 </TabPanel>
             </TabView>
         </div>
@@ -50,7 +53,7 @@
                 <template #start>
                     <Button label="New" icon="pi pi-plus" class="mr-2" rounded raised/>
                     <Button icon="pi pi-times" @click="onDelete" class="mr-2" severity="danger" rounded raised/>
-                    <Button label="CSV" @click="onCSV" icon="pi pi-download" rounded raised/>
+                    <Button label="CSV" @click="$refs.dt.exportCSV()" icon="pi pi-download" rounded raised/>
                 </template>
 
                 <template #end>
@@ -64,7 +67,7 @@
             <DataTable :value="chaps" ref="dt"
                        v-model:selection="selected_chaps"
                        :reorderableColumns="true"
-                       @rowReorder="onRowReorder($event)"
+                       @rowReorder="chaps = $event.value"
                        selectionMode="multiple"
                        scrollable scrollHeight="70vh"
                        :paginator="true" :rows="100"
@@ -145,11 +148,14 @@ const selected_chaps = ref([] as Chapter[])
 const progress = ref(0)
 const dt = ref();
 const parse_disable = computed({
-    get(){return selected_chaps.value.length==0},
-    set(){}
+    get() {
+        return selected_chaps.value.length == 0
+    },
+    set() {
+    }
 })
 const epub_disable = computed({
-    get(){
+    get() {
         if (selected_chaps.value.length == 0)
             return true
         for (let c in selected_chaps.value) {
@@ -158,29 +164,28 @@ const epub_disable = computed({
         }
         return false
     },
-    set(){}
+    set() {
+    }
 })
 
 async function onLoadGetChapters() {
-    const request = await browser.runtime.sendMessage(
-        {cmd: "mainCreated"})
-    if (request.action == "newChapList") {
-        let chap_infos = JSON.parse(request.chaps)
-        chaps.value = chap_infos.map((x: ChapterInfo) => {
-            return {
-                info: {
-                    title: x.title,
-                    url: x.url,
-                    parser: x.parser,
-                    parse_doc: request.parser
-                },
+    const load_config = await browser.storage.local.get('last_parse')
+    const last_parse = load_config.last_parse
+    let chap_infos = JSON.parse(last_parse.chaps)
+    chaps.value = chap_infos.map((x: ChapterInfo) => {
+        return {
+            info: {
                 title: x.title,
-                html: '',
-                html_parsed: ''
-            }
-        })
-        meta.value = JSON.parse(request.metadata)
-    }
+                url: x.url,
+                parser: x.parser,
+                parse_doc: last_parse.parser
+            },
+            title: x.title,
+            html: '',
+            html_parsed: ''
+        }
+    })
+    meta.value = JSON.parse(last_parse.meta)
 }
 
 function run_parsers() {
@@ -192,17 +197,9 @@ function run_epub() {
     compile_epub(meta.value, selected_chaps.value, status_txt)
 }
 
-function onRowReorder(event: any) {
-    chaps.value = event.value;
-}
-
-function onDelete(event:any) {
+function onDelete(event: any) {
     chaps.value = chaps.value.filter(val => !selected_chaps.value.includes(val));
     selected_chaps.value = [];
-}
-
-function onCSV(event:any) {
-    dt.value.exportCSV()
 }
 
 onMounted(async () => {
