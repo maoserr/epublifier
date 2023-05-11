@@ -93,7 +93,7 @@ import Message from 'primevue/message';
 import Button from 'primevue/button';
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';
-import Listbox, {ListboxChangeEvent} from 'primevue/listbox';
+import Listbox from 'primevue/listbox';
 import Panel from 'primevue/panel';
 
 import 'primeflex/primeflex.css';

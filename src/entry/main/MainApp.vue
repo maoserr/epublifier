@@ -57,13 +57,13 @@
                 </template>
 
                 <template #end>
-                    <Button label="Parse" icon="pi pi-play" class="mr-2"
+                    <Button :label="parse_label" icon="pi pi-play" class="mr-2"
                             @click="run_parsers" :disabled="parse_disable" rounded raised/>
                     <Button label="Epub" icon="pi pi-download" severity="success"
                             @click="run_epub" :disabled="epub_disable" rounded raised/>
                 </template>
             </Toolbar>
-            <ProgressBar :value="progress"></ProgressBar>
+            <ProgressBar :value="progress" :show-value="false"></ProgressBar>
             <DataTable :value="chaps" ref="dt"
                        v-model:selection="selected_chaps"
                        :reorderableColumns="true"
@@ -147,6 +147,18 @@ const chaps = ref([] as Chapter[])
 const selected_chaps = ref([] as Chapter[])
 const progress = ref(0)
 const dt = ref();
+const running = ref(false)
+const cancel = ref(false)
+const parse_label = computed({
+    get() {
+        if (running.value) {
+            return "Cancel"
+        }
+        return "Parse"
+    },
+    set() {
+    }
+})
 const parse_disable = computed({
     get() {
         return selected_chaps.value.length == 0
@@ -154,8 +166,15 @@ const parse_disable = computed({
     set() {
     }
 })
+const epub_gen = ref(false)
 const epub_disable = computed({
     get() {
+        if (running.value) {
+            return true
+        }
+        if (epub_gen.value) {
+            return true
+        }
         if (selected_chaps.value.length == 0)
             return true
         for (let c in selected_chaps.value) {
@@ -188,13 +207,25 @@ async function onLoadGetChapters() {
     meta.value = JSON.parse(last_parse.meta)
 }
 
-function run_parsers() {
-    console.log("Parsing...")
-    parse_chaps(selected_chaps.value, meta.value, status_txt, progress)
+async function run_parsers() {
+    if (running.value) {
+        cancel.value = true
+    } else {
+        console.log("Parsing...")
+        running.value = true
+        await parse_chaps(selected_chaps.value, meta.value, cancel, status_txt, progress)
+        running.value = false
+        cancel.value = false
+    }
 }
 
-function run_epub() {
-    compile_epub(meta.value, selected_chaps.value, status_txt)
+async function run_epub() {
+    if (epub_gen.value) {
+        return
+    }
+    epub_gen.value = true
+    await compile_epub(meta.value, selected_chaps.value, status_txt)
+    epub_gen.value = false
 }
 
 function onDelete(event: any) {
