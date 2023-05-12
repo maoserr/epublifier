@@ -23,7 +23,7 @@
     "@mozilla/readability": "^0.4.4",
     "@types/prismjs": "^1.26.0",
     "@types/webextension-polyfill": "^0.10.0",
-    "@vue/compiler-sfc": "^3.3.1",
+    "@vue/compiler-sfc": "^3.3.2",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.3",
     "html-webpack-plugin": "^5.5.1",
