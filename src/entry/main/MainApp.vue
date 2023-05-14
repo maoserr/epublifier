@@ -188,6 +188,11 @@ const epub_disable = computed({
 })
 
 async function onLoadGetChapters() {
+    browser.runtime.onMessage.addListener(
+        (data:any, sender:any, sendResponse:any) => {
+            console.log(data)
+        }
+    )
     const load_config = await browser.storage.local.get('last_parse')
     const last_parse = load_config.last_parse
     let chap_infos = JSON.parse(last_parse.chaps)

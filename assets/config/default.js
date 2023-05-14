@@ -39,12 +39,19 @@ function main_parser(inputs, url, source, helpers) {
     let link = new URL(url);
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
+    let paths = link.pathname.split("/")
     switch (link.hostname) {
         case "www.novelupdates.com":
-            let paths = link.pathname.split("/");
             if (paths.length > 1 && paths[1] === "series") {
                 return {
                     parser: "Novel Updates", type: "toc", result: nu_toc_parser(inputs, url, source, helpers)
+                }
+            }
+            break;
+        case "www.wuxiaworld.com":
+            if (paths.length > 3 && paths[1] === "novel") {
+                return {
+                    parser: "Simple", type: "chap", result: readability(inputs, url, source, helpers)
                 }
             }
     }
