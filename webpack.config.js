@@ -26,6 +26,10 @@ function modify_manifest(buffer, browser_type, version, mode) {
         default_title: manifest.name,
         default_popup: "popup.html"
     }
+    manifest.web_accessible_resources = [{
+        resources: ["js/sidebar.js"],
+        matches: ["<all_urls>"]
+    }]
 
     if (browser_type === "firefox") {
         // Firefox specific
@@ -75,6 +79,7 @@ module.exports = (env, argv) => {
             main: join(__dirname, "src/entry/main/main.ts"),
             sandbox: join(__dirname, "src/entry/sandboxed/sandbox.ts"),
             options: join(__dirname, "src/entry/options/options.ts"),
+            sidebar: join(__dirname, "src/entry/sidebar/sidebar.ts")
         },
         devtool: 'cheap-module-source-map',
         module: {

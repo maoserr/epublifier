@@ -1,5 +1,5 @@
 <template>
-    <div id="app" class="grid" style="width:100%">
+    <div class="grid" style="width:100%">
         <div class="col-12">
             <Message :closable=false>{{ status_txt }}
             </Message>
