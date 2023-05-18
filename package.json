@@ -28,7 +28,7 @@
     "css-loader": "^6.7.3",
     "html-webpack-plugin": "^5.5.1",
     "style-loader": "^3.3.2",
-    "terser-webpack-plugin": "^5.3.8",
+    "terser-webpack-plugin": "^5.3.9",
     "ts-loader": "^9.4.2",
     "typescript": "^5.0.4",
     "vue-loader": "^17.1.1",
