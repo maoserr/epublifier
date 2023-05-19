@@ -27,7 +27,8 @@ function modify_manifest(buffer, browser_type, version, mode) {
         default_popup: "popup.html"
     }
     manifest.web_accessible_resources = [{
-        resources: ["js/sidebar.js"],
+        resources: ["js/sidebar.js","js/sidebar.js.map",
+            "*.woff", "*.woff2", "*.ttf"],
         matches: ["<all_urls>"]
     }]
 

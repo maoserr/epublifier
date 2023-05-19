@@ -17,10 +17,6 @@ async function add_float_window(src: string) {
     cont.style.zIndex = "9000000000000000000";
     document.body.appendChild(cont)
 
-    //.resizer { display:flex; margin:0; padding:0; resize:both; overflow:hidden }
-    // .resizer > .resized { flex-grow:1; margin:0; padding:0; border:0 }
-    //
-    // .ugly { background:red; border:4px dashed black; }
 
     let iframe = document.createElement('iframe');
     iframe.style.border = "0";
@@ -58,6 +54,12 @@ async function add_float_window(src: string) {
                     break
                 case 'SALADICT_CLOSE':
                     iframe.remove()
+                    break
+                case 'PARSE_PAGE':
+                    let s = new XMLSerializer();
+                    console.log(iframe)
+                    iframe.contentWindow?.postMessage({
+                        msg:'PARSED_PAGE',source:s.serializeToString(document)},'*' as WindowPostMessageOptions)
                     break
             }
         })
@@ -121,10 +123,6 @@ export async function setup_main(toc: boolean,
     } else {
         let curr_tab = await browser.tabs.query(
             {active: true})
-        await browser.tabs.create({
-            url: "main.html",
-            active: false
-        });
         const url = browser.runtime.getURL('js/sidebar.js')
         await browser.scripting.executeScript(
             {
