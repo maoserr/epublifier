@@ -1,7 +1,13 @@
 <template>
   <div>
     <Button label="Parse" @click="parse" icon="pi pi-book"/>
-    {{ text }}
+    <Button label="Load Chapters" @click="load_main" icon="pi pi-book"/>
+    <iframe :srcdoc="text" id="preview"/>
+    <ol>
+      <li v-for="item in chaps">
+        {{ item?.title }}: <a target="_blank" :href="item?.url">{{ item?.url }}</a>
+      </li>
+    </ol>
   </div>
 </template>
 
@@ -15,10 +21,12 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
 import {onMounted, ref} from "vue";
 import {Readability} from "@mozilla/readability";
+import {Chapter} from "../../common/novel_data";
 
 
-
+const title = ref('')
 const text = ref('')
+const chaps = ref([] as Chapter[])
 
 window.addEventListener('message', evt => {
   const data = evt.data
@@ -27,8 +35,13 @@ window.addEventListener('message', evt => {
       let parser = new DOMParser();
       let dom = parser.parseFromString(data.source, "text/html");
       console.log(dom)
-      let out=new Readability(dom).parse()
-      text.value = out?.content ?? ""
+      let out = new Readability(dom).parse()
+      text.value = out?.content ?? "";
+      title.value = out?.title ?? "";
+      chaps.value.push({
+        info: {title: '', url: '', parser: '', parse_doc: ''}
+        , title: title.value, html: '', html_parsed: text.value
+      })
       break;
   }
 })
@@ -39,12 +52,18 @@ function parse(evt: any) {
   }, '*' as WindowPostMessageOptions)
 }
 
-onMounted( async () =>{
-
-})
-
+function load_main(evt: any) {
+  window.parent.postMessage({
+    msg: 'LOAD_MAIN'
+  }, '*' as WindowPostMessageOptions)
+}
 </script>
 
 <style scoped>
-
+#preview {
+  border-width: 1px;
+  width: 100%;
+  height: 75vh;
+  overflow: auto;
+}
 </style>

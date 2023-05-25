@@ -1,8 +1,32 @@
-export async function add_float_window(src: string) {
-    let baseMouseX:any, baseMouseY:any
-    let frameTop = 0
-    let frameLeft = 0
-    let cont:HTMLDivElement
+import browser from "webextension-polyfill";
+
+let baseMouseX: any, baseMouseY: any
+let frameTop = 0
+let frameLeft = 0
+let cont: HTMLDivElement
+
+function handleDragStart(evt: any) {
+
+    baseMouseX = evt.offsetX
+    baseMouseY = evt.offsetY
+
+    document.addEventListener('mouseup', handleDragEnd)
+    document.addEventListener('mousemove', handleMousemove)
+}
+
+function handleMousemove(evt: any) {
+    frameTop = evt.clientY - baseMouseY
+    frameLeft = evt.clientX - baseMouseX
+    cont.style.top = frameTop + 'px'
+    cont.style.left = frameLeft + 'px'
+}
+
+function handleDragEnd() {
+    document.removeEventListener('mouseup', handleDragEnd)
+    document.removeEventListener('mousemove', handleMousemove)
+}
+
+async function add_float_window(src: string) {
     cont = document.createElement('div')
     cont.style.display = "flex";
     cont.style.flexDirection = "column";
@@ -28,16 +52,16 @@ export async function add_float_window(src: string) {
     cont.appendChild(titlebar);
     let closebtn = document.createElement('div')
     closebtn.style.float = "right";
-    closebtn.style.borderRadius  = "50%";
+    closebtn.style.borderRadius = "50%";
     closebtn.style.marginRight = "8px";
     closebtn.style.opacity = "100";
     closebtn.style.height = "20px";
     closebtn.style.width = "20px";
     closebtn.style.backgroundColor = "#E96E4C";
-    closebtn.onclick = ()=>cont.remove()
+    closebtn.onclick = () => cont.remove()
     titlebar.appendChild(closebtn)
 
-    let iframe:HTMLIFrameElement = document.createElement('iframe');
+    let iframe: HTMLIFrameElement = document.createElement('iframe');
     iframe.style.flexGrow = "1";
     iframe.style.border = "0";
     iframe.style.width = "100%";
@@ -46,7 +70,7 @@ export async function add_float_window(src: string) {
     iframe.style.padding = "0"
     cont.appendChild(iframe);
 
-    setTimeout(async function() {
+    setTimeout(async function () {
         const iframdoc = iframe.contentDocument!
         const app = iframdoc.createElement('div')
         app.id = 'app'
@@ -55,38 +79,26 @@ export async function add_float_window(src: string) {
         script.src = src
         iframdoc.head.appendChild(script)
 
-        window.addEventListener('message', evt => {
+        window.addEventListener('message', async evt => {
             const data = evt.data
 
             switch (data.msg) {
                 case 'PARSE_PAGE':
                     let s = new XMLSerializer();
                     iframe.contentWindow?.postMessage({
-                        msg:'PARSED_PAGE',source:s.serializeToString(document)},'*' as WindowPostMessageOptions)
+                        msg: 'PARSED_PAGE', source: s.serializeToString(document)
+                    }, '*' as WindowPostMessageOptions)
+                    break
+                case 'LOAD_MAIN':
+
                     break
             }
         })
-        function handleDragStart (evt:any) {
-
-            baseMouseX = evt.offsetX
-            baseMouseY = evt.offsetY
-
-            document.addEventListener('mouseup', handleDragEnd)
-            document.addEventListener('mousemove', handleMousemove)
-        }
-
-        function handleMousemove (evt:any) {
-            frameTop = evt.clientY - baseMouseY
-            frameLeft =evt.clientX - baseMouseX
-            cont.style.top = frameTop + 'px'
-            cont.style.left = frameLeft + 'px'
-        }
-
-        function handleDragEnd () {
-            document.removeEventListener('mouseup', handleDragEnd)
-            document.removeEventListener('mousemove', handleMousemove)
-        }
         titlebar.addEventListener('mousedown', handleDragStart)
-        const browser=require("webextension-polyfill")
-    },0)
+    }, 0)
 }
+
+const url = browser.runtime.getURL('js/sidebar.js')
+const scrollingElement = (document.scrollingElement || document.body);
+scrollingElement.scrollTop = scrollingElement.scrollHeight;
+add_float_window(url).then()

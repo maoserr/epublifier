@@ -27,7 +27,7 @@ function modify_manifest(buffer, browser_type, version, mode) {
         default_popup: "popup.html"
     }
     manifest.web_accessible_resources = [{
-        resources: ["js/sidebar.js","js/sidebar.js.map",
+        resources: ["js/sidebar.js", "js/sidebar.js.map",
             "*.woff", "*.woff2", "*.ttf"],
         matches: ["<all_urls>"]
     }]
@@ -80,7 +80,8 @@ module.exports = (env, argv) => {
             main: join(__dirname, "src/entry/main/main.ts"),
             sandbox: join(__dirname, "src/entry/sandboxed/sandbox.ts"),
             options: join(__dirname, "src/entry/options/options.ts"),
-            sidebar: join(__dirname, "src/entry/sidebar/sidebar.ts")
+            sidebar: join(__dirname, "src/entry/sidebar/sidebar.ts"),
+            sidebar_cont: join(__dirname, "src/entry/sidebar/sb_container.ts")
         },
         devtool: 'cheap-module-source-map',
         module: {
