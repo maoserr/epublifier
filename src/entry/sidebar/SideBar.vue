@@ -1,13 +1,13 @@
 <template>
   <div>
-    <Button label="Parse" @click="parse" icon="pi pi-book"/>
-    <Button label="Load Chapters" @click="load_main" icon="pi pi-book"/>
-    <iframe :srcdoc="text" id="preview"/>
-    <ol>
-      <li v-for="item in chaps">
-        {{ item?.title }}: <a target="_blank" :href="item?.url">{{ item?.url }}</a>
-      </li>
-    </ol>
+<!--    <Button label="Parse" @click="parse" icon="pi pi-book"/>-->
+<!--    <Button label="Load Chapters" @click="load_main" icon="pi pi-book"/>-->
+<!--    <iframe :srcdoc="text" id="preview"/>-->
+<!--    <ol>-->
+<!--      <li v-for="item in (chaps as any)">-->
+<!--        {{ item?.title }}: <a target="_blank" :href="item?.url">{{ item?.url }}</a>-->
+<!--      </li>-->
+<!--    </ol>-->
   </div>
 </template>
 
@@ -21,12 +21,11 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
 import {onMounted, ref} from "vue";
 import {Readability} from "@mozilla/readability";
-import {Chapter} from "../../common/novel_data";
-
+import {Chapter, ChapterInfo} from "../../common/novel_data";
 
 const title = ref('')
 const text = ref('')
-const chaps = ref([] as Chapter[])
+const chaps = ref<Chapter[]>([])
 
 window.addEventListener('message', evt => {
   const data = evt.data
@@ -39,9 +38,9 @@ window.addEventListener('message', evt => {
       text.value = out?.content ?? "";
       title.value = out?.title ?? "";
       chaps.value.push({
-        info: {title: '', url: '', parser: '', parse_doc: ''}
+        info: {title: '', url: '', parser: '', parse_doc: ''} as ChapterInfo
         , title: title.value, html: '', html_parsed: text.value
-      })
+      } as Chapter)
       break;
   }
 })

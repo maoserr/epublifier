@@ -4,7 +4,6 @@ const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require("webpack");
 const pack = require('./package.json');
-const TerserPlugin = require("terser-webpack-plugin");
 
 function modify_manifest(buffer, browser_type, version, mode) {
     // copy-webpack-plugin passes a buffer
@@ -64,12 +63,6 @@ module.exports = (env, argv) => {
         out_dir = out_dir + "_prod"
     }
     return {
-        devServer: {
-            static: false,
-            compress: true,
-            port: 9000,
-            allowedHosts: 'all'
-        },
         optimization: {
             minimize: argv.mode === "production",
             // EJS uses new Function
