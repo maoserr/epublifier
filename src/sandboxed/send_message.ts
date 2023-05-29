@@ -1,5 +1,5 @@
 import {SbxCommand, SbxReply, SbxResult} from './messages'
-import {ListenerResults} from "../../common/parser_types";
+import {ListenerResults} from "../common/parser_types";
 
 /**
  * Sends a message to the sandbox (from non-sandbox window)

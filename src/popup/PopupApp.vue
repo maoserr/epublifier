@@ -1,87 +1,87 @@
 <template>
-  <div id="app" class="grid">
-    <div class="col-12">
-      <Message :closable=false>{{ status_txt }}
-      </Message>
-    </div>
-    <div class="col-12">
-      <div style="float:right" class="flex gap-2">
-        <Button label="First Chapter" @click="setup_main(false, chaps, meta, parser!)"
-                :disabled="parser_type != 'chap'"
-                icon="pi pi-file"/>
-        <Button label="Load Chapters" @click="setup_main(true, chaps, meta, parser!)"
-                :disabled="parser_type != 'toc'"
-                icon="pi pi-book"/>
-      </div>
-    </div>
-    <div class="col-12">
-      <TabView>
-        <TabPanel header="Metadata">
-          <div class="grid">
-            <div class="col-2"><b>Title</b></div>
-            <div class="col-10">{{ meta?.title }}</div>
-            <div class="col-2"><b>Author</b></div>
-            <div class="col-10">{{ meta?.author }}</div>
-            <div class="col-2"><b>Publisher</b></div>
-            <div class="col-10">{{ meta?.publisher }}</div>
-            <div class="col-2"><b>URL</b></div>
-            <div class="col-10">{{ url }}</div>
-            <div class="col-12">
-              <h4>Description:</h4>
-              <img v-if="meta?.cover" id="cover" width="200" style="float:left;margin:10px"
-                   :src="meta?.cover" alt="cover"/>
-              <span v-html="meta?.description"></span>
+    <div class="grid">
+        <div class="col-12">
+            <Message :closable=false>{{ status_txt }}
+            </Message>
+        </div>
+        <div class="col-12">
+            <div style="float:right" class="flex gap-2">
+                <Button label="First Chapter" @click="setup_main(false, chaps, meta, parser!)"
+                        :disabled="parser_type != 'chap'"
+                        icon="pi pi-file"/>
+                <Button label="Load Chapters" @click="setup_main(true, chaps, meta, parser!)"
+                        :disabled="parser_type != 'toc'"
+                        icon="pi pi-book"/>
             </div>
-          </div>
-        </TabPanel>
-        <TabPanel header="Chapters">
-          <ol>
-            <li v-for="item in chaps">
-              {{ item?.title }}: <a target="_blank" :href="item?.url">{{ item?.url }}</a>
-            </li>
-          </ol>
-        </TabPanel>
-        <TabPanel header="Parsing">
-          <div class="grid">
-            <div class="col-12">
-              <Button label="Re-Parse" @click="reparse"
-                      icon="pi pi-file"/>
-            </div>
-            <div class="col-12">
-              <Listbox v-model="parser" :options="parsers" @change="set_parser_inps($event.value)"
-                       listStyle="max-height:12rem">
-                <template #option="{option}:any">
-                  <div class="flex align-items-center">
-                    <div>[{{ (option as any).parse_doc }}]
-                      ({{ (option as any).type }})
-                      {{ (option as any).parser }}
+        </div>
+        <div class="col-12">
+            <TabView>
+                <TabPanel header="Metadata">
+                    <div class="grid">
+                        <div class="col-2"><b>Title</b></div>
+                        <div class="col-10">{{ meta?.title }}</div>
+                        <div class="col-2"><b>Author</b></div>
+                        <div class="col-10">{{ meta?.author }}</div>
+                        <div class="col-2"><b>Publisher</b></div>
+                        <div class="col-10">{{ meta?.publisher }}</div>
+                        <div class="col-2"><b>URL</b></div>
+                        <div class="col-10">{{ url }}</div>
+                        <div class="col-12">
+                            <h4>Description:</h4>
+                            <img v-if="meta?.cover" id="cover" width="200" style="float:left;margin:10px"
+                                 :src="meta?.cover" alt="cover"/>
+                            <span v-html="meta?.description"></span>
+                        </div>
                     </div>
-                  </div>
-                </template>
-              </Listbox>
-            </div>
-            <div class="col-12">
-              <Panel header="Parser Options">
-                <div v-for="(inp, k) in p_inputs">
+                </TabPanel>
+                <TabPanel header="Chapters">
+                    <ol>
+                        <li v-for="item in chaps">
+                            {{ item?.title }}: <a target="_blank" :href="item?.url">{{ item?.url }}</a>
+                        </li>
+                    </ol>
+                </TabPanel>
+                <TabPanel header="Parsing">
+                    <div class="grid">
+                        <div class="col-12">
+                            <Button label="Re-Parse" @click="reparse"
+                                    icon="pi pi-file"/>
+                        </div>
+                        <div class="col-12">
+                            <Listbox v-model="parser" :options="parsers" @change="set_parser_inps($event.value)"
+                                     listStyle="max-height:12rem">
+                                <template #option="{option}:any">
+                                    <div class="flex align-items-center">
+                                        <div>[{{ (option as any).parse_doc }}]
+                                            ({{ (option as any).type }})
+                                            {{ (option as any).parser }}
+                                        </div>
+                                    </div>
+                                </template>
+                            </Listbox>
+                        </div>
+                        <div class="col-12">
+                            <Panel header="Parser Options">
+                                <div v-for="(inp, k) in p_inputs">
                   <span class="p-float-label">
                       <InputText v-if="inp.type=='text'" :id="k.toString()" type="text"
                                  v-model="p_inputs_val[k]"/>
                       <label v-if="inp.type=='text'" :for="k">{{ k }}</label>
                   </span>
-                </div>
-              </Panel>
-            </div>
-          </div>
-        </TabPanel>
-      </TabView>
+                                </div>
+                            </Panel>
+                        </div>
+                    </div>
+                </TabPanel>
+            </TabView>
+        </div>
     </div>
-  </div>
 </template>
 
 <style>
 html {
-  width: 700px;
-  min-height: 550px;
+    width: 700px;
+    min-height: 550px;
 }
 </style>
 
@@ -104,9 +104,14 @@ import {setup_main} from './message_main'
 import {extract_source} from './source_extract'
 import {SbxCommand, SbxResult} from "../sandboxed/messages";
 import {SendSandboxCmdWReply} from "../sandboxed/send_message";
-import {get_parsers_definitions} from "../../common/parser_manager";
-import {ChapterInfo, NovelMetaData} from "../../common/novel_data";
-import {ParserDocDef, ParserResultAuto, ParserResultChap, ParserResultToc} from "../../common/parser_types";
+import {get_parsers_definitions} from "../common/parser_manager";
+import {ChapterInfo, NovelMetaData} from "../common/novel_data";
+import {
+    ParserDocDef,
+    ParserResultAuto,
+    ParserResultChap,
+    ParserResultToc
+} from "../common/parser_types";
 
 // App data
 const url = ref("N/A")
@@ -125,87 +130,96 @@ const p_inputs_val = ref({} as Record<string, any>)
 
 function set_parse_result(type: 'toc' | 'chap',
                           pres: ParserResultToc | ParserResultChap) {
-  parser_type.value = type
-  if (type === 'toc') {
-    const toc_res = pres as ParserResultToc
-    meta.value = toc_res.meta
-    chaps.value = toc_res.chaps
-  } else {
-
-  }
+    parser_type.value = type
+    if (type === 'toc') {
+        const toc_res = pres as ParserResultToc
+        meta.value = toc_res.meta
+        chaps.value = toc_res.chaps
+    } else {
+        const chap_res = pres as ParserResultChap
+        if (chap_res.meta !== undefined) {
+            meta.value = chap_res.meta
+        }
+        chaps.value = [{
+            title: meta.value.title,
+            url: "N/A",
+            parser: parser.value?.parser ?? "Simple",
+            parse_doc: parser.value?.parse_doc ?? "default"
+        }]
+    }
 }
 
 async function reparse() {
-  if (parser.value === undefined) {
-    return
-  }
-  const curr_parser: ParserDocDef = parser.value!
-  try {
-    const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource, {
-      doc: curr_parser.parse_doc,
-      type: curr_parser.type,
-      parser: curr_parser.parser,
-      params: {inputs: p_inputs_val.value, url: url.value, src: src.value}
-    })
-    status_txt.value = pres.message
-    if (curr_parser.type === 'toc') {
-      set_parse_result(curr_parser.type, pres.data as ParserResultToc)
-    } else {
-      set_parse_result(curr_parser.type, pres.data as ParserResultChap)
+    if (parser.value === undefined) {
+        return
     }
-  } catch (error) {
-    status_txt.value = "Error: " +
-        ((error instanceof Error) ? error.message : String(error))
-  }
+    const curr_parser: ParserDocDef = parser.value!
+    try {
+        const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource, {
+            doc: curr_parser.parse_doc,
+            type: curr_parser.type,
+            parser: curr_parser.parser,
+            params: {inputs: p_inputs_val.value, url: url.value, src: src.value}
+        })
+        status_txt.value = pres.message
+        if (curr_parser.type === 'toc') {
+            set_parse_result(curr_parser.type, pres.data as ParserResultToc)
+        } else {
+            set_parse_result(curr_parser.type, pres.data as ParserResultChap)
+        }
+    } catch (error) {
+        status_txt.value = "Error: " +
+            ((error instanceof Error) ? error.message : String(error))
+    }
 }
 
 async function setup_parser() {
-  // Load Parser
-  const parser_txt = await get_parsers_definitions()
-  const parsedefs_rep: SbxResult<any> = await SendSandboxCmdWReply(
-      SbxCommand.LoadParsers, parser_txt)
-  status_txt.value = parsedefs_rep.message
-  parsers.value = parsedefs_rep.data
+    // Load Parser
+    const parser_txt = await get_parsers_definitions()
+    const parsedefs_rep: SbxResult<any> = await SendSandboxCmdWReply(
+        SbxCommand.LoadParsers, parser_txt)
+    status_txt.value = parsedefs_rep.message
+    parsers.value = parsedefs_rep.data
 }
 
 function set_parser_inps(parser: ParserDocDef) {
-  p_inputs.value = parser.inputs
-  let new_vals: Record<string, any> = {}
-  Object.keys(parser.inputs).forEach(
-      (x: any) =>
-          new_vals[x] = parser.inputs[x].default ?? ''
-  )
-  p_inputs_val.value = new_vals
+    p_inputs.value = parser.inputs
+    let new_vals: Record<string, any> = {}
+    Object.keys(parser.inputs).forEach(
+        (x: any) =>
+            new_vals[x] = parser.inputs[x].default ?? ''
+    )
+    p_inputs_val.value = new_vals
 }
 
 onMounted(async () => {
-  try {
-    // Source extraction
-    const res = await extract_source()
-    url.value = res.url
-    src.value = res.source
-    status_txt.value = "Source parsed."
+    try {
+        // Source extraction
+        const res = await extract_source()
+        url.value = res.url
+        src.value = res.source
+        status_txt.value = "Source parsed."
 
-    await setup_parser()
+        await setup_parser()
 
-    // Run Parser
-    const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource,
-        {inputs: {}, url: url.value, src: src.value})
-    status_txt.value = pres.message
-    const auto_res = pres.data as ParserResultAuto
-    parser.value = parsers.value.filter(
-        (x: ParserDocDef) =>
-            (x.parse_doc == auto_res.parse_doc)
-            && (x.parser == auto_res.parser)
-            && (x.type = auto_res.type)
-    )[0]
+        // Run Parser
+        const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource,
+            {inputs: {}, url: url.value, src: src.value})
+        status_txt.value = pres.message
+        const auto_res = pres.data as ParserResultAuto
+        parser.value = parsers.value.filter(
+            (x: ParserDocDef) =>
+                (x.parse_doc == auto_res.parse_doc)
+                && (x.parser == auto_res.parser)
+                && (x.type = auto_res.type)
+        )[0]
 
-    set_parser_inps(parser.value!)
-    set_parse_result(auto_res.type, auto_res.result)
-  } catch (error) {
-    status_txt.value = "Error: " +
-        ((error instanceof Error) ? error.message : String(error))
-  }
+        set_parser_inps(parser.value!)
+        set_parse_result(auto_res.type, auto_res.result)
+    } catch (error) {
+        status_txt.value = "Error: " +
+            ((error instanceof Error) ? error.message : String(error))
+    }
 })
 </script>
 

@@ -5,10 +5,10 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
     try {
         const tsepub = new TsEpub({
             i18n: "en",
-            title: nov_data.meta.title,
-            author: nov_data.meta.author,
+            title: nov_data.meta.title ?? "N/A",
+            author: nov_data.meta.author ?? "N/A",
             publisher: nov_data.meta.publisher ?? "N/A",
-            description: nov_data.meta.description,
+            description: nov_data.meta.description ?? "N/A",
             tags: nov_data.tags
         });
 

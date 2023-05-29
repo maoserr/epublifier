@@ -1,11 +1,11 @@
-import {Chapter, NovelData, NovelMetaData} from "../../common/novel_data";
+import {Chapter, NovelData, NovelMetaData} from "../common/novel_data";
 import * as Parallel from 'async-parallel';
 import browser from "webextension-polyfill";
 import {Ref} from "vue";
 import {SbxCommand, SbxReply, SbxResult} from "../sandboxed/messages";
 import {SendSandboxCmd, SetupSbxListener} from "../sandboxed/send_message";
-import {ParserResultChap} from "../../common/parser_types";
-import {generate_epub} from "../../common/epub_generator";
+import {ParserResultChap} from "../common/parser_types";
+import {generate_epub} from "../common/epub_generator";
 
 export function addSandboxListener(chaps: Ref<Chapter[]>, status_txt: Ref<string>) {
     SetupSbxListener((err: string) => {

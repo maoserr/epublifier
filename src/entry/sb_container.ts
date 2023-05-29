@@ -4,6 +4,7 @@ let baseMouseX: any, baseMouseY: any
 let frameTop = 0
 let frameLeft = 0
 let cont: HTMLDivElement
+let iframe: HTMLIFrameElement
 
 function handleDragStart(evt: any) {
 
@@ -26,8 +27,39 @@ function handleDragEnd() {
     document.removeEventListener('mousemove', handleMousemove)
 }
 
+function close() {
+    window.removeEventListener('message', msg_func)
+    iframe.contentWindow?.close()
+    iframe.remove()
+    cont.remove()
+}
+
+async function msg_func(evt: any) {
+    const data = evt.data
+
+    switch (data.msg) {
+        case 'PARSE_PAGE':
+            let s = new XMLSerializer();
+            iframe.contentWindow?.postMessage({
+                msg: 'PARSED_PAGE', source: s.serializeToString(document)
+            }, '*' as WindowPostMessageOptions)
+            break
+        case 'LOAD_MAIN':
+            await browser.storage.local.set({
+                last_parse: {
+                    chaps: data.chaps,
+                    meta: data.meta,
+                    parser: 'default'
+                }
+            })
+            await browser.runtime.sendMessage({msg: "LOAD_MAIN"})
+            break
+    }
+}
+
 async function add_float_window(src: string) {
     cont = document.createElement('div')
+    cont.id = "epublifier_sidebar"
     cont.style.display = "flex";
     cont.style.flexDirection = "column";
     cont.style.margin = "0";
@@ -58,10 +90,10 @@ async function add_float_window(src: string) {
     closebtn.style.height = "20px";
     closebtn.style.width = "20px";
     closebtn.style.backgroundColor = "#E96E4C";
-    closebtn.onclick = () => cont.remove()
+    closebtn.onclick = () => close()
     titlebar.appendChild(closebtn)
 
-    let iframe: HTMLIFrameElement = document.createElement('iframe');
+    iframe = document.createElement('iframe');
     iframe.style.flexGrow = "1";
     iframe.style.border = "0";
     iframe.style.width = "100%";
@@ -71,34 +103,15 @@ async function add_float_window(src: string) {
     cont.appendChild(iframe);
 
     setTimeout(async function () {
-        const iframdoc = iframe.contentDocument!
-        const app = iframdoc.createElement('div')
-        app.id = 'app'
-        iframdoc.body.appendChild(app)
-        const script = iframdoc.createElement('script')
-        script.src = src
-        iframdoc.head.appendChild(script)
+        iframe.src = src
 
-        window.addEventListener('message', async evt => {
-            const data = evt.data
-
-            switch (data.msg) {
-                case 'PARSE_PAGE':
-                    let s = new XMLSerializer();
-                    iframe.contentWindow?.postMessage({
-                        msg: 'PARSED_PAGE', source: s.serializeToString(document)
-                    }, '*' as WindowPostMessageOptions)
-                    break
-                case 'LOAD_MAIN':
-
-                    break
-            }
-        })
+        window.addEventListener('message', msg_func)
         titlebar.addEventListener('mousedown', handleDragStart)
     }, 0)
 }
 
-const url = browser.runtime.getURL('js/sidebar.js')
-const scrollingElement = (document.scrollingElement || document.body);
-scrollingElement.scrollTop = scrollingElement.scrollHeight;
-add_float_window(url).then()
+let prev_cont = document.getElementById("epublifier_sidebar")
+if (prev_cont === null) {
+    const url = browser.runtime.getURL('sidebar.html')
+    add_float_window(url).then()
+}

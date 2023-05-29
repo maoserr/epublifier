@@ -80,7 +80,7 @@
                 <Column field="info.url" header="URL" :sortable="true">
                     <template #body="{data}:any">
                         <a :href="(data as any).info.url" target="_blank" rel="noopener noreferrer">
-                            {{ (data as any).info.url.slice(0, 25) }}...</a>
+                            {{ (data as any).info.url?.slice(0, 25) }}...</a>
                     </template>
                 </Column>
                 <Column field="html_parsed" header="Parsed">
@@ -134,9 +134,9 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 import {computed, onMounted, ref} from 'vue'
 import browser from "webextension-polyfill";
 
-import {Chapter, ChapterInfo, NovelMetaData} from "../../common/novel_data";
+import {Chapter, ChapterInfo, NovelMetaData} from "../common/novel_data";
 import {parse_chaps, compile_epub, addSandboxListener} from "./parse_main"
-import {get_parsers_definitions} from "../../common/parser_manager";
+import {get_parsers_definitions} from "../common/parser_manager";
 import {SendSandboxCmdWReply} from "../sandboxed/send_message";
 import {SbxCommand} from "../sandboxed/messages";
 
@@ -190,20 +190,7 @@ const epub_disable = computed({
 async function onLoadGetChapters() {
     const load_config = await browser.storage.local.get('last_parse')
     const last_parse = load_config.last_parse
-    let chap_infos = JSON.parse(last_parse.chaps)
-    chaps.value = chap_infos.map((x: ChapterInfo) => {
-        return {
-            info: {
-                title: x.title,
-                url: x.url,
-                parser: x.parser,
-                parse_doc: last_parse.parser
-            },
-            title: x.title,
-            html: '',
-            html_parsed: ''
-        }
-    })
+    chaps.value = JSON.parse(last_parse.chaps)
     meta.value = JSON.parse(last_parse.meta)
 }
 

@@ -1,6 +1,6 @@
-import {run_auto_parser, run_chap_parser, run_toc_parser} from "../../common/parser_sbx";
+import {run_auto_parser, run_chap_parser, run_toc_parser} from "../common/parser_sbx";
 import {SbxReply, SbxResult} from "../sandboxed/messages";
-import {ParserResultAuto, ParserResultChap, ParserResultToc} from "../../common/parser_types";
+import {ParserResultAuto, ParserResultChap, ParserResultToc} from "../common/parser_types";
 
 /**
  * Parse source using parser
