@@ -12,7 +12,6 @@ const main_def = {
     }, chap_parsers: {
         'Default': {func: readability_ex, inputs: {}},
         'Simple': {func: readability, inputs: {}},
-        'Raw': {func: raw_chap, inputs: {}}
     }
 }
 
@@ -39,12 +38,19 @@ function main_parser(inputs, url, source, helpers) {
     let link = new URL(url);
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
+    let paths = link.pathname.split("/")
     switch (link.hostname) {
         case "www.novelupdates.com":
-            let paths = link.pathname.split("/");
             if (paths.length > 1 && paths[1] === "series") {
                 return {
                     parser: "Novel Updates", type: "toc", result: nu_toc_parser(inputs, url, source, helpers)
+                }
+            }
+            break;
+        case "www.wuxiaworld.com":
+            if (paths.length > 3 && paths[1] === "novel") {
+                return {
+                    parser: "Simple", type: "chap", result: readability(inputs, url, source, helpers)
                 }
             }
     }
@@ -52,6 +58,13 @@ function main_parser(inputs, url, source, helpers) {
         parser: "Chapter Links", type: "toc",
         result: chap_name_search({'Link Regex': '^c.*'}, url, source, helpers)
     };
+}
+
+function page_meta(url, dom) {
+    return {
+        title: dom.title ?? "No Title", description: dom.querySelector('meta[name="description"]')?.content,
+        author: "N/A", publisher: new URL(url).hostname
+    }
 }
 
 /**
@@ -118,9 +131,8 @@ function chap_name_search(inputs, url, source, helpers) {
         }
     });
     return {
-        chaps: chaps, message: 'Parsing links with prefix chapter (' + chaps.length + ' chapters)', meta: {
-            title: 'No title parsed'
-        }
+        chaps: chaps, message: 'Parsing links with prefix chapter (' + chaps.length + ' chapters)',
+        meta: page_meta(url, dom)
     };
 }
 
@@ -138,7 +150,8 @@ function readability(inputs, url, source, helpers) {
     let out = helpers["readability"](dom);
     // Generic parser
     return {
-        title: out.title, html: out.content, message: "Parsed simple chapter"
+        title: out.title, html: out.content, message: "Parsed simple chapter",
+        meta: page_meta(url, dom)
     };
 }
 
@@ -163,7 +176,10 @@ async function readability_ex(inputs, url, source, helpers) {
     if (helpers["readerable"](dom, {"minContentLength": 1000})) {
         console.log("Readable");
         let out = helpers["readability"](dom);
-        return {title: out.title, html: out.content, message: "Parsed normal chapter."};
+        return {
+            title: out.title, html: out.content, message: "Parsed normal chapter.",
+            meta: page_meta(url, dom)
+        };
     } else if (main_cont != null) {
         console.log("Checking for intro page/subchapt");
         let ancs = main_cont.querySelectorAll("a");
@@ -182,7 +198,10 @@ async function readability_ex(inputs, url, source, helpers) {
         let r_txt = await res.text();
         dom = parser.parseFromString(r_txt, "text/html");
         let out = helpers["readability"](dom);
-        return {title: out.title, html: out.content, message: "Parsed redirected chapter"};
+        return {
+            title: out.title, html: out.content, message: "Parsed redirected chapter",
+            meta: page_meta(url, dom)
+        };
     } else if (subchaps.length > 0) {
         let html = "";
         let title = "";
@@ -197,23 +216,15 @@ async function readability_ex(inputs, url, source, helpers) {
             }
             html += "<h1>" + out.title + "</h1>" + out.content
         }
-        return {title: title, html: html, message: "Parsed sub chapters"};
+        return {
+            title: title, html: html, message: "Parsed sub chapters",
+            meta: page_meta(url, dom)
+        };
     }
     let out = helpers["readability"](dom);
     return {
-        title: out.title, html: out.content, message: "Parsed short chapter"
+        title: out.title, html: out.content, message: "Parsed short chapter",
+        meta: page_meta(url, dom)
     };
-}
-
-/**
- * Don't parse anything, just return HTML
- * @param inputs
- * @param url
- * @param source
- * @param helpers
- * @returns {Promise<{html}>}
- */
-async function raw_chap(inputs, url, source, helpers) {
-    return {html: source}
 }
 

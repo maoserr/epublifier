@@ -39,6 +39,7 @@ export interface ParserResultToc {
  * Results from running chapter parser
  */
 export interface ParserResultChap {
+    meta?: NovelMetaData
     title?: string;
     html: string;
     message: string;

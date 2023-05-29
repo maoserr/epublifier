@@ -1,10 +1,10 @@
 const {join} = require("path");
 const {VueLoaderPlugin} = require("vue-loader");
+const fs = require('fs');
 const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require("webpack");
 const pack = require('./package.json');
-const TerserPlugin = require("terser-webpack-plugin");
 
 function modify_manifest(buffer, browser_type, version, mode) {
     // copy-webpack-plugin passes a buffer
@@ -26,6 +26,12 @@ function modify_manifest(buffer, browser_type, version, mode) {
         default_title: manifest.name,
         default_popup: "popup.html"
     }
+    manifest.web_accessible_resources = [{
+        resources: ["js/*.js", "js/*.map",
+            "*.woff", "*.woff2", "*.ttf", "sidebar.html"],
+        matches: ["<all_urls>"]
+    }]
+
 
     if (browser_type === "firefox") {
         // Firefox specific
@@ -35,9 +41,15 @@ function modify_manifest(buffer, browser_type, version, mode) {
             }
         }
         manifest.options_ui.open_in_tab = true
+        manifest.background = {
+            scripts: ["js/service_worker.js"]
+        }
     } else {
         // Chrome specific
         manifest.sandbox = {"pages": ["sandbox.html"]};
+        manifest.background = {
+            service_worker: "js/service_worker.js"
+        }
     }
     // Dynamic version
     manifest.version = version;
@@ -59,23 +71,19 @@ module.exports = (env, argv) => {
         out_dir = out_dir + "_prod"
     }
     return {
-        devServer: {
-            static: false,
-            compress: true,
-            port: 9000,
-            allowedHosts: 'all'
-        },
         optimization: {
             minimize: argv.mode === "production",
             // EJS uses new Function
             minimizer: [],
+            splitChunks: {
+                minSize: 100000,
+                chunks: 'all',
+            }
         },
-        entry: {
-            popup: join(__dirname, "src/entry/popup/popup.ts"),
-            main: join(__dirname, "src/entry/main/main.ts"),
-            sandbox: join(__dirname, "src/entry/sandboxed/sandbox.ts"),
-            options: join(__dirname, "src/entry/options/options.ts"),
-        },
+        entry: fs.readdirSync(join(__dirname, "src/entry"))
+            .reduce((acc, v) => (
+                {...acc, [v.replace('.ts', '')]: join(__dirname, "src/entry", v)}
+            ), {}),
         devtool: 'cheap-module-source-map',
         module: {
             rules: [
@@ -103,6 +111,7 @@ module.exports = (env, argv) => {
         output: {
             path: join(__dirname, out_dir),
             filename: "js/[name].js",
+            clean: true,
         },
         resolve: {
             extensions: [".tsx", ".ts", ".js", '.vue', '.json'],
@@ -137,6 +146,15 @@ module.exports = (env, argv) => {
                 filename: 'options.html',
                 template: 'templates/options.html'
             }),
+            new HtmlWebpackPlugin({
+                chunks: ['sidebar'],
+                filename: 'sidebar.html',
+                template: 'templates/sidebar.html'
+            }),
+            new webpack.DefinePlugin({
+                __VUE_OPTIONS_API__: "true",
+                __VUE_PROD_DEVTOOLS__: "false",
+            }),
             new CopyPlugin({
                 patterns: [
                     {from: "assets"},
@@ -148,10 +166,6 @@ module.exports = (env, argv) => {
                         }
                     }
                 ],
-            }),
-            new webpack.DefinePlugin({
-                __VUE_OPTIONS_API__: "true",
-                __VUE_PROD_DEVTOOLS__: "false",
             }),
             new webpack.NormalModuleReplacementPlugin(/node:/, (resource) => {
                 const mod = resource.request.replace(/^node:/, "");

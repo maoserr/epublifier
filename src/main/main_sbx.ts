@@ -1,7 +1,7 @@
 import {SbxReply, SbxResult} from "../sandboxed/messages";
-import {run_chap_parser} from "../../common/parser_sbx";
-import {Chapter} from "../../common/novel_data";
-import {ParserParams, ParserResultChap} from "../../common/parser_types";
+import {run_chap_parser} from "../common/parser_sbx";
+import {Chapter} from "../common/novel_data";
+import {ParserParams, ParserResultChap} from "../common/parser_types";
 
 /**
  * Parse chapter

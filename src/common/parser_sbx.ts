@@ -1,4 +1,4 @@
-import {SbxReply, SbxResult} from "../entry/sandboxed/messages";
+import {SbxReply, SbxResult} from "../sandboxed/messages";
 import {ParserDocDef, ParserParams, ParserResultChap, ParserResultAuto, ParserResultToc} from "./parser_types";
 import {isProbablyReaderable, Readability} from "@mozilla/readability";
 

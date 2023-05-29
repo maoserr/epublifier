@@ -1,8 +1,8 @@
-import {SbxCommand, SbxReply, SbxResult} from './messages';
-import {load_parsers} from "../../common/parser_sbx";
+import {SbxCommand, SbxReply, SbxResult} from '../sandboxed/messages';
+import {load_parsers} from "../common/parser_sbx";
 import {parse_source} from '../popup/popup_sbx';
 import {parse_chapter} from '../main/main_sbx';
-import {ListenerResults} from "../../common/parser_types";
+import {ListenerResults} from "../common/parser_types";
 
 
 /**
