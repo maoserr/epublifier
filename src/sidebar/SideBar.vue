@@ -6,7 +6,7 @@
                 style="border-width: 1px;width: 100%;height: 75vh;overflow: auto;"></iframe>
         <ol>
             <li v-for="item in chaps">
-                {{ item?.title }}: <a target="_blank" :href="item?.url">{{ item?.url }}</a>
+                {{ item?.title }}
             </li>
         </ol>
     </div>

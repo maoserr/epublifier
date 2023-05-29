@@ -31,9 +31,7 @@ function modify_manifest(buffer, browser_type, version, mode) {
             "*.woff", "*.woff2", "*.ttf", "sidebar.html"],
         matches: ["<all_urls>"]
     }]
-    manifest.background = {
-        service_worker: "js/service_worker.js"
-    }
+
 
     if (browser_type === "firefox") {
         // Firefox specific
@@ -43,9 +41,15 @@ function modify_manifest(buffer, browser_type, version, mode) {
             }
         }
         manifest.options_ui.open_in_tab = true
+        manifest.background = {
+            scripts: ["js/service_worker.js"]
+        }
     } else {
         // Chrome specific
         manifest.sandbox = {"pages": ["sandbox.html"]};
+        manifest.background = {
+            service_worker: "js/service_worker.js"
+        }
     }
     // Dynamic version
     manifest.version = version;
