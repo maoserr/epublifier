@@ -6,7 +6,8 @@ const main_def = {
         },
         'Chapter Links': {
             func: chap_name_search, inputs: {
-                'Link Regex': {type: 'text', default: '^c.*'}
+                'Link Regex': {type: 'text', default: '^c.*'},
+                'Query Selector': {type: 'text', default: 'a'}
             }
         },
     }, chap_parsers: {
@@ -23,6 +24,29 @@ const main_def = {
 function load() {
     console.debug("Parser loaded.")
     return main_def
+}
+
+/**
+ * Gets default value for a given parser
+ * @param parser_def
+ * @returns {{[p: string]: undefined}}
+ */
+function get_default_vals(parser_def) {
+    return Object.fromEntries(Object.entries(parser_def.inputs)
+        .map(([k, v]) => [k, v.default]))
+}
+
+/**
+ * Gets metadata from html metadata
+ * @param url
+ * @param dom
+ * @returns {{author: string, description: *, publisher: string, title: string}}
+ */
+function page_meta(url, dom) {
+    return {
+        title: dom.title ?? "No Title", description: dom.querySelector('meta[name="description"]')?.content,
+        author: "N/A", publisher: new URL(url).hostname
+    }
 }
 
 /**
@@ -56,16 +80,12 @@ function main_parser(inputs, url, source, helpers) {
     }
     return {
         parser: "Chapter Links", type: "toc",
-        result: chap_name_search({'Link Regex': '^c.*'}, url, source, helpers)
+        result: chap_name_search(
+            get_default_vals(main_def.toc_parsers["Chapter Links"]),
+            url, source, helpers)
     };
 }
 
-function page_meta(url, dom) {
-    return {
-        title: dom.title ?? "No Title", description: dom.querySelector('meta[name="description"]')?.content,
-        author: "N/A", publisher: new URL(url).hostname
-    }
-}
 
 /**
  * Parse novel update series
@@ -120,7 +140,7 @@ function nu_toc_parser(inputs, url, source, helpers) {
 function chap_name_search(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
-    let ancs = dom.querySelectorAll("a");
+    let ancs = dom.querySelectorAll(inputs['Query Selector']);
     let chaps = []
     const chap_reg = new RegExp(inputs['Link Regex'], 'i')
     ancs.forEach((element) => {

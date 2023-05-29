@@ -1,0 +1,127 @@
+<script setup lang="ts">
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from "primevue/button";
+import Toolbar from "primevue/toolbar";
+import ProgressBar from "primevue/progressbar";
+
+import {ref, computed} from "vue";
+
+import {
+  chaps,
+  epub_gen,
+  meta,
+  selected_chaps,
+  running,
+  status_txt,
+  progress, cancel
+} from "./main_state";
+import {compile_epub, parse_chaps} from "./parse_main";
+
+const dt = ref()
+const parse_label = computed({
+  get() {
+    if (running.value) {
+      return "Cancel"
+    }
+    return "Parse"
+  },
+  set() {
+  }
+})
+const parse_disable = computed({
+  get() {
+    return selected_chaps.value.length == 0
+  },
+  set() {
+  }
+})
+const epub_disable = computed({
+  get() {
+    if (running.value) {
+      return true
+    }
+    if (epub_gen.value) {
+      return true
+    }
+    if (selected_chaps.value.length == 0)
+      return true
+    for (let c in selected_chaps.value) {
+      if (!selected_chaps.value[c].html_parsed)
+        return true
+    }
+    return false
+  },
+  set() {
+  }
+})
+
+async function run_epub() {
+  if (epub_gen.value) {
+    return
+  }
+  epub_gen.value = true
+  await compile_epub(meta.value, selected_chaps.value, status_txt)
+  epub_gen.value = false
+}
+
+async function run_parsers() {
+  if (running.value) {
+    cancel.value = true
+  } else {
+    console.log("Parsing...")
+    running.value = true
+    await parse_chaps(selected_chaps.value, meta.value, cancel, status_txt, progress)
+    running.value = false
+    cancel.value = false
+  }
+}
+
+function onDelete(event: any) {
+  chaps.value = chaps.value.filter(val => !selected_chaps.value.includes(val));
+  selected_chaps.value = [];
+}
+</script>
+
+<template>
+  <Toolbar>
+    <template #start>
+      <Button label="New" icon="pi pi-plus" class="mr-2" rounded raised/>
+      <Button icon="pi pi-times" @click="onDelete" class="mr-2" severity="danger" rounded raised/>
+      <Button label="CSV" @click="$refs.dt.exportCSV()" icon="pi pi-download" rounded raised/>
+    </template>
+
+    <template #end>
+      <Button :label="parse_label" icon="pi pi-play" class="mr-2"
+              @click="run_parsers" :disabled="parse_disable" rounded raised/>
+      <Button label="Epub" icon="pi pi-download" severity="success"
+              @click="run_epub" :disabled="epub_disable" rounded raised/>
+    </template>
+  </Toolbar>
+  <ProgressBar :value="progress" :show-value="false"></ProgressBar>
+  <DataTable :value="chaps" ref="dt"
+             v-model:selection="selected_chaps"
+             :reorderableColumns="true"
+             @rowReorder="chaps = $event.value"
+             selectionMode="multiple"
+             scrollable scrollHeight="70vh"
+             :paginator="true" :rows="100"
+             class="p-datatable-sm"
+             :rowsPerPageOptions="[100, 200,500]"
+             responsiveLayout="scroll">
+    <Column :rowReorder="true" headerStyle="width: 3rem" :exportable="false" :reorderableColumn="false"/>
+    <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+    <Column field="title" header="Title" :sortable="true"></Column>
+    <Column field="info.url" header="URL" :sortable="true">
+      <template #body="{data}:any">
+        <a :href="(data as any).info.url" target="_blank" rel="noopener noreferrer">
+          {{ (data as any).info.url?.slice(0, 25) }}...</a>
+      </template>
+    </Column>
+    <Column field="html_parsed" header="Parsed">
+      <template #body="{data}:any">
+        <i class="pi" :class="(!(data as any).html_parsed)?'pi-circle':'pi-check'"></i>
+      </template>
+    </Column>
+  </DataTable>
+</template>
