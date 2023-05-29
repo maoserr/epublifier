@@ -1,5 +1,5 @@
 import {createApp} from 'vue'
-import App from "./SideBar.vue"
+import App from "../sidebar/SideBar.vue"
 import PrimeVue from "primevue/config";
 
 const app = createApp(App)

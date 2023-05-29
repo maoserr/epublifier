@@ -1,5 +1,6 @@
 const {join} = require("path");
 const {VueLoaderPlugin} = require("vue-loader");
+const fs = require('fs');
 const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require("webpack");
@@ -68,14 +69,8 @@ module.exports = (env, argv) => {
             // EJS uses new Function
             minimizer: [],
         },
-        entry: {
-            popup: join(__dirname, "src/entry/popup/popup.ts"),
-            main: join(__dirname, "src/entry/main/main.ts"),
-            sandbox: join(__dirname, "src/entry/sandboxed/sandbox.ts"),
-            options: join(__dirname, "src/entry/options/options.ts"),
-            sidebar: join(__dirname, "src/entry/sidebar/sidebar.ts"),
-            sidebar_cont: join(__dirname, "src/entry/sidebar/sb_container.ts")
-        },
+        entry: fs.readdirSync(join(__dirname, "src/entry"))
+            .reduce((acc, v) => ({ ...acc, [v]: join(__dirname, "src/entry", v) }), {}),
         devtool: 'cheap-module-source-map',
         module: {
             rules: [

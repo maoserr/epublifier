@@ -1,13 +1,13 @@
 <template>
   <div>
-<!--    <Button label="Parse" @click="parse" icon="pi pi-book"/>-->
-<!--    <Button label="Load Chapters" @click="load_main" icon="pi pi-book"/>-->
-<!--    <iframe :srcdoc="text" id="preview"/>-->
-<!--    <ol>-->
-<!--      <li v-for="item in (chaps as any)">-->
-<!--        {{ item?.title }}: <a target="_blank" :href="item?.url">{{ item?.url }}</a>-->
-<!--      </li>-->
-<!--    </ol>-->
+    <Button label="Parse" @click="parse" icon="pi pi-book"/>
+    <Button label="Load Chapters" @click="load_main" icon="pi pi-book"/>
+    <iframe title="Preview" :srcdoc="text" style="border-width: 1px;width: 100%;height: 75vh;overflow: auto;"></iframe>
+    <ol>
+      <li v-for="item in chaps">
+        {{ item?.title }}: <a target="_blank" :href="item?.url">{{ item?.url }}</a>
+      </li>
+    </ol>
   </div>
 </template>
 
@@ -23,11 +23,11 @@ import {onMounted, ref} from "vue";
 import {Readability} from "@mozilla/readability";
 import {Chapter, ChapterInfo} from "../../common/novel_data";
 
-const title = ref('')
-const text = ref('')
+const title = ref<string>('')
+const text = ref<string>('')
 const chaps = ref<Chapter[]>([])
 
-window.addEventListener('message', evt => {
+window.addEventListener('message', (evt:any) => {
   const data = evt.data
   switch (data.msg) {
     case 'PARSED_PAGE':
@@ -58,11 +58,5 @@ function load_main(evt: any) {
 }
 </script>
 
-<style scoped>
-#preview {
-  border-width: 1px;
-  width: 100%;
-  height: 75vh;
-  overflow: auto;
-}
+<style>
 </style>

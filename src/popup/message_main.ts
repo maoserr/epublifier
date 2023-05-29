@@ -20,7 +20,6 @@ export async function setup_main(toc: boolean,
             url: "main.html",
             type: "popup",
         });
-        window.close()
     } else {
         let curr_tab = await browser.tabs.query(
             {active: true})
@@ -30,6 +29,6 @@ export async function setup_main(toc: boolean,
                 files: ["js/sidebar_cont.js"]
             }
         )
-        window.close()
+        window.close();
     }
 }
