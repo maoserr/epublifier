@@ -19,41 +19,29 @@ import {
 import {compile_epub, parse_chaps} from "./parse_main";
 
 const dt = ref()
-const parse_label = computed({
-  get() {
-    if (running.value) {
-      return "Cancel"
-    }
-    return "Parse"
-  },
-  set() {
+const parse_label = computed(() => {
+  if (running.value) {
+    return "Cancel"
   }
+  return "Parse"
 })
-const parse_disable = computed({
-  get() {
-    return selected_chaps.value.length == 0
-  },
-  set() {
-  }
+const parse_disable = computed(() => {
+  return selected_chaps.value.length == 0
 })
-const epub_disable = computed({
-  get() {
-    if (running.value) {
-      return true
-    }
-    if (epub_gen.value) {
-      return true
-    }
-    if (selected_chaps.value.length == 0)
-      return true
-    for (let c in selected_chaps.value) {
-      if (!selected_chaps.value[c].html_parsed)
-        return true
-    }
-    return false
-  },
-  set() {
+const epub_disable = computed(() => {
+  if (running.value) {
+    return true
   }
+  if (epub_gen.value) {
+    return true
+  }
+  if (selected_chaps.value.length == 0)
+    return true
+  for (let c in selected_chaps.value) {
+    if (!selected_chaps.value[c].html_parsed)
+      return true
+  }
+  return false
 })
 
 async function run_epub() {

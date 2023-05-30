@@ -23,7 +23,7 @@
           <PopupChaps :chaps="chaps"/>
         </TabPanel>
         <TabPanel header="Parsing">
-          <PopupParser :parsers="parsers" @reparse="reparse"/>
+          <PopupParser :src="src" :url="url" @reparsed="set_parse_result"/>
         </TabPanel>
       </TabView>
     </div>
@@ -51,13 +51,8 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 import {onMounted, ref} from 'vue'
 import {setup_main} from './message_main'
 import {extract_source} from './source_extract'
-import {SbxCommand, SbxResult} from "../sandboxed/messages";
-import {SendSandboxCmdWReply} from "../sandboxed/send_message";
-import {get_parsers_definitions} from "../common/parser_manager";
-import {ChapterInfo, NovelMetaData} from "../common/novel_data";
+import {Chapter, ChapterInfo, NovelMetaData} from "../common/novel_data";
 import {
-  ParserDocDef,
-  ParserResultAuto,
   ParserResultChap,
   ParserResultToc
 } from "../common/parser_types";
@@ -65,20 +60,17 @@ import PopupMeta from "./PopupMeta.vue";
 import PopupChaps from "./PopupChaps.vue";
 import PopupParser from "./PopupParser.vue";
 
-import {parser} from "./popup_state";
+import {parser, status_txt} from "./popup_state";
 
 // App data
 const url = ref("N/A")
-const status_txt = ref("Loading...")
 const src = ref('')
 
 // Novel data
 const meta = ref({title: 'N/A', description: 'N/A'} as NovelMetaData)
-const chaps = ref([] as ChapterInfo[])
+const chaps = ref([] as Chapter[])
 
 const parser_type = ref()
-const parsers = ref([] as ParserDocDef[])
-
 
 function set_parse_result(type: 'toc' | 'chap',
                           pres: ParserResultToc | ParserResultChap) {
@@ -86,53 +78,35 @@ function set_parse_result(type: 'toc' | 'chap',
   if (type === 'toc') {
     const toc_res = pres as ParserResultToc
     meta.value = toc_res.meta
-    chaps.value = toc_res.chaps
+    chaps.value = toc_res.chaps.map((x:ChapterInfo)=>{
+      return {
+        info: {
+          title: x.title,
+          url: x.url,
+          parser: x.parser,
+          parse_doc: parser.value!.parse_doc
+        },
+        title: x.title,
+        html: '',
+        html_parsed: ''
+      }
+    })
   } else {
     const chap_res = pres as ParserResultChap
     if (chap_res.meta !== undefined) {
       meta.value = chap_res.meta
     }
     chaps.value = [{
-      title: meta.value.title,
-      url: "N/A",
-      parser: parser.value?.parser ?? "Simple",
-      parse_doc: parser.value?.parse_doc ?? "default"
+      info: {
+        title: chap_res.title ?? "N/A",
+        url: url.value,
+        parser: parser.value?.parser ?? "Simple",
+        parse_doc: parser.value!.parse_doc
+      },
+      title: chap_res.title ?? "N/A",
+      html: src.value,
+      html_parsed: chap_res.html,
     }]
-  }
-}
-
-
-
-async function setup_parser() {
-  // Load Parser
-  const parser_txt = await get_parsers_definitions()
-  const parsedefs_rep: SbxResult<any> = await SendSandboxCmdWReply(
-      SbxCommand.LoadParsers, parser_txt)
-  status_txt.value = parsedefs_rep.message
-  parsers.value = parsedefs_rep.data
-}
-
-async function reparse(p_inputs_val:Record<string, any>) {
-  if (parser.value === undefined) {
-    return
-  }
-  const curr_parser: ParserDocDef = parser.value!
-  try {
-    const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource, {
-      doc: curr_parser.parse_doc,
-      type: curr_parser.type,
-      parser: curr_parser.parser,
-      params: {inputs: p_inputs_val, url: url.value, src: src.value}
-    })
-    status_txt.value = pres.message
-    if (curr_parser.type === 'toc') {
-      set_parse_result(curr_parser.type, pres.data as ParserResultToc)
-    } else {
-      set_parse_result(curr_parser.type, pres.data as ParserResultChap)
-    }
-  } catch (error) {
-    status_txt.value = "Error: " +
-        ((error instanceof Error) ? error.message : String(error))
   }
 }
 
@@ -143,22 +117,6 @@ onMounted(async () => {
     url.value = res.url
     src.value = res.source
     status_txt.value = "Source parsed."
-
-    await setup_parser()
-
-    // Run Parser
-    const pres = await SendSandboxCmdWReply(SbxCommand.ParseSource,
-        {inputs: {}, url: url.value, src: src.value})
-    status_txt.value = pres.message
-    const auto_res = pres.data as ParserResultAuto
-    parser.value = parsers.value.filter(
-        (x: ParserDocDef) =>
-            (x.parse_doc == auto_res.parse_doc)
-            && (x.parser == auto_res.parser)
-            && (x.type = auto_res.type)
-    )[0]
-
-    set_parse_result(auto_res.type, auto_res.result)
   } catch (error) {
     status_txt.value = "Error: " +
         ((error instanceof Error) ? error.message : String(error))
