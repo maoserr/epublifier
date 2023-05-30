@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import {ChapterInfo} from "../common/novel_data";
+import {Chapter} from "../common/novel_data";
 
 defineProps<{
-  chaps: ChapterInfo[]
+  chaps: Chapter[]
 }>()
 </script>
 
 <template>
   <ol>
     <li v-for="item in chaps">
-      {{ item?.title }}: <a target="_blank" :href="item?.url">{{ item?.url }}</a>
+      {{ item?.info.title }}: <a target="_blank" :href="item?.info.url">{{ item?.info.url }}</a>
     </li>
   </ol>
 </template>

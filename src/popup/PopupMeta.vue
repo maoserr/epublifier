@@ -21,7 +21,7 @@ defineProps<{
     <div class="col-12">
       <h4>Description:</h4>
       <img v-if="meta?.cover" id="cover" width="200" style="float:left;margin:10px"
-           :src="meta?.cover" alt="cover"/>
+           :src="meta.cover" alt="cover"/>
       <span v-html="meta?.description"></span>
     </div>
   </div>
