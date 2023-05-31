@@ -6,11 +6,9 @@
     </div>
     <div class="col-12">
       <div style="float:right" class="flex gap-2">
-        <Button label="Load Sidebar" @click="setup_main(false, chaps, meta, parser!)"
-                :disabled="parser_type != 'chap'"
+        <Button label="Load as Chap" @click="setup_main(false, chaps, meta, parser!)"
                 icon="pi pi-file"/>
-        <Button label="Load Chapters" @click="setup_main(true, chaps, meta, parser!)"
-                :disabled="parser_type != 'toc'"
+        <Button label="Load as TOC" @click="setup_main(true, chaps, meta, parser!)"
                 icon="pi pi-book"/>
       </div>
     </div>
@@ -70,11 +68,8 @@ const src = ref('')
 const meta = ref({title: 'N/A', description: 'N/A'} as NovelMetaData)
 const chaps = ref([] as Chapter[])
 
-const parser_type = ref()
-
 function set_parse_result(type: 'toc' | 'chap',
                           pres: ParserResultToc | ParserResultChap) {
-  parser_type.value = type
   if (type === 'toc') {
     const toc_res = pres as ParserResultToc
     meta.value = toc_res.meta

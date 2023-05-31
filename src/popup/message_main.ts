@@ -26,7 +26,7 @@ export async function setup_main(toc: boolean,
         await browser.storage.local.set(
             {
                 last_parse: {
-                    chaps: JSON.stringify(chaps),
+                    chaps: JSON.stringify([]),
                     meta: JSON.stringify(meta),
                     parser: parser.parse_doc
                 }

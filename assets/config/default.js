@@ -71,12 +71,6 @@ function main_parser(inputs, url, source, helpers) {
                 }
             }
             break;
-        case "www.wuxiaworld.com":
-            if (paths.length > 3 && paths[1] === "novel") {
-                return {
-                    parser: "Simple", type: "chap", result: readability(inputs, url, source, helpers)
-                }
-            }
     }
     return {
         parser: "Chapter Links", type: "toc",

@@ -59,7 +59,8 @@ async function setup_parser() {
   const parsedefs_rep: SbxResult<any> = await SendSandboxCmdWReply(
       SbxCommand.LoadParsers, parser_txt)
   status_txt.value = parsedefs_rep.message
-  parsers.value = parsedefs_rep.data
+  parsers.value = parsedefs_rep.data.filter(
+      (x:ParserDocDef)=>x.type=="toc")
 }
 
 async function initial_parse() {
