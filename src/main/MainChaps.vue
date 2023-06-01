@@ -17,6 +17,9 @@ import {
   progress, cancel
 } from "./main_state";
 import {compile_epub, parse_chaps} from "./parse_main";
+import MainEditor from "./MainEditor.vue";
+import TabView from "primevue/tabview";
+import TabPanel from "primevue/tabpanel";
 
 const dt = ref()
 const parse_label = computed(() => {
@@ -87,12 +90,14 @@ function onDelete(event: any) {
     </template>
   </Toolbar>
   <ProgressBar :value="progress" :show-value="false"></ProgressBar>
+  <TabView>
+    <TabPanel header="Chapters">
   <DataTable :value="chaps" ref="dt"
              v-model:selection="selected_chaps"
              :reorderableColumns="true"
              @rowReorder="chaps = $event.value"
              selectionMode="multiple"
-             scrollable scrollHeight="70vh"
+             scrollable scrollHeight="60vh"
              :paginator="true" :rows="100"
              class="p-datatable-sm"
              :rowsPerPageOptions="[100, 200,500]"
@@ -112,4 +117,9 @@ function onDelete(event: any) {
       </template>
     </Column>
   </DataTable>
+    </TabPanel>
+    <TabPanel header="Parser">
+      <MainEditor />
+    </TabPanel>
+  </TabView>
 </template>
