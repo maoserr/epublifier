@@ -88,7 +88,7 @@ async function reparse(evt: any) {
       doc: curr_parser.parse_doc,
       type: curr_parser.type,
       parser: curr_parser.parser,
-      params: {inputs: p_inputs_val, url: prop.url, src: prop.src}
+      params: {inputs: p_inputs_val.value, url: prop.url, src: prop.src}
     })
     status_txt.value = pres.message
     console.log(pres)
