@@ -1,18 +1,23 @@
 <script setup lang="ts">
-import { Codemirror } from 'vue-codemirror'
-import { javascript } from '@codemirror/lang-javascript'
-import {ref, shallowRef} from "vue";
+import {Codemirror} from 'vue-codemirror'
+import {javascript} from '@codemirror/lang-javascript'
+import {computed, shallowRef} from "vue";
+import {parser_txt} from "./main_state";
 
-const prop = defineProps<{
-  code: string
-}>
-()
+const code = computed({
+  get() {
+    return parser_txt.value['main']
+  }, set(val: string) {
+    parser_txt.value['main'] = val
+  }
+})
 
-const code = ref(prop.code)
-const extensions = [javascript()]
 
+const extensions = [
+  javascript(),
+]
 const view = shallowRef()
-const handleReady = (payload:any) => {
+const handleReady = (payload: any) => {
   view.value = payload.view
 }
 </script>

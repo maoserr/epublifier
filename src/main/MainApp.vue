@@ -66,7 +66,8 @@ import {
   meta,
   chaps,
   selected_chaps,
-  status_txt
+  status_txt,
+  parser_txt
 } from "./main_state"
 import MainMeta from "./MainMeta.vue";
 import MainChaps from "./MainChaps.vue";
@@ -84,9 +85,9 @@ onMounted(async () => {
     await onLoadGetChapters()
 
     // Load Parser
-    let parser_txt = await get_parsers_definitions()
+    parser_txt.value = await get_parsers_definitions()
     await SendSandboxCmdWReply(SbxCommand.LoadParsers,
-        parser_txt)
+        parser_txt.value)
 
     // Setup permanent message pipeline
     addSandboxListener(selected_chaps, status_txt);

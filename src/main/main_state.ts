@@ -14,3 +14,7 @@ export const cancel = ref(false)
 export const epub_gen = ref(false)
 
 export const status_txt = ref("Loading...")
+
+export const parser_txt = ref<Record<string,string>>({
+    'main':'Loading...'
+})

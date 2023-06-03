@@ -92,34 +92,34 @@ function onDelete(event: any) {
   <ProgressBar :value="progress" :show-value="false"></ProgressBar>
   <TabView>
     <TabPanel header="Chapters">
-  <DataTable :value="chaps" ref="dt"
-             v-model:selection="selected_chaps"
-             :reorderableColumns="true"
-             @rowReorder="chaps = $event.value"
-             selectionMode="multiple"
-             scrollable scrollHeight="60vh"
-             :paginator="true" :rows="100"
-             class="p-datatable-sm"
-             :rowsPerPageOptions="[100, 200,500]"
-             responsiveLayout="scroll">
-    <Column :rowReorder="true" headerStyle="width: 3rem" :exportable="false" :reorderableColumn="false"/>
-    <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-    <Column field="title" header="Title" :sortable="true"></Column>
-    <Column field="info.url" header="URL" :sortable="true">
-      <template #body="{data}:any">
-        <a :href="(data as any).info.url" target="_blank" rel="noopener noreferrer">
-          {{ (data as any).info.url?.slice(0, 25) }}...</a>
-      </template>
-    </Column>
-    <Column field="html_parsed" header="Parsed">
-      <template #body="{data}:any">
-        <i class="pi" :class="(!(data as any).html_parsed)?'pi-circle':'pi-check'"></i>
-      </template>
-    </Column>
-  </DataTable>
+      <DataTable :value="chaps" ref="dt"
+                 v-model:selection="selected_chaps"
+                 :reorderableColumns="true"
+                 @rowReorder="chaps = $event.value"
+                 selectionMode="multiple"
+                 scrollable scrollHeight="60vh"
+                 :paginator="true" :rows="100"
+                 class="p-datatable-sm"
+                 :rowsPerPageOptions="[100, 200,500]"
+                 responsiveLayout="scroll">
+        <Column :rowReorder="true" headerStyle="width: 3rem" :exportable="false" :reorderableColumn="false"/>
+        <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+        <Column field="title" header="Title" :sortable="true"></Column>
+        <Column field="info.url" header="URL" :sortable="true">
+          <template #body="{data}:any">
+            <a :href="(data as any).info.url" target="_blank" rel="noopener noreferrer">
+              {{ (data as any).info.url?.slice(0, 25) }}...</a>
+          </template>
+        </Column>
+        <Column field="html_parsed" header="Parsed">
+          <template #body="{data}:any">
+            <i class="pi" :class="(!(data as any).html_parsed)?'pi-circle':'pi-check'"></i>
+          </template>
+        </Column>
+      </DataTable>
     </TabPanel>
     <TabPanel header="Parser">
-      <MainEditor />
+      <MainEditor/>
     </TabPanel>
   </TabView>
 </template>
