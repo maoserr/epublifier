@@ -1,6 +1,6 @@
 {
   "name": "Epublifier",
-  "permissions": ["tabs", "downloads", "storage", "clipboardRead"],
+  "permissions": ["tabs", "downloads", "storage", "clipboardRead","webRequest"],
   "options_ui": {
     "page": "options.html"
   }

@@ -1,12 +1,13 @@
 import browser from "webextension-polyfill";
 import {onLoadGetChapters} from "./sidebar_parsing";
 import {Chapter, NovelMetaData} from "../common/novel_data";
+import {msg_func} from "./sidebar_msgs";
 
 let baseMouseX: any, baseMouseY: any
 let frameTop = 0
 let frameLeft = 0
 let cont: HTMLDivElement
-let iframe: HTMLIFrameElement
+export let iframe: HTMLIFrameElement
 
 function handleDragStart(evt: any) {
 
@@ -36,28 +37,6 @@ function close() {
     cont.remove()
 }
 
-async function msg_func(evt: any) {
-    const data = evt.data
-
-    switch (data.msg) {
-        case 'PARSE_PAGE':
-            let s = new XMLSerializer();
-            iframe.contentWindow?.postMessage({
-                msg: 'PARSED_PAGE', source: s.serializeToString(document)
-            }, '*' as WindowPostMessageOptions)
-            break
-        case 'LOAD_MAIN':
-            await browser.storage.local.set({
-                last_parse: {
-                    chaps: data.chaps,
-                    meta: data.meta,
-                    parser: 'default'
-                }
-            })
-            await browser.runtime.sendMessage({msg: "LOAD_MAIN"})
-            break
-    }
-}
 
 export async function add_float_window(sb_id:string) {
     const src = browser.runtime.getURL('sidebar.html')

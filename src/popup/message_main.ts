@@ -38,6 +38,6 @@ export async function setup_main(toc: boolean,
                 files: ["js/sb_container.js"]
             }
         )
-        window.close()
+        // window.close()
     }
 }

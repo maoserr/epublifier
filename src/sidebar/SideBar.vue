@@ -1,11 +1,19 @@
 <template>
   <div class="grid" style="width:100%">
     <div class="col-12">
+      <span>{{ status_txt }}</span>
       <Toolbar>
         <template #start>
-          <Button label="Parse" @click="parse" class="mr-2"/>
+          <Button label="Pick Next" @click="pick_next" class="mr-2"/>
+        </template>
+        <template #center>
           <Button icon="pi pi-times" @click="onDelete" class="mr-2" severity="danger" rounded raised/>
-          <Button label="Load Chapters" @click="load_main" icon="pi pi-book"/>
+        </template>
+        <template #end>
+          <Button label="Parse" @click="parse" class="mr-2"/>
+          <InputNumber v-model="max_chaps" id="maxchap" input-class="mr-2"
+                       :input-style="{width: '4rem'}" :min="1"/>
+          <Button label="Load" @click="load_main" icon="pi pi-book"/>
         </template>
       </Toolbar>
       <TabView>
@@ -34,23 +42,30 @@
 
 <script setup lang="ts">
 import Button from 'primevue/button';
+import Toolbar from "primevue/toolbar";
+import TabPanel from "primevue/tabpanel";
+import TabView from "primevue/tabview";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import InputNumber from 'primevue/inputnumber';
 
 import 'primeflex/primeflex.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
-import {ref} from "vue";
-import {Readability} from "@mozilla/readability";
+import {computed, ref} from "vue";
 import {Chapter, ChapterInfo} from "../common/novel_data";
-import Toolbar from "primevue/toolbar";
-import TabPanel from "primevue/tabpanel";
-import TabView from "primevue/tabview";
-import Column from "primevue/column";
-import DataTable from "primevue/datatable";
+import {Readability} from "@mozilla/readability";
 
-const title = ref<string>('')
-const text = ref<string>('')
+const status_txt = ref<string>('Loading')
+const max_chaps = ref<number>(5)
+const title = computed(() => {
+  return selected_chaps.value[0]?.title ?? ""
+})
+const text = computed(() => {
+  return selected_chaps.value[0]?.html_parsed ?? ""
+})
 const chaps = ref<Chapter[]>([])
 const selected_chaps = ref<Chapter[]>([])
 
@@ -61,12 +76,22 @@ window.addEventListener('message', (evt: any) => {
       let parser = new DOMParser();
       let dom = parser.parseFromString(data.source, "text/html");
       let out = new Readability(dom).parse()
-      text.value = out?.content ?? "";
-      title.value = out?.title ?? "";
-      chaps.value.push({
+      let title = out?.title ?? ""
+      let text = out?.content ?? ""
+      let chap = {
         info: {title: 'N/A', url: 'N/A', parser: 'N/A', parse_doc: 'N/A'} as ChapterInfo
-        , title: title.value, html: data.source, html_parsed: text.value
-      } as Chapter)
+        , title: title, html: data.source, html_parsed: text
+      } as Chapter
+      chaps.value.push(chap)
+      selected_chaps.value = [chap]
+      status_txt.value = `Parsed ${title}`
+      max_chaps.value -= 1
+      if (max_chaps.value > 0) {
+          parse({})
+      }
+      break;
+    case 'SELECTED_NEXT':
+      status_txt.value = `Found ${data.els} clickable elements`
       break;
   }
 })
@@ -74,6 +99,12 @@ window.addEventListener('message', (evt: any) => {
 function parse(evt: any) {
   window.parent.postMessage({
     msg: 'PARSE_PAGE'
+  }, '*' as WindowPostMessageOptions)
+}
+
+function pick_next(evt: any) {
+  window.parent.postMessage({
+    msg: 'SELECT_NEXT'
   }, '*' as WindowPostMessageOptions)
 }
 

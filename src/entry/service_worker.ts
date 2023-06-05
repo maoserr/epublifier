@@ -9,3 +9,15 @@ function load_main(e:any) {
     }
 }
 browser.runtime.onMessage.addListener(load_main)
+
+// function complete_req(e:any){
+//     console.log(e)
+// }
+//
+// browser.webRequest.onBeforeRequest.addListener(
+//     complete_req,
+//     {urls:['<all_urls>']})
+//
+// browser.webRequest.onCompleted.addListener(
+//     complete_req,
+//     {urls:['<all_urls>']})

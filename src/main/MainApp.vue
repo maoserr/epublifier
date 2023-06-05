@@ -55,6 +55,7 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
 import {onMounted} from 'vue'
+import {watchDebounced} from '@vueuse/core'
 import browser from "webextension-polyfill";
 
 import {addSandboxListener} from "./parse_main"
@@ -79,15 +80,22 @@ async function onLoadGetChapters() {
   meta.value = JSON.parse(last_parse.meta)
 }
 
+watchDebounced(
+    parser_txt,
+    async () => {
+      await SendSandboxCmdWReply(SbxCommand.LoadParsers,
+          parser_txt.value)
+      status_txt.value = "Parsers (re)loaded: " + new Date().toLocaleTimeString()
+    },
+    {deep: true, debounce: 1000, maxWait: 10000},
+)
+
 onMounted(async () => {
   try {
     // Load initial chapters
     await onLoadGetChapters()
-
     // Load Parser
     parser_txt.value = await get_parsers_definitions()
-    await SendSandboxCmdWReply(SbxCommand.LoadParsers,
-        parser_txt.value)
 
     // Setup permanent message pipeline
     addSandboxListener(selected_chaps, status_txt);

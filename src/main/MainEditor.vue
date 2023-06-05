@@ -9,6 +9,7 @@ const code = computed({
     return parser_txt.value['main']
   }, set(val: string) {
     parser_txt.value['main'] = val
+    console.log(parser_txt)
   }
 })
 
