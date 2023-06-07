@@ -7,5 +7,21 @@ function load_main(e:any) {
             type: "popup",
         }).then();
     }
+    if (e.msg==='WAIT_CHAP') {
+        e.tab
+        function complete_req(e:any){
+            console.log(e)
+        }
+
+        browser.webRequest.onBeforeRequest.addListener(
+            complete_req,
+            {urls:['<all_urls>']})
+
+        browser.webRequest.onCompleted.addListener(
+            complete_req,
+            {urls:['<all_urls>']})
+
+    }
 }
 browser.runtime.onMessage.addListener(load_main)
+
