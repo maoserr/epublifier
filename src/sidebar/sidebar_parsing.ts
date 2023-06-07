@@ -42,11 +42,20 @@ export function get_next_link() {
     document.addEventListener('mousedown', stop_get_next)
 }
 
-export function run_parse() {
+export async function run_parse(max_chaps:number, wait_s:number, scroll: boolean) {
+
     let s = new XMLSerializer();
-    let src = s.serializeToString(document)
-    if (all_els.length > 0) {
+    for (let i=0; i<max_chaps; i++) {
+        let src = s.serializeToString(document)
+        reply_func({msg: 'PARSED_PAGE', source: src})
+        if (all_els.length == 0) {
+            break
+        }
         all_els[0].click()
+        await new Promise(f => setTimeout(f, Math.round(wait_s*1000)));
+        if (scroll) {
+            window.scrollTo(0, document.body.scrollHeight);
+            await new Promise(f => setTimeout(f, Math.round(wait_s*1000)));
+        }
     }
-    reply_func({msg: 'PARSED_PAGE', source: src})
 }

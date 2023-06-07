@@ -8,6 +8,7 @@ let frameTop = 0
 let frameLeft = 0
 let cont: HTMLDivElement
 export let iframe: HTMLIFrameElement
+export let meta:NovelMetaData
 
 function handleDragStart(evt: any) {
 
@@ -31,17 +32,15 @@ function handleDragEnd() {
 }
 
 function close() {
-    window.removeEventListener('message', msg_func)
-    iframe.contentWindow?.close()
-    iframe.remove()
-    cont.remove()
+    cont.style.display = "none";
 }
 
 
 export async function add_float_window(sb_id:string) {
     const src = browser.runtime.getURL('sidebar.html')
-    const [chaps, meta]:[Chapter[],NovelMetaData] =
+    const [chaps, meta_res]:[Chapter[],NovelMetaData] =
         await onLoadGetChapters()
+    meta = meta_res
     cont = document.createElement('div')
     cont.id = sb_id
     cont.style.display = "flex";
@@ -51,7 +50,7 @@ export async function add_float_window(sb_id:string) {
     cont.style.resize = "both";
     cont.style.overflow = "hidden";
     cont.style.height = "600px";
-    cont.style.width = "500px";
+    cont.style.width = "600px";
     cont.style.position = "fixed";
     cont.style.top = "0px";
     cont.style.right = "0px";

@@ -4,16 +4,28 @@
       <span>{{ status_txt }}</span>
       <Toolbar>
         <template #start>
-          <Button label="Pick Next" @click="pick_next" class="mr-2"/>
+          <Button label="Pick Next" @click="pick_next" class="mr-2"
+                  v-tooltip="'Select the next chapter link/button for auto progression'"/>
+          <Checkbox v-model="scroll" :binary="true"
+                    v-tooltip="'Scroll page to bottom after auto progression, ' +
+                     'If this is checked wait time is also applied after scroll'"/>
         </template>
         <template #center>
-          <Button icon="pi pi-times" @click="onDelete" class="mr-2" severity="danger" rounded raised/>
+          <Button icon="pi pi-times" @click="onDelete" class="mr-2"
+                  v-tooltip="'Delete selected chapters'"
+                  severity="danger" rounded raised/>
         </template>
         <template #end>
           <Button label="Parse" @click="parse" class="mr-2"/>
           <InputNumber v-model="max_chaps" id="maxchap" input-class="mr-2"
-                       :input-style="{width: '4rem'}" :min="1"/>
-          <Button label="Load" @click="load_main" icon="pi pi-book"/>
+                       v-tooltip="'Maximum chapters to parse'"
+                       :input-style="{width: '4rem'}" suffix="c" :min="1"/>
+
+          <InputNumber v-model="wait_s" id="wait_s" input-class="mr-2"
+                       :maxFractionDigits="2" v-tooltip="'Wait interval between parsing'"
+                       :input-style="{width: '4rem'}" suffix="s" :min="0.01"/>
+          <Button label="Load" @click="load_main" icon="pi pi-book"
+                  v-tooltip="'Load the epub generator interface'"/>
         </template>
       </Toolbar>
       <TabView>
@@ -48,6 +60,7 @@ import TabView from "primevue/tabview";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import InputNumber from 'primevue/inputnumber';
+import Checkbox from 'primevue/checkbox';
 
 import 'primeflex/primeflex.css';
 import 'primevue/resources/primevue.min.css';
@@ -60,6 +73,8 @@ import {Readability} from "@mozilla/readability";
 
 const status_txt = ref<string>('Loading')
 const max_chaps = ref<number>(5)
+const wait_s = ref<number>(.5)
+const scroll = ref<boolean>(true)
 const title = computed(() => {
   return selected_chaps.value[0]?.title ?? ""
 })
@@ -85,10 +100,6 @@ window.addEventListener('message', (evt: any) => {
       chaps.value.push(chap)
       selected_chaps.value = [chap]
       status_txt.value = `Parsed ${title}`
-      max_chaps.value -= 1
-      if (max_chaps.value > 0) {
-          parse({})
-      }
       break;
     case 'SELECTED_NEXT':
       status_txt.value = `Found ${data.els} clickable elements`
@@ -98,7 +109,10 @@ window.addEventListener('message', (evt: any) => {
 
 function parse(evt: any) {
   window.parent.postMessage({
-    msg: 'PARSE_PAGE'
+    msg: 'PARSE_PAGE',
+    max_chaps: max_chaps.value,
+    wait_s: wait_s.value,
+    scroll: scroll.value
   }, '*' as WindowPostMessageOptions)
 }
 
@@ -117,7 +131,6 @@ function load_main(evt: any) {
   window.parent.postMessage({
     msg: 'LOAD_MAIN',
     chaps: JSON.stringify(chaps.value),
-    meta: JSON.stringify({title: 'N/A', description: 'N/A'})
   }, '*' as WindowPostMessageOptions)
 }
 </script>
