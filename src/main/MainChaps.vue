@@ -122,7 +122,7 @@ function add_new() {
               v-tooltip="'Creates a printable window with chapter HTML'"
               @click="run_print" :disabled="epub_disable" rounded raised/>
       <Button label="Epub" icon="pi pi-download" severity="success"
-              v-tooltip.left="'Generates Epub and save as file'"
+              v-tooltip="'Generates Epub and save as file'"
               @click="run_epub" :disabled="epub_disable" rounded raised/>
     </template>
   </Toolbar>

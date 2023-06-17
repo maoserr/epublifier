@@ -10,7 +10,7 @@
                 v-tooltip="'Treat this as the first chapter, for JS heavy pages'"
                 icon="pi pi-file"/>
         <Button label="Load as TOC" @click="setup_main(true, chaps, meta, parser!)"
-                v-tooltip.left="'Load list of chapters to parse multiple chapters'"
+                v-tooltip="'Load list of chapters to parse multiple chapters'"
                 icon="pi pi-book"/>
       </div>
     </div>
