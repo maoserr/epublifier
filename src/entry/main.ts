@@ -23,9 +23,11 @@ import {EditorState} from "@codemirror/state";
 import {autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap} from "@codemirror/autocomplete";
 import {highlightSelectionMatches, searchKeymap} from "@codemirror/search";
 import {lintKeymap} from "@codemirror/lint";
+import Tooltip from "primevue/tooltip";
 
 const app = createApp(App);
 app.use(PrimeVue);
+app.directive('tooltip', Tooltip);
 app.use(VueCodemirror, {
     // optional default global options
     autofocus: true,
