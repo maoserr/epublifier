@@ -56,6 +56,27 @@ async function run_epub() {
   epub_gen.value = false
 }
 
+async function run_print(){
+  let mywindow = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150')!;
+
+  mywindow.document.write(`<html><head><title>${meta.value.title}</title>`);
+  mywindow.document.write('</head><body >');
+  mywindow.document.write(`<h1>${meta.value?.title}</h1>`)
+  if (meta.value.cover !== undefined){
+    mywindow.document.write(`<img src='${meta.value.cover}'/><br/>`)
+  }
+  mywindow.document.write(`Author: ${meta.value?.author}<br/>`)
+  mywindow.document.write(`${meta.value?.description}<br/>`)
+  for (let c of selected_chaps.value){
+    mywindow.document.write(`<h2>${c.title}</h2>`)
+    mywindow.document.write(c.html_parsed);
+  }
+  mywindow.document.write('</body></html>');
+  mywindow.document.close(); // necessary for IE >= 10
+  mywindow.focus(); // necessary for IE >= 10*/
+  mywindow.addEventListener('load', (event:any)=>{mywindow.print()})
+}
+
 async function run_parsers() {
   if (running.value) {
     cancel.value = true
@@ -85,6 +106,8 @@ function onDelete(event: any) {
     <template #end>
       <Button :label="parse_label" icon="pi pi-play" class="mr-2"
               @click="run_parsers" :disabled="parse_disable" rounded raised/>
+      <Button label="Print" icon="pi pi-print" class="mr-2" severity="success"
+              @click="run_print" :disabled="epub_disable" rounded raised/>
       <Button label="Epub" icon="pi pi-download" severity="success"
               @click="run_epub" :disabled="epub_disable" rounded raised/>
     </template>
