@@ -94,7 +94,7 @@ window.addEventListener('message', (evt: any) => {
       let title = out?.title ?? ""
       let text = out?.content ?? ""
       let chap = {
-        info: {title: 'N/A', url: 'N/A', parser: 'N/A', parse_doc: 'N/A'} as ChapterInfo
+        info: {title: 'N/A', url: 'N/A', parser: 'Default', parse_doc: 'main'} as ChapterInfo
         , title: title, html: data.source, html_parsed: text
       } as Chapter
       chaps.value.push(chap)

@@ -43,6 +43,7 @@ export async function add_float_window(sb_id:string) {
     meta = meta_res
     cont = document.createElement('div')
     cont.id = sb_id
+    cont.style.all = "initial"
     cont.style.display = "flex";
     cont.style.flexDirection = "column";
     cont.style.margin = "0";
@@ -70,7 +71,7 @@ export async function add_float_window(sb_id:string) {
     closebtn.style.float = "right";
     closebtn.style.borderRadius = "50%";
     closebtn.style.marginRight = "8px";
-    closebtn.style.opacity = "100";
+    closebtn.style.opacity = "1";
     closebtn.style.height = "20px";
     closebtn.style.width = "20px";
     closebtn.style.backgroundColor = "#E96E4C";

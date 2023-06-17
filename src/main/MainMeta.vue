@@ -48,6 +48,7 @@ async function paste_cover() {
         <img v-if="meta?.cover" id="cover" :src="meta?.cover" alt="cover"/>
         <br/>
         <Button label="Paste" icon="pi pi-image" class="mr-2"
+                v-tooltip="'Paste a picture from clipboard to use as cover'"
                 @click="paste_cover" rounded raised/>
       </div>
     </div>
