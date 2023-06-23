@@ -4,8 +4,10 @@
       <span>{{ status_txt }}</span>
       <Toolbar>
         <template #start>
-          <Button label="Pick Next" @click="pick_next" class="mr-2"
-                  v-tooltip="'Select the next chapter link/button for auto progression'"/>
+          <SplitButton label="Pick Next" @click="pick_next" class="mr-2"
+                       v-tooltip="'Select the next chapter link/button for auto progression'"/>
+          <Button label="Pick Title" @click="pick_title" class="mr-2"
+                  v-tooltip="'Select the title element, otherwise auto-detect'"/>
           <Checkbox v-model="scroll" :binary="true"
                     v-tooltip="'Scroll page to bottom after auto progression, ' +
                      'If this is checked wait time is also applied after scroll'"/>
@@ -47,6 +49,12 @@
             <Column field="title" header="Title"></Column>
           </DataTable>
         </TabPanel>
+        <TabPanel header="Log">
+          <div id="log" style="overflow:auto">
+            Test
+            {{ logmsgs }}
+          </div>
+        </TabPanel>
       </TabView>
     </div>
   </div>
@@ -54,6 +62,7 @@
 
 <script setup lang="ts">
 import Button from 'primevue/button';
+import SplitButton from 'primevue/splitbutton';
 import Toolbar from "primevue/toolbar";
 import TabPanel from "primevue/tabpanel";
 import TabView from "primevue/tabview";
@@ -83,6 +92,7 @@ const text = computed(() => {
 })
 const chaps = ref<Chapter[]>([])
 const selected_chaps = ref<Chapter[]>([])
+const logmsgs = ref<String>("")
 
 window.addEventListener('message', (evt: any) => {
   const data = evt.data
@@ -92,6 +102,9 @@ window.addEventListener('message', (evt: any) => {
       let dom = parser.parseFromString(data.source, "text/html");
       let out = new Readability(dom).parse()
       let title = out?.title ?? ""
+      if (data.title !== "") {
+        title = data.title
+      }
       let text = out?.content ?? ""
       let chap = {
         info: {title: 'N/A', url: 'N/A', parser: 'N/A', parse_doc: 'N/A'} as ChapterInfo
@@ -100,6 +113,7 @@ window.addEventListener('message', (evt: any) => {
       chaps.value.push(chap)
       selected_chaps.value = [chap]
       status_txt.value = `Parsed ${title}`
+      logmsgs.value += data.status
       break;
     case 'SELECTED_NEXT':
       status_txt.value = `Found ${data.els} clickable elements`
@@ -119,6 +133,12 @@ function parse(evt: any) {
 function pick_next(evt: any) {
   window.parent.postMessage({
     msg: 'SELECT_NEXT'
+  }, '*' as WindowPostMessageOptions)
+}
+
+function pick_title(evt: any) {
+  window.parent.postMessage({
+    msg: 'SELECT_TITLE'
   }, '*' as WindowPostMessageOptions)
 }
 

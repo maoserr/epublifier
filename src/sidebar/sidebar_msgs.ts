@@ -1,6 +1,11 @@
 import browser from "webextension-polyfill";
 import {iframe} from "./sidebar_win";
-import {get_next_link, run_parse} from "./sidebar_parsing";
+import {
+    get_next_link,
+    get_title_link,
+    run_parse,
+    set_next
+} from "./sidebar_parsing";
 import {meta} from "./sidebar_win"
 
 export async function msg_func(evt: any) {
@@ -22,6 +27,12 @@ export async function msg_func(evt: any) {
             break
         case 'SELECT_NEXT':
             get_next_link()
+            break;
+        case 'SELECT_TITLE':
+            get_title_link()
+            break;
+        case 'SET_NEXT':
+            set_next(data.value)
             break;
     }
 }
