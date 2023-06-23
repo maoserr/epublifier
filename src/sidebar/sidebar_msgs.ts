@@ -1,12 +1,11 @@
 import browser from "webextension-polyfill";
-import {iframe} from "./sidebar_win";
 import {
     get_next_link,
     get_title_link,
     run_parse,
     set_next
 } from "./sidebar_parsing";
-import {meta} from "./sidebar_win"
+import {iframe, meta} from "./sidebar_win";
 
 export async function msg_func(evt: any) {
     const data = evt.data

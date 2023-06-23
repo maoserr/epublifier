@@ -15,10 +15,23 @@
         </TabPanel>
         <TabPanel header="Edit Chap">
           <span v-if="selected_chaps.length==0">No chapter selected</span>
-          <div v-if="selected_chaps.length>0">
-            <InputText id="chap_title" v-model="selected_chaps[0].title"></InputText>
+          <div v-if="selected_chaps.length>0" class="grid">
+            <div class="field col-12">
+              <span class="p-float-label">
+                <InputText class="w-full" id="chap_title" v-model="selected_chaps[0].title"></InputText>
+                <label for="chap_title">Title:</label>
+              </span>
+            </div>
+            <div class="field col-12">
+              <span class="p-float-label">
+                <InputText class="w-full" id="chap_url" v-model="selected_chaps[0].info.url"></InputText>
+                <label for="chap_url">Url:</label>
+              </span>
+            </div>
+            <div class="field col-12">
             <Textarea v-model="selected_chaps[0].html_parsed"
                       style="width: 100%; max-width: 100%; height: 70vh"/>
+            </div>
           </div>
         </TabPanel>
         <TabPanel header="Original Chap">

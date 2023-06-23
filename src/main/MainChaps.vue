@@ -20,6 +20,7 @@ import {compile_epub, parse_chaps} from "./parse_main";
 import MainEditor from "./MainEditor.vue";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
+import {Chapter, ChapterInfo} from "../common/novel_data";
 
 const dt = ref()
 const parse_label = computed(() => {
@@ -56,6 +57,27 @@ async function run_epub() {
   epub_gen.value = false
 }
 
+async function run_print(){
+  let mywindow = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150')!;
+
+  mywindow.document.write(`<html><head><title>${meta.value.title}</title>`);
+  mywindow.document.write('</head><body >');
+  mywindow.document.write(`<h1>${meta.value?.title}</h1>`)
+  if (meta.value.cover !== undefined){
+    mywindow.document.write(`<img src='${meta.value.cover}'/><br/>`)
+  }
+  mywindow.document.write(`Author: ${meta.value?.author}<br/>`)
+  mywindow.document.write(`${meta.value?.description}<br/>`)
+  for (let c of selected_chaps.value){
+    mywindow.document.write(`<h2>${c.title}</h2>`)
+    mywindow.document.write(c.html_parsed);
+  }
+  mywindow.document.write('</body></html>');
+  mywindow.document.close(); // necessary for IE >= 10
+  mywindow.focus(); // necessary for IE >= 10*/
+  mywindow.addEventListener('load', (event:any)=>{mywindow.print()})
+}
+
 async function run_parsers() {
   if (running.value) {
     cancel.value = true
@@ -72,20 +94,35 @@ function onDelete(event: any) {
   chaps.value = chaps.value.filter(val => !selected_chaps.value.includes(val));
   selected_chaps.value = [];
 }
+
+function add_new() {
+  const new_chap = {
+    info: {title: 'N/A', url: 'N/A', parser: 'Default', parse_doc: 'main'} as ChapterInfo
+      , title: "New Chapter", html: "", html_parsed: ""
+  } as Chapter
+  chaps.value.push(new_chap)
+}
 </script>
 
 <template>
   <Toolbar>
     <template #start>
-      <Button label="New" icon="pi pi-plus" class="mr-2" rounded raised/>
-      <Button icon="pi pi-times" @click="onDelete" class="mr-2" severity="danger" rounded raised/>
+      <Button label="New" @click="add_new" icon="pi pi-plus" class="mr-2"
+              v-tooltip="'Adds a new blank chapter'" rounded raised/>
+      <Button icon="pi pi-times" @click="onDelete" class="mr-2" severity="danger"
+              v-tooltip="'Delete selected chapters'" rounded raised/>
       <Button label="CSV" @click="$refs.dt.exportCSV()" icon="pi pi-download" rounded raised/>
     </template>
 
     <template #end>
       <Button :label="parse_label" icon="pi pi-play" class="mr-2"
+              v-tooltip="'Extract chapter html from link'"
               @click="run_parsers" :disabled="parse_disable" rounded raised/>
+      <Button label="Print" icon="pi pi-print" class="mr-2" severity="success"
+              v-tooltip="'Creates a printable window with chapter HTML'"
+              @click="run_print" :disabled="epub_disable" rounded raised/>
       <Button label="Epub" icon="pi pi-download" severity="success"
+              v-tooltip="'Generates Epub and save as file'"
               @click="run_epub" :disabled="epub_disable" rounded raised/>
     </template>
   </Toolbar>
