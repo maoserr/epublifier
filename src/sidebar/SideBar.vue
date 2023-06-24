@@ -4,7 +4,7 @@
       <span>{{ status_txt }}</span>
       <Toolbar>
         <template #start>
-          <SplitButton label="Pick Next" @click="pick_next" class="mr-2"
+          <Button label="Pick Next" @click="pick_next" class="mr-2"
                        v-tooltip="'Select the next chapter link/button for auto progression'"/>
           <Button label="Pick Title" @click="pick_title" class="mr-2"
                   v-tooltip="'Select the title element, otherwise auto-detect'"/>
@@ -62,7 +62,6 @@
 
 <script setup lang="ts">
 import Button from 'primevue/button';
-import SplitButton from 'primevue/splitbutton';
 import Toolbar from "primevue/toolbar";
 import TabPanel from "primevue/tabpanel";
 import TabView from "primevue/tabview";
@@ -92,7 +91,7 @@ const text = computed(() => {
 })
 const chaps = ref<Chapter[]>([])
 const selected_chaps = ref<Chapter[]>([])
-const logmsgs = ref<String>("")
+const logmsgs = ref<string>("")
 
 window.addEventListener('message', (evt: any) => {
   const data = evt.data
