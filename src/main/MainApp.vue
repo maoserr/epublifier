@@ -11,7 +11,7 @@
         </TabPanel>
         <TabPanel header="Preview Chap">
           <iframe :srcdoc="selected_chaps[0]?.html_parsed || 'No data'"
-                  id="preview"></iframe>
+                  class="preview" title="Preview"></iframe>
         </TabPanel>
         <TabPanel header="Edit Chap">
           <span v-if="selected_chaps.length==0">No chapter selected</span>
@@ -35,7 +35,7 @@
           </div>
         </TabPanel>
         <TabPanel header="Original Chap">
-          <iframe :srcdoc="selected_chaps[0]?.html || 'No data'" id="preview"></iframe>
+          <iframe :srcdoc="selected_chaps[0]?.html || 'No data'" class="preview" title="Preview"></iframe>
         </TabPanel>
       </TabView>
     </div>
@@ -46,7 +46,7 @@
 </template>
 
 <style>
-#preview {
+.preview {
   border-width: 1px;
   width: 100%;
   height: 75vh;

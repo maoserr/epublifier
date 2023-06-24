@@ -1,27 +1,22 @@
 import browser from "webextension-polyfill";
 
-function load_main(e:any) {
-    if (e.msg==='LOAD_MAIN') {
+function load_main(e: any) {
+    if (e.msg === 'LOAD_MAIN') {
         browser.windows.create({
             url: "main.html",
             type: "popup",
-        }).then();
-    }
-    if (e.msg==='WAIT_CHAP') {
-        e.tab
-        function complete_req(e:any){
-            console.log(e)
-        }
-
-        browser.webRequest.onBeforeRequest.addListener(
-            complete_req,
-            {urls:['<all_urls>']})
-
-        browser.webRequest.onCompleted.addListener(
-            complete_req,
-            {urls:['<all_urls>']})
-
+        }).then().catch(() => {});
     }
 }
+
 browser.runtime.onMessage.addListener(load_main)
 
+function set_badge() {
+    const man = browser.runtime.getManifest()
+    console.info("Setting badge text")
+    if (man.version == "1.0.0") {
+        browser.action.setBadgeText({text: "d"}).then().catch(() => {});
+    }
+}
+
+browser.runtime.onStartup.addListener(set_badge)
