@@ -22,7 +22,7 @@
   "devDependencies": {
     "@mozilla/readability": "^0.4.4",
     "@types/prismjs": "^1.26.0",
-    "@types/webextension-polyfill": "^0.10.0",
+    "@types/webextension-polyfill": "^0.10.1",
     "@vue/compiler-sfc": "^3.3.4",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.8.1",
