@@ -20,3 +20,4 @@ function set_badge() {
 }
 
 browser.runtime.onStartup.addListener(set_badge)
+browser.runtime.onInstalled.addListener(set_badge)
