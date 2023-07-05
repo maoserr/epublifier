@@ -20,8 +20,6 @@ export interface SbxResult<T> {
  * Sandbox replies
  */
 export enum SbxReply {
-    Error,
-    Source,
-    Chap,
-    Epub
+    Ok,
+    Error
 }

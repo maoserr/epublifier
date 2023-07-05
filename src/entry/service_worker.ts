@@ -1,4 +1,4 @@
-import browser from "webextension-polyfill";
+import browser, {Tabs} from "webextension-polyfill";
 
 function load_main(e: any) {
     if (e.msg === 'LOAD_MAIN') {
@@ -21,3 +21,11 @@ function set_badge() {
 
 browser.runtime.onStartup.addListener(set_badge)
 browser.runtime.onInstalled.addListener(set_badge)
+browser.action.onClicked.addListener((tab:Tabs.Tab)=>{
+    browser.scripting.executeScript(
+      {
+          target: {tabId: tab.id!},
+          files: ["js/sb_container.js"]
+      }
+    ).then().catch(() => {});
+})
