@@ -2,7 +2,7 @@ import {Chapter, NovelData, NovelMetaData} from "../common/novel_data";
 import * as Parallel from 'async-parallel';
 import browser from "webextension-polyfill";
 import {Ref} from "vue";
-import {SbxCommand, SbxReply, SbxResult} from "../sandboxed/messages";
+import {SbxCommand, SbxOutStatus, SbxOut} from "../sandboxed/messages";
 import {SendSandboxCmd, SetupSbxListener} from "../sandboxed/send_message";
 import {ParserResultChap} from "../common/parser_types";
 import {generate_epub} from "../common/epub_generator";
@@ -12,8 +12,8 @@ export function addSandboxListener(chaps: Ref<Chapter[]>, status_txt: Ref<string
             console.error(err);
             status_txt.value = err
         },
-        (data: SbxResult<ParserResultChap | NovelData>) => {
-            if (data.reply == SbxReply.Chap) {
+        (data: SbxOut<ParserResultChap | NovelData>) => {
+            if (data.status == SbxOutStatus.Chap) {
                 let this_chap = data.data as ParserResultChap
                 let id = this_chap.id;
                 let title = this_chap.title;

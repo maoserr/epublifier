@@ -1,4 +1,4 @@
-import {SbxReply, SbxResult} from "../sandboxed/messages";
+import {SbxOutStatus, SbxOut} from "../sandboxed/messages";
 import {run_chap_parser} from "../common/parser_sbx";
 import {Chapter} from "../common/novel_data";
 import {ParserParams, ParserResultChap} from "../common/parser_types";
@@ -7,7 +7,7 @@ import {ParserParams, ParserResultChap} from "../common/parser_types";
  * Parse chapter
  * @param data
  */
-export async function parse_chapter(data:any):Promise<SbxResult<ParserResultChap>> {
+export async function parse_chapter(data:any):Promise<SbxOut<ParserResultChap>> {
     const chap:Chapter = JSON.parse(data.chap)
     const inputs = data.inputs
     const id = data.id
@@ -20,7 +20,7 @@ export async function parse_chapter(data:any):Promise<SbxResult<ParserResultChap
     let res = await run_chap_parser(chap.info.parse_doc, input ,chap.info.parser)
     res.id = id
     return Promise.resolve({
-        reply: SbxReply.Chap,
+        reply: SbxOutStatus.Chap,
         message: res.message,
         data: res
     })

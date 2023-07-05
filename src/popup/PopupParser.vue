@@ -13,7 +13,7 @@ import {
 
 import {parser, status_txt} from "./popup_state";
 import {SendSandboxCmdWReply} from "../sandboxed/send_message";
-import {SbxCommand, SbxResult} from "../sandboxed/messages";
+import {SbxCommand, SbxOut} from "../sandboxed/messages";
 import {get_parsers_definitions} from "../common/parser_manager";
 
 const prop = defineProps<{
@@ -56,7 +56,7 @@ function set_input_val(parser: ParserDocDef){
 async function setup_parser() {
   // Load Parser
   const parser_txt = await get_parsers_definitions()
-  const parsedefs_rep: SbxResult<any> = await SendSandboxCmdWReply(
+  const parsedefs_rep: SbxOut<any> = await SendSandboxCmdWReply(
       SbxCommand.LoadParsers, parser_txt)
   status_txt.value = parsedefs_rep.message
   parsers.value = parsedefs_rep.data.filter(

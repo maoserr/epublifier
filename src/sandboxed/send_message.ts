@@ -1,4 +1,4 @@
-import {SbxCommand, SbxReply, SbxResult} from './messages'
+import {SbxCommand, SbxOutStatus, SbxOut} from './messages'
 import {ListenerResults} from "../common/parser_types";
 
 /**
@@ -27,7 +27,7 @@ export function SetupSbxListener(err_func: CallableFunction,
                 return err_func("No data")
             if (!("reply" in event.data))
                 return err_func("No command")
-            if (event.data.reply == SbxReply.Error)
+            if (event.data.reply == SbxOutStatus.Error)
                 return err_func(event.data.message)
             return success_func(event.data);
         }, {once: once})
@@ -40,7 +40,7 @@ export function SetupSbxListener(err_func: CallableFunction,
  * @constructor
  */
 export async function SendSandboxCmdWReply(
-    cmd: SbxCommand, data: any): Promise<SbxResult<ListenerResults>> {
+    cmd: SbxCommand, data: any): Promise<SbxOut<ListenerResults>> {
     let res: Promise<any> = new Promise(
         (resolve, reject) => {
             SetupSbxListener(reject, resolve, true);

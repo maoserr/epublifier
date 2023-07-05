@@ -1,4 +1,4 @@
-import {SbxReply, SbxResult} from "../sandboxed/messages";
+import {SbxOutStatus, SbxOut} from "../sandboxed/messages";
 import {ParserDocDef, ParserParams, ParserResultChap, ParserResultAuto, ParserResultToc} from "./parser_types";
 import {isProbablyReaderable, Readability} from "@mozilla/readability";
 
@@ -47,7 +47,7 @@ function get_helpers() {
  * Load parsers from config
  * @param data
  */
-export async function load_parsers(data: any): Promise<SbxResult<ParserDocDef[]>> {
+export async function load_parsers(data: any): Promise<SbxOut<ParserDocDef[]>> {
     let parse_defs: ParserDocDef[] = []
     for (let k in data) {
         let func = new Function(data[k] + "\nreturn load()")()
@@ -76,7 +76,7 @@ export async function load_parsers(data: any): Promise<SbxResult<ParserDocDef[]>
         )
     }
     return Promise.resolve({
-        reply: SbxReply.Source,
+        reply: SbxOutStatus.Source,
         message: 'Loaded',
         data: parse_defs
     })
