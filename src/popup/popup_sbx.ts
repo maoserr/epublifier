@@ -1,5 +1,5 @@
 import {run_auto_parser, run_chap_parser, run_toc_parser} from "../common/parser_sbx";
-import {SbxOutStatus, SbxOut} from "../sandboxed/messages";
+import {SbxOutStatus, SbxOut} from "../common/messages";
 import {ParserResultAuto, ParserResultChap, ParserResultToc} from "../common/parser_types";
 
 /**

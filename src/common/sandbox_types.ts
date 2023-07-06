@@ -1,5 +1,5 @@
 /**
- * Sandbox input commands
+ * Sandbox types
  */
 export enum SbxCommand {
   RunFunc,
@@ -7,9 +7,14 @@ export enum SbxCommand {
 }
 
 export interface SbxInRunFunc {
-  body?: string
+  body: string
   inputs?: any[]
   res_key?: string
+}
+
+export interface SbxInRunFuncRes {
+  res_key: string
+  inputs?: any[]
   subkeys?: any[]
 }
 

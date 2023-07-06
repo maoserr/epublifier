@@ -13,7 +13,7 @@ import {
 
 import {parser, status_txt} from "./popup_state";
 import {SendSandboxCmdWReply} from "../sandboxed/send_message";
-import {SbxCommand, SbxOut} from "../sandboxed/messages";
+import {SbxCommand, SbxOut} from "../common/sandbox_types";
 import {get_parsers_definitions} from "../common/parser_manager";
 
 const prop = defineProps<{

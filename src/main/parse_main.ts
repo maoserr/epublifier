@@ -2,7 +2,7 @@ import {Chapter, NovelData, NovelMetaData} from "../common/novel_data";
 import * as Parallel from 'async-parallel';
 import browser from "webextension-polyfill";
 import {Ref} from "vue";
-import {SbxCommand, SbxOutStatus, SbxOut} from "../sandboxed/messages";
+import {SbxCommand, SbxOutStatus, SbxOut} from "../common/messages";
 import {SendSandboxCmd, SetupSbxListener} from "../sandboxed/send_message";
 import {ParserResultChap} from "../common/parser_types";
 import {generate_epub} from "../common/epub_generator";

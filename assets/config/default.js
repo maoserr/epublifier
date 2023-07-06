@@ -1,29 +1,27 @@
-const main_def = {
-    main: main_parser,
-    toc_parsers: {
-        'Novel Updates': {
-            func: nu_toc_parser, inputs: {}
-        },
-        'Chapter Links': {
-            func: chap_name_search, inputs: {
-                'Link Regex': {type: 'text', default: '^c.*'},
-                'Query Selector': {type: 'text', default: 'a'}
-            }
-        },
-    }, chap_parsers: {
-        'Default': {func: readability_ex, inputs: {}},
-        'Simple': {func: readability, inputs: {}},
-    }
-}
-
-
 /**
  * Initialization function
  * @returns
  */
 function load() {
     console.debug("Parser loaded.")
-    return main_def
+    return {
+        main: main_parser,
+        toc_parsers: {
+            'Novel Updates': {
+                func: nu_toc_parser, inputs: {}
+            },
+            'Chapter Links': {
+                func: chap_name_search, inputs: {
+                    'Link Regex': {type: 'text', default: '^c.*'},
+                    'Query Selector': {type: 'text', default: 'a'}
+                }
+            },
+        },
+        chap_parsers: {
+            'Default': {func: readability_ex, inputs: {}},
+            'Simple': {func: readability, inputs: {}},
+        }
+    }
 }
 
 /**

@@ -1,4 +1,6 @@
-import {SbxCommand, SbxIn, SbxInRunFunc, SbxOut, SbxOutStatus} from '../sandboxed/messages';
+import {isProbablyReaderable, Readability} from "@mozilla/readability";
+import {SbxCommand, SbxIn, SbxInRunFunc, SbxInRunFuncRes, SbxOut, SbxOutStatus}
+  from '../common/sandbox_types';
 
 let loaded_scripts: Record<string, any> = {}
 
@@ -11,6 +13,7 @@ let loaded_scripts: Record<string, any> = {}
 async function run_func(func_body: string,
                         inputs: any[],
                         res_key?: string): Promise<SbxOut<any>> {
+  inputs.push(get_helpers())
   let res = new Function(func_body)(...inputs)
   let msg = "Function ran."
   if (res_key !== undefined) {
@@ -35,7 +38,8 @@ async function run_func(func_body: string,
  */
 async function run_func_res(res_key: string,
                             subkeys: any[],
-                            inputs: any): Promise<SbxOut<any>> {
+                            inputs: any[]): Promise<SbxOut<any>> {
+  inputs.push(get_helpers())
   let curr_res = loaded_scripts[res_key]
   let msg = "Function ran."
   for (let i in subkeys) {
@@ -49,6 +53,18 @@ async function run_func_res(res_key: string,
     status: SbxOutStatus.Ok,
     message: msg,
     data: res
+  }
+}
+
+/**
+ * Get helper functions
+ */
+function get_helpers() {
+  return {
+    "readability": function (dom: Document) {
+      return new Readability(dom).parse();
+    },
+    "readerable": isProbablyReaderable,
   }
 }
 
@@ -76,17 +92,18 @@ async function window_listener(event: MessageEvent<SbxIn<any>>) {
       return
     }
     let cmd: number = event.data.command
-    let edata: SbxInRunFunc = JSON.parse(event.data.data)
     switch (cmd) {
       case SbxCommand.RunFunc:
-        let res: SbxOut<any>
-        if (edata.body !== undefined) {
-          res = await run_func(edata.body, edata.inputs ?? [], edata.res_key)
-        } else {
-          res = await run_func_res(
-            edata.res_key!, edata.subkeys ?? [], edata.inputs ?? [])
-        }
-        send_reply(event.source!, res)
+        let edata_f: SbxInRunFunc = JSON.parse(event.data.data)
+        const res_func = await run_func(
+          edata_f.body, edata_f.inputs ?? [], edata_f.res_key)
+        send_reply(event.source!, res_func)
+        break;
+      case SbxCommand.RunFuncRes:
+        let edata_fr: SbxInRunFuncRes = JSON.parse(event.data.data)
+        const res_func_res = await run_func_res(
+          edata_fr.res_key, edata_fr.subkeys ?? [], edata_fr.inputs ?? [])
+        send_reply(event.source!, res_func_res)
         break;
       default:
         send_reply(event.source!,

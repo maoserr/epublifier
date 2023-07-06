@@ -1,4 +1,4 @@
-import {SbxOutStatus, SbxOut} from "../sandboxed/messages";
+import {SbxOutStatus, SbxOut} from "../common/messages";
 import {run_chap_parser} from "../common/parser_sbx";
 import {Chapter} from "../common/novel_data";
 import {ParserParams, ParserResultChap} from "../common/parser_types";

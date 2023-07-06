@@ -74,7 +74,7 @@ import browser from "webextension-polyfill";
 import {addSandboxListener} from "./parse_main"
 import {get_parsers_definitions} from "../common/parser_manager";
 import {SendSandboxCmdWReply} from "../sandboxed/send_message";
-import {SbxCommand} from "../sandboxed/messages";
+import {SbxCommand} from "../common/messages";
 
 import {
   meta,

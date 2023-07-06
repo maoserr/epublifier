@@ -1,4 +1,4 @@
-import {SbxOutStatus, SbxOut} from "../sandboxed/messages";
+import {SbxOutStatus, SbxOut} from "./messages";
 import {ParserDocDef, ParserParams, ParserResultChap, ParserResultAuto, ParserResultToc} from "./parser_types";
 import {isProbablyReaderable, Readability} from "@mozilla/readability";
 

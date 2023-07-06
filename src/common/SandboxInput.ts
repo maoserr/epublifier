@@ -1,11 +1,11 @@
 import browser from "webextension-polyfill";
-import {SbxOutStatus, SbxOut, SbxIn} from '../sandboxed/messages';
+import {SbxOutStatus, SbxOut, SbxIn} from './sandbox_types';
 
 /**
  * Class to setup an input pipeline to the sandbox iframe
  */
 export default class SandboxInput {
-  private ifram: HTMLIFrameElement
+  private readonly ifram: HTMLIFrameElement
   private win: Window
 
   constructor(doc: Document, win: Window) {
@@ -60,8 +60,8 @@ export default class SandboxInput {
    * @param data data
    * @constructor
    */
-  async SendSandboxCmdWReply<T>(data: SbxIn<T>): Promise<any> {
-    let res: Promise<any> = new Promise(
+  async SendSandboxCmdWReply<T,S>(data: SbxIn<T>): Promise<SbxOut<S>> {
+    let res: Promise<SbxOut<S>> = new Promise(
       (resolve, reject) => {
         this.SetupSbxListener(reject, resolve, true);
       })
