@@ -76,28 +76,29 @@ export default class ParserManager {
    * Runs the initial page parser
    */
   async run_init_parser(
-    parse_doc: string, parser: string, params: ParserParams
+    params: ParserParams, parse_doc?: string, parser?: string,
   ): Promise<SbxOut<ParserResultInit>> {
     return await this.sandbox.RunInSandbox<SbxInRunFuncRes, ParserResultInit>(
       {
         command: SbxCommand.RunFuncRes,
         data: {
-          res_key: parse_doc,
+          res_key: parse_doc ?? "main",
           inputs: [params.inputs, params.url, params.src],
-          subkeys: ["init_parsers", parser, "func"]
+          subkeys: ["init_parsers", parser ?? "Auto", "func"]
         }
       })
   }
 
-  async run_chap_parser(parse_doc: string, parser: string, params: ParserParams
+  async run_chap_parser(
+    params: ParserParams, parse_doc?: string, parser?: string,
   ): Promise<SbxOut<ParserResultChap>> {
     return await this.sandbox.RunInSandbox<SbxInRunFuncRes, ParserResultChap>(
       {
         command: SbxCommand.RunFuncRes,
         data: {
-          res_key: parse_doc,
+          res_key: parse_doc ?? "main",
           inputs: [params.inputs, params.url, params.src],
-          subkeys: ["chap_parsers", parser, "func"]
+          subkeys: ["chap_parsers", parser ?? "Auto", "func"]
         }
       })
   }

@@ -5,8 +5,10 @@
 function load() {
     console.debug("Parser loaded.")
     return {
-        main: main_parser,
         init_parsers: {
+            'Auto': {
+                func: main_parser, inputs: {}
+            },
             'Novel Updates': {
                 func: nu_toc_parser, inputs: {}
             },
@@ -18,7 +20,7 @@ function load() {
             },
         },
         chap_parsers: {
-            'Default': {func: readability_ex, inputs: {}},
+            'Auto': {func: readability_ex, inputs: {}},
             'Simple': {func: readability, inputs: {}},
         }
     }
@@ -64,18 +66,14 @@ function main_parser(inputs, url, source, helpers) {
     switch (link.hostname) {
         case "www.novelupdates.com":
             if (paths.length > 1 && paths[1] === "series") {
-                return {
-                    parser: "Novel Updates", type: "toc", result: nu_toc_parser(inputs, url, source, helpers)
-                }
+                return nu_toc_parser(inputs, url, source, helpers)
             }
             break;
+        default:
+            return chap_name_search(
+                get_default_vals(main_def.toc_parsers["Chapter Links"]),
+                url, source, helpers)
     }
-    return {
-        parser: "Chapter Links", type: "toc",
-        result: chap_name_search(
-            get_default_vals(main_def.toc_parsers["Chapter Links"]),
-            url, source, helpers)
-    };
 }
 
 

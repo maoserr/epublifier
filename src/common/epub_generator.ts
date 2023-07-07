@@ -29,7 +29,7 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
                     let img_resp = await fetch(img.src)
                     if (img_resp.ok) {
                         let img_dat = await img_resp.blob();
-                        await tsepub.image(img_dat, img_id.toString())
+                        tsepub.image(img_dat, img_id.toString())
                         let sp = html_node.createElement("span")
                         sp.innerText = `{{{ image[${img_id.toString()}] }}}`
                         img.replaceWith(sp)
@@ -41,7 +41,9 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
                 }
             }
             let s_html = s.serializeToString(html_node);
-            let fixed_html = s_html.replaceAll(/{{{/g, "<%=").replaceAll(/}}}/g, "%>")
+            let fixed_html = s_html
+              .replace(/{{{/g, "<%=")
+              .replace(/}}}/g, "%>")
             tsepub.add(
                 nov_data.chapters[i].title,
                 fixed_html

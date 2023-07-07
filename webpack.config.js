@@ -126,11 +126,6 @@ module.exports = (env, argv) => {
         plugins: [
             new VueLoaderPlugin(),
             new HtmlWebpackPlugin({
-                chunks: ['popup'],
-                filename: 'popup.html',
-                template: 'templates/popup.html'
-            }),
-            new HtmlWebpackPlugin({
                 chunks: ['main'],
                 filename: 'main.html',
                 template: 'templates/main.html'
