@@ -1,41 +1,22 @@
-import browser from "webextension-polyfill";
 import SandboxInput from "./SandboxInput";
-import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultInit} from "./parser_types";
-import {SbxCommand, SbxInRunFunc, SbxInRunFuncRes, SbxOut, SbxOutStatus} from "./sandbox_types";
+import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultInit}
+  from "./parser_types";
+import {SbxCommand, SbxInRunFunc, SbxInRunFuncRes, SbxOut, SbxOutStatus}
+  from "./sandbox_types";
+import {Chapter, NovelMetaData} from "./novel_data";
+import {Ref} from "vue";
+import OptionsManager from "./OptionsMan";
+import * as Parallel from "async-parallel";
 
 
 export default class ParserManager {
+  private options: OptionsManager
   private sandbox: SandboxInput
   private parsers: Record<string, ParserLoadResult> = {}
 
   constructor(doc: Document, win: Window) {
+    this.options = OptionsManager.Instance
     this.sandbox = new SandboxInput(doc, win)
-  }
-
-  /**
-   * Get initial parser definition from source
-   * @private
-   */
-  private async get_initial(): Promise<string> {
-    let result = await fetch(
-      browser.runtime.getURL("config/default.js"));
-    return await result.text();
-  }
-
-  /**
-   * Load parser definition string from storage
-   * @private
-   */
-  private async get_parsers_definitions(): Promise<Record<string, string>> {
-    const load_saved = false
-    let config = await browser.storage.local.get("parsers")
-    if (load_saved
-      && config.hasOwnProperty('parsers')
-      && (config["parsers"] != null)) {
-      return JSON.parse(config["parsers"]);
-    } else {
-      return {"main": await this.get_initial()};
-    }
   }
 
   /**
@@ -61,7 +42,8 @@ export default class ParserManager {
    * Load all parser definitions into sandbox
    */
   async load_parsers(): Promise<SbxOut<Record<string, ParserLoadResult>>> {
-    const parser_strs = await this.get_parsers_definitions()
+    const parser_strs =
+      await this.options.get_parsers_definitions()
     for (let k in parser_strs) {
       await this.load_parser(k, parser_strs[k])
     }
@@ -73,7 +55,10 @@ export default class ParserManager {
   }
 
   /**
-   * Runs the initial page parser
+   * Runs initial parser
+   * @param params Parameters for parser
+   * @param parse_doc Parser doc
+   * @param parser Parser
    */
   async run_init_parser(
     params: ParserParams, parse_doc?: string, parser?: string,
@@ -89,6 +74,12 @@ export default class ParserManager {
       })
   }
 
+  /**
+   * Runs chapter parser
+   * @param params Parameters for parser
+   * @param parse_doc Parser doc
+   * @param parser Parser
+   */
   async run_chap_parser(
     params: ParserParams, parse_doc?: string, parser?: string,
   ): Promise<SbxOut<ParserResultChap>> {
@@ -101,5 +92,49 @@ export default class ParserManager {
           subkeys: ["chap_parsers", parser ?? "Auto", "func"]
         }
       })
+  }
+
+  async parser_chaps(chaps_ref: Ref<Chapter[]>,
+                     meta: NovelMetaData,
+                     cancel: Ref<boolean>,
+                     status_txt: Ref<string>,
+                     progress_val: Ref<number>) {
+    const chaps = chaps_ref.value
+    let cnt_slice = 100.0 / chaps.length;
+    progress_val.value = 0;
+    const parse_man = this
+    let extract_chap = async function (id: number) {
+      if (cancel.value) {
+        throw new Error('User cancelled')
+      }
+      if (chaps[id].info.url != "none") {
+        let f_res
+        let f_txt = ''
+        try {
+          f_res = await fetch(chaps[id].info.url);
+          f_txt = await f_res.text();
+        } catch (e) {
+          status_txt.value = "Can't download. Please check permissions in extension page "
+            + "-> permission -> Access your data for all websites"
+          return
+        }
+        chaps[id].html = f_txt;
+        status_txt.value = "Parsing chapter content: " + id;
+        const chap_res =
+          await parse_man.run_chap_parser({
+            inputs: {},
+            url: chaps[id].info.url,
+            src: f_txt
+          }, chaps[id].info.parse_doc, chaps[id].info.parser)
+      }
+      progress_val.value += cnt_slice;
+    }
+    try {
+      await Parallel.each(Array.from(Array(chaps.length).keys()), extract_chap,
+        await this.options.get_option("max_sync_fetch"));
+    } catch (e) {
+      status_txt.value = "Error: " + e
+      console.log(e)
+    }
   }
 }
