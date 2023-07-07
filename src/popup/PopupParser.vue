@@ -8,7 +8,7 @@ import {
   ParserDocDef,
   ParserResultAuto,
   ParserResultChap,
-  ParserResultToc
+  ParserResultInit
 } from "../common/parser_types";
 
 import {parser, status_txt} from "./popup_state";
@@ -24,7 +24,7 @@ const prop = defineProps<{
 const emit = defineEmits<{
   (e: 'reparsed',
    type: 'toc' | 'chap',
-   pres: ParserResultToc | ParserResultChap): void
+   pres: ParserResultInit | ParserResultChap): void
 }>()
 
 watch(() => prop.src, async () => {
@@ -93,7 +93,7 @@ async function reparse(evt: any) {
     status_txt.value = pres.message
     console.log(pres)
     if (curr_parser.type === 'toc') {
-      emit('reparsed', curr_parser.type, pres.data as ParserResultToc)
+      emit('reparsed', curr_parser.type, pres.data as ParserResultInit)
     } else {
       emit('reparsed', curr_parser.type, pres.data as ParserResultChap)
     }

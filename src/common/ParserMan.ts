@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill";
 import SandboxInput from "./SandboxInput";
-import {ParserLoadResult, ParserResultChap, ParserResultToc} from "./parser_types";
+import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultInit} from "./parser_types";
 import {SbxCommand, SbxInRunFunc, SbxInRunFuncRes, SbxOut, SbxOutStatus} from "./sandbox_types";
 
 
@@ -45,7 +45,7 @@ export default class ParserManager {
    */
   async load_parser(key: string, body: string): Promise<string> {
     const res =
-      await this.sandbox.SendSandboxCmdWReply<SbxInRunFunc, ParserLoadResult>(
+      await this.sandbox.RunInSandbox<SbxInRunFunc, ParserLoadResult>(
         {
           command: SbxCommand.RunFuncRes,
           data: {
@@ -76,27 +76,29 @@ export default class ParserManager {
    * Runs the initial page parser
    */
   async run_init_parser(
-    parse_doc: string, parser: string, inputs: any[]
-  ): Promise<SbxOut<ParserResultToc>> {
-    return await this.sandbox.SendSandboxCmdWReply<SbxInRunFuncRes, ParserResultToc>({
-      command: SbxCommand.RunFuncRes,
-      data: {
-        res_key: parse_doc,
-        inputs: inputs,
-        subkeys: ["toc_parsers", parser, "func"]
-      }
-    })
+    parse_doc: string, parser: string, params: ParserParams
+  ): Promise<SbxOut<ParserResultInit>> {
+    return await this.sandbox.RunInSandbox<SbxInRunFuncRes, ParserResultInit>(
+      {
+        command: SbxCommand.RunFuncRes,
+        data: {
+          res_key: parse_doc,
+          inputs: [params.inputs, params.url, params.src],
+          subkeys: ["init_parsers", parser, "func"]
+        }
+      })
   }
 
-  async run_chap_parser(parse_doc: string, parser: string, inputs: any[]
-  ):Promise<SbxOut<ParserResultChap>> {
-    return await this.sandbox.SendSandboxCmdWReply<SbxInRunFuncRes, ParserResultChap>({
-      command: SbxCommand.RunFuncRes,
-      data: {
-        res_key: parse_doc,
-        inputs: inputs,
-        subkeys: ["chap_parsers", parser, "func"]
-      }
-    })
+  async run_chap_parser(parse_doc: string, parser: string, params: ParserParams
+  ): Promise<SbxOut<ParserResultChap>> {
+    return await this.sandbox.RunInSandbox<SbxInRunFuncRes, ParserResultChap>(
+      {
+        command: SbxCommand.RunFuncRes,
+        data: {
+          res_key: parse_doc,
+          inputs: [params.inputs, params.url, params.src],
+          subkeys: ["chap_parsers", parser, "func"]
+        }
+      })
   }
 }

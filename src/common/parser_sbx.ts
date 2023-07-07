@@ -1,5 +1,5 @@
 import {SbxOutStatus, SbxOut} from "./messages";
-import {ParserDocDef, ParserParams, ParserResultChap, ParserResultAuto, ParserResultToc} from "./parser_types";
+import {ParserDocDef, ParserParams, ParserResultChap, ParserResultAuto, ParserResultInit} from "./parser_types";
 import {isProbablyReaderable, Readability} from "@mozilla/readability";
 
 
@@ -85,7 +85,7 @@ export async function load_parsers(data: any): Promise<SbxOut<ParserDocDef[]>> {
 
 export async function run_toc_parser(doc:string,
                                      data:ParserParams,
-                                     parser: string):Promise<ParserResultToc> {
+                                     parser: string):Promise<ParserResultInit> {
     let parsedoc: ParseDoc
     if (doc == 'main') {
         parsedoc = main_parser

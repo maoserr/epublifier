@@ -6,11 +6,13 @@ let loaded_scripts: Record<string, any> = {}
 
 /**
  * Runs function and stores result in key
+ * @param id message id
  * @param func_body Function as string
  * @param inputs Inputs into function as array
  * @param res_key Result key, if storing
  */
-async function run_func(func_body: string,
+async function run_func(id:number,
+                        func_body: string,
                         inputs: any[],
                         res_key?: string): Promise<SbxOut<any>> {
   inputs.push(get_helpers())
@@ -24,6 +26,7 @@ async function run_func(func_body: string,
     msg = res["message"]
   }
   return {
+    sbx_id: id,
     status: SbxOutStatus.Ok,
     message: msg,
     data: res
@@ -32,11 +35,13 @@ async function run_func(func_body: string,
 
 /**
  * Runs a function that was generated from run_func
+ * @param id message id
  * @param res_key Key of the stored result
  * @param subkeys Subkeys inside result
  * @param inputs Inputs into function
  */
-async function run_func_res(res_key: string,
+async function run_func_res(id:number,
+                            res_key: string,
                             subkeys: any[],
                             inputs: any[]): Promise<SbxOut<any>> {
   inputs.push(get_helpers())
@@ -50,6 +55,7 @@ async function run_func_res(res_key: string,
     msg = res["message"]
   }
   return {
+    sbx_id:id,
     status: SbxOutStatus.Ok,
     message: msg,
     data: res
@@ -82,32 +88,32 @@ function send_reply(source: MessageEventSource, reply: SbxOut<any>) {
  * @param event Input event
  */
 async function window_listener(event: MessageEvent<SbxIn<any>>) {
+  if (event.origin !== window.location.origin) {
+    return
+  }
+  if (!("sbx_id" in event.data )){
+    return
+  }
+  let id: number = event.data.sbx_id
   try {
-    if (event.origin !== window.location.origin) {
-      send_reply(event.source!,
-        {
-          status: SbxOutStatus.Error,
-          message: "Invalid origin: " + event.origin
-        })
-      return
-    }
     let cmd: number = event.data.command
     switch (cmd) {
       case SbxCommand.RunFunc:
         let edata_f: SbxInRunFunc = JSON.parse(event.data.data)
         const res_func = await run_func(
-          edata_f.body, edata_f.inputs ?? [], edata_f.res_key)
+          id, edata_f.body, edata_f.inputs ?? [], edata_f.res_key)
         send_reply(event.source!, res_func)
         break;
       case SbxCommand.RunFuncRes:
         let edata_fr: SbxInRunFuncRes = JSON.parse(event.data.data)
         const res_func_res = await run_func_res(
-          edata_fr.res_key, edata_fr.subkeys ?? [], edata_fr.inputs ?? [])
+          id,edata_fr.res_key, edata_fr.subkeys ?? [], edata_fr.inputs ?? [])
         send_reply(event.source!, res_func_res)
         break;
       default:
         send_reply(event.source!,
           {
+            sbx_id: id,
             status: SbxOutStatus.Error,
             message: "Unknown command: " + cmd.toString()
           })
@@ -116,6 +122,7 @@ async function window_listener(event: MessageEvent<SbxIn<any>>) {
   } catch (error) {
     send_reply(event.source!,
       {
+        sbx_id: id,
         status: SbxOutStatus.Error,
         message: ((error instanceof Error) ? error.message : String(error))
       })

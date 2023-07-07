@@ -54,7 +54,7 @@ import {extract_source} from './source_extract'
 import {Chapter, ChapterInfo, NovelMetaData} from "../common/novel_data";
 import {
   ParserResultChap,
-  ParserResultToc
+  ParserResultInit
 } from "../common/parser_types";
 import PopupMeta from "./PopupMeta.vue";
 import PopupChaps from "./PopupChaps.vue";
@@ -71,9 +71,9 @@ const meta = ref({title: 'N/A', description: 'N/A'} as NovelMetaData)
 const chaps = ref([] as Chapter[])
 
 function set_parse_result(type: 'toc' | 'chap',
-                          pres: ParserResultToc | ParserResultChap) {
+                          pres: ParserResultInit | ParserResultChap) {
   if (type === 'toc') {
-    const toc_res = pres as ParserResultToc
+    const toc_res = pres as ParserResultInit
     meta.value = toc_res.meta
     chaps.value = toc_res.chaps.map((x:ChapterInfo)=>{
       return {

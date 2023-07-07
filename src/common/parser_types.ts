@@ -16,28 +16,14 @@ export interface ParserInputDef {
 }
 
 export interface ParserLoadResult {
-  toc_parsers: Record<string, { inputs: Record<string, ParserInputDef> }>
+  init_parsers: Record<string, { inputs: Record<string, ParserInputDef> }>
   chap_parsers: Record<string, { inputs: Record<string, ParserInputDef> }>
-}
-
-export interface ParserDocDef {
-  parse_doc: string;
-  type: "toc" | "chap"
-  parser: string;
-  inputs: Record<string, any>
-}
-
-/**
- * Results from auto parser
- */
-export interface ParserResultAuto extends ParserDocDef {
-  result: ParserResultToc | ParserResultChap
 }
 
 /**
  * Results from running toc parser
  */
-export interface ParserResultToc {
+export interface ParserResultInit {
   chaps: ChapterInfo[];
   message: string,
   meta: NovelMetaData;
@@ -47,7 +33,6 @@ export interface ParserResultToc {
  * Results from running chapter parser
  */
 export interface ParserResultChap {
-  meta?: NovelMetaData
   title?: string;
   html: string;
   message: string;

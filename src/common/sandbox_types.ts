@@ -22,6 +22,7 @@ export interface SbxInRunFuncRes {
  * Sandbox input
  */
 export interface SbxIn<T> {
+  sbx_id?: number
   command: SbxCommand
   data: T
 }
@@ -30,6 +31,7 @@ export interface SbxIn<T> {
  * Sandbox output
  */
 export interface SbxOut<T> {
+  sbx_id?: number
   status: SbxOutStatus
   message: string
   data?: T

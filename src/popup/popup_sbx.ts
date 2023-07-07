@@ -1,12 +1,12 @@
 import {run_auto_parser, run_chap_parser, run_toc_parser} from "../common/parser_sbx";
 import {SbxOutStatus, SbxOut} from "../common/messages";
-import {ParserResultAuto, ParserResultChap, ParserResultToc} from "../common/parser_types";
+import {ParserResultAuto, ParserResultChap, ParserResultInit} from "../common/parser_types";
 
 /**
  * Parse source using parser
  * @param data
  */
-export async function parse_source(data: any): Promise<SbxOut<ParserResultAuto | ParserResultChap | ParserResultToc>> {
+export async function parse_source(data: any): Promise<SbxOut<ParserResultAuto | ParserResultChap | ParserResultInit>> {
     let res
     let msg:string
     if ('doc' in data) {

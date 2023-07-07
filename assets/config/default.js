@@ -6,7 +6,7 @@ function load() {
     console.debug("Parser loaded.")
     return {
         main: main_parser,
-        toc_parsers: {
+        init_parsers: {
             'Novel Updates': {
                 func: nu_toc_parser, inputs: {}
             },
