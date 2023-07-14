@@ -20,7 +20,7 @@ import {compile_epub, parse_chaps} from "./parse_main";
 import MainEditor from "./MainEditor.vue";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
-import {Chapter, ChapterInfo} from "../common/novel_data";
+import {Chapter, ChapterMeta} from "../common/novel_data";
 
 const dt = ref()
 const parse_label = computed(() => {
@@ -97,7 +97,7 @@ function onDelete(event: any) {
 
 function add_new() {
   const new_chap = {
-    info: {title: 'N/A', url: 'N/A', parser: 'Default', parse_doc: 'main'} as ChapterInfo
+    info: {title: 'N/A', url: 'N/A', parser: 'Default', parse_doc: 'main'} as ChapterMeta
       , title: "New Chapter", html: "", html_parsed: ""
   } as Chapter
   chaps.value.push(new_chap)

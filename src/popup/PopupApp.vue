@@ -51,7 +51,7 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 import {onMounted, ref} from 'vue'
 import {setup_main} from './message_main'
 import {extract_source} from './source_extract'
-import {Chapter, ChapterInfo, NovelMetaData} from "../common/novel_data";
+import {Chapter, ChapterMeta, NovelMetaData} from "../common/novel_data";
 import {
   ParserResultChap,
   ParserResultInit
@@ -75,7 +75,7 @@ function set_parse_result(type: 'toc' | 'chap',
   if (type === 'toc') {
     const toc_res = pres as ParserResultInit
     meta.value = toc_res.meta
-    chaps.value = toc_res.chaps.map((x:ChapterInfo)=>{
+    chaps.value = toc_res.chaps.map((x:ChapterMeta)=>{
       return {
         info: {
           title: x.title,

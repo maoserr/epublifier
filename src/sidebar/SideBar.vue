@@ -76,8 +76,12 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
 import {computed, ref} from "vue";
-import {Chapter, ChapterInfo} from "../common/novel_data";
+import {Chapter, ChapterMeta} from "../common/novel_data";
 import {Readability} from "@mozilla/readability";
+import ParserManager from "../common/ParserMan";
+
+const parse_man = new ParserManager(document, window)
+parse_man.load_parsers()
 
 const status_txt = ref<string>('Loading')
 const max_chaps = ref<number>(5)
@@ -106,7 +110,7 @@ window.addEventListener('message', (evt: any) => {
       }
       let text = out?.content ?? ""
       let chap = {
-        info: {title: 'N/A', url: 'N/A', parser: 'Default', parse_doc: 'main'} as ChapterInfo
+        info: {title: 'N/A', url: 'N/A', parser: 'Default', parse_doc: 'main'} as ChapterMeta
         , title: title, html: data.source, html_parsed: text
       } as Chapter
       chaps.value.push(chap)

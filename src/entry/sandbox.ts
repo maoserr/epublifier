@@ -71,6 +71,10 @@ function get_helpers() {
       return new Readability(dom).parse();
     },
     "readerable": isProbablyReaderable,
+    "get_default_vals": function(parser_def) {
+      return Object.fromEntries(Object.entries(parser_def.inputs)
+        .map(([k, v]) => [k, v["default"]]))
+    }
   }
 }
 

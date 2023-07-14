@@ -1,39 +1,31 @@
+const main_def = {
+    init_parsers: {
+        'Auto': {
+            func: main_parser, inputs: {}
+        },
+        'Novel Updates': {
+            func: nu_toc_parser, inputs: {}
+        },
+        'Chapter Links': {
+            func: chap_name_search, inputs: {
+                'Link Regex': {type: 'text', default: '^c.*'},
+                'Query Selector': {type: 'text', default: 'a'}
+            }
+        },
+    },
+    chap_parsers: {
+        'Auto': {func: readability_ex, inputs: {}},
+        'Simple': {func: readability, inputs: {}},
+    }
+}
+
 /**
  * Initialization function
  * @returns
  */
 function load() {
     console.debug("Parser loaded.")
-    return {
-        init_parsers: {
-            'Auto': {
-                func: main_parser, inputs: {}
-            },
-            'Novel Updates': {
-                func: nu_toc_parser, inputs: {}
-            },
-            'Chapter Links': {
-                func: chap_name_search, inputs: {
-                    'Link Regex': {type: 'text', default: '^c.*'},
-                    'Query Selector': {type: 'text', default: 'a'}
-                }
-            },
-        },
-        chap_parsers: {
-            'Auto': {func: readability_ex, inputs: {}},
-            'Simple': {func: readability, inputs: {}},
-        }
-    }
-}
-
-/**
- * Gets default value for a given parser
- * @param parser_def
- * @returns {{[p: string]: undefined}}
- */
-function get_default_vals(parser_def) {
-    return Object.fromEntries(Object.entries(parser_def.inputs)
-        .map(([k, v]) => [k, v.default]))
+    return main_def
 }
 
 /**
@@ -44,8 +36,10 @@ function get_default_vals(parser_def) {
  */
 function page_meta(url, dom) {
     return {
-        title: dom.title ?? "No Title", description: dom.querySelector('meta[name="description"]')?.content,
-        author: "N/A", publisher: new URL(url).hostname
+        title: dom.title ?? "No Title",
+        description: dom.querySelector('meta[name="description"]')?.content,
+        author: "N/A",
+        publisher: new URL(url).hostname
     }
 }
 
@@ -71,7 +65,7 @@ function main_parser(inputs, url, source, helpers) {
             break;
         default:
             return chap_name_search(
-                get_default_vals(main_def.toc_parsers["Chapter Links"]),
+                helpers["get_default_vals"](main_def.init_parsers["Chapter Links"]),
                 url, source, helpers)
     }
 }
@@ -104,17 +98,24 @@ function nu_toc_parser(inputs, url, source, helpers) {
         chap_lis.forEach((element) => {
             if (element.href.includes("extnu")) {
                 chaps.unshift({
-                    title: element.innerText.trim(),
-                    url: helpers["link_fixer"](element.href, url),
-                    parser: 'Default'
+                    info: {
+                        title: element.innerText.trim(),
+                        url: element.href
+                    }
                 });
             }
         });
-        if (chaps.length > 0) parser_msg = 'Page parsed as Novel Update Series (' + chaps.length + ' chapters)'
+        if (chaps.length > 0) {
+            parser_msg = 'Page parsed as Novel Update Series (' + chaps.length + ' chapters)'
+        }
     }
     return {
         chaps: chaps, message: parser_msg, meta: {
-            title: tit, description: desc, author: auth, cover: img.src, publisher: "Novel Update"
+            title: tit,
+            description: desc,
+            author: auth,
+            cover: img.src,
+            publisher: "Novel Update"
         }
     };
 }
@@ -160,8 +161,9 @@ function readability(inputs, url, source, helpers) {
     let out = helpers["readability"](dom);
     // Generic parser
     return {
-        title: out.title, html: out.content, message: "Parsed simple chapter",
-        meta: page_meta(url, dom)
+        title: out.title,
+        html: out.content,
+        message: "Parsed simple chapter"
     };
 }
 
@@ -187,8 +189,9 @@ async function readability_ex(inputs, url, source, helpers) {
         console.log("Readable");
         let out = helpers["readability"](dom);
         return {
-            title: out.title, html: out.content, message: "Parsed normal chapter.",
-            meta: page_meta(url, dom)
+            title: out.title,
+            html: out.content,
+            message: "Parsed normal chapter.",
         };
     } else if (main_cont != null) {
         console.log("Checking for intro page/subchapt");
@@ -209,8 +212,9 @@ async function readability_ex(inputs, url, source, helpers) {
         dom = parser.parseFromString(r_txt, "text/html");
         let out = helpers["readability"](dom);
         return {
-            title: out.title, html: out.content, message: "Parsed redirected chapter",
-            meta: page_meta(url, dom)
+            title: out.title,
+            html: out.content,
+            message: "Parsed redirected chapter",
         };
     } else if (subchaps.length > 0) {
         let html = "";
@@ -227,14 +231,16 @@ async function readability_ex(inputs, url, source, helpers) {
             html += "<h1>" + out.title + "</h1>" + out.content
         }
         return {
-            title: title, html: html, message: "Parsed sub chapters",
-            meta: page_meta(url, dom)
+            title: title,
+            html: html,
+            message: "Parsed sub chapters",
         };
     }
     let out = helpers["readability"](dom);
     return {
-        title: out.title, html: out.content, message: "Parsed short chapter",
-        meta: page_meta(url, dom)
+        title: out.title,
+        html: out.content,
+        message: "Parsed short chapter",
     };
 }
 

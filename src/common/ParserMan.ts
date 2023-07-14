@@ -99,38 +99,41 @@ export default class ParserManager {
                      cancel: Ref<boolean>,
                      status_txt: Ref<string>,
                      progress_val: Ref<number>) {
-    const chaps = chaps_ref.value
-    let cnt_slice = 100.0 / chaps.length;
+
+    let cnt_slice = 100.0 / chaps_ref.value.length;
     progress_val.value = 0;
     const parse_man = this
     let extract_chap = async function (id: number) {
       if (cancel.value) {
         throw new Error('User cancelled')
       }
-      if (chaps[id].info.url != "none") {
+      if (chaps_ref.value[id].html_parsed)
+      if (chaps_ref.value[id].info.url !== undefined) {
         let f_res
         let f_txt = ''
         try {
-          f_res = await fetch(chaps[id].info.url);
+          f_res = await fetch(chaps_ref.value[id].info.url);
           f_txt = await f_res.text();
         } catch (e) {
           status_txt.value = "Can't download. Please check permissions in extension page "
             + "-> permission -> Access your data for all websites"
           return
         }
-        chaps[id].html = f_txt;
+        chaps_ref.value[id].html = f_txt;
         status_txt.value = "Parsing chapter content: " + id;
         const chap_res =
           await parse_man.run_chap_parser({
             inputs: {},
-            url: chaps[id].info.url,
+            url: chaps_ref.value[id].info.url,
             src: f_txt
-          }, chaps[id].info.parse_doc, chaps[id].info.parser)
+          }, chaps_ref.value[id].info.parse_doc, chaps_ref.value[id].info.parser)
+        chaps_ref.value[id].html_parsed = chap_res.data?.html
+        chaps_ref.value[id].title = chap_res.data?.title
       }
       progress_val.value += cnt_slice;
     }
     try {
-      await Parallel.each(Array.from(Array(chaps.length).keys()), extract_chap,
+      await Parallel.each(Array.from(Array(chaps_ref.value.length).keys()), extract_chap,
         await this.options.get_option("max_sync_fetch"));
     } catch (e) {
       status_txt.value = "Error: " + e

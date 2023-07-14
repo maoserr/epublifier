@@ -6,7 +6,7 @@ export interface NovelMetaData {
     publisher?: string
 }
 
-export interface ChapterInfo {
+export interface ChapterMeta {
     title: string;
     url: string;
     parser: string;
@@ -14,7 +14,7 @@ export interface ChapterInfo {
 }
 
 export interface Chapter {
-    info: ChapterInfo
+    info: ChapterMeta
     title: string;
     html: string;
     html_parsed: string;
