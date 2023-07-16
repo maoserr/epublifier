@@ -1,6 +1,4 @@
 import browser from "webextension-polyfill";
-import {onLoadGetChapters} from "./sidebar_parsing";
-import {Chapter, NovelMetaData} from "../common/novel_data";
 import {msg_func} from "./sidebar_msgs";
 
 let baseMouseX: any, baseMouseY: any
@@ -8,7 +6,6 @@ let frameTop = 0
 let frameLeft = 0
 let cont: HTMLDivElement
 export let iframe: HTMLIFrameElement
-export let meta:NovelMetaData
 
 function handleDragStart(evt: any) {
 
@@ -38,9 +35,6 @@ function close() {
 
 export async function add_float_window(sb_id:string) {
     const src = browser.runtime.getURL('sidebar.html')
-    const [chaps, meta_res]:[Chapter[],NovelMetaData] =
-        await onLoadGetChapters()
-    meta = meta_res
     cont = document.createElement('div')
     cont.id = sb_id
     cont.style.all = "initial"
@@ -65,7 +59,7 @@ export async function add_float_window(sb_id:string) {
     titlebar.style.height = "40px";
     titlebar.style.color = "black";
     titlebar.style.padding = "5px";
-    titlebar.textContent = meta.title?.slice(0,60);
+    titlebar.textContent = "" // meta.title?.slice(0,60);
     cont.appendChild(titlebar);
     let closebtn = document.createElement('div')
     closebtn.style.float = "right";
