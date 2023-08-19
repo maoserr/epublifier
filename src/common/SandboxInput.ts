@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import {SbxOutStatus, SbxOut, SbxIn} from './sandbox_types';
+import {SbxOutStatus, SbxOut, SbxIn, SbxInInternal} from './sandbox_types';
 
 /**
  * Class to setup an input pipeline to the sandbox iframe
@@ -27,7 +27,7 @@ export default class SandboxInput {
    * @param data Data
    * @constructor
    */
-  private send_sandbox_cmd<T>(data: SbxIn<T>): void {
+  private send_sandbox_cmd<T>(data: SbxInInternal<T>): void {
     this.ifram.contentWindow!.postMessage(JSON.stringify(data),
       '*' as WindowPostMessageOptions)
   }
@@ -46,7 +46,7 @@ export default class SandboxInput {
         if (!("sbx_id" in event.data )){
           return
         }
-        let id: number = event.data.sbx_id
+        let id: number = event.data.sbx_id as number
         const err_func = this.inputs[id].reject
         const success_func = this.inputs[id].resolve
         delete this.inputs[id]
@@ -70,8 +70,9 @@ export default class SandboxInput {
       (resolve, reject) => {
         this.inputs[this.curr_id] = {resolve: resolve, reject: reject}
       })
-    data.sbx_id = this.curr_id
-    this.send_sandbox_cmd(data);
+    const internal_data = data as SbxInInternal<T>
+    internal_data["sbx_id"] = this.curr_id
+    this.send_sandbox_cmd(internal_data);
     this.curr_id++;
     return res
   }

@@ -1,6 +1,14 @@
 import {isProbablyReaderable, Readability} from "@mozilla/readability";
-import {SbxCommand, SbxIn, SbxInRunFunc, SbxInRunFuncRes, SbxOut, SbxOutStatus}
+import {
+  SbxCommand,
+  SbxInInternal,
+  SbxOutInternal,
+  SbxInRunFunc,
+  SbxInRunFuncRes,
+  SbxOutStatus
+}
   from '../common/sandbox_types';
+import {ParserParams} from "../common/parser_types";
 
 let loaded_scripts: Record<string, any> = {}
 
@@ -11,10 +19,10 @@ let loaded_scripts: Record<string, any> = {}
  * @param inputs Inputs into function as array
  * @param res_key Result key, if storing
  */
-async function run_func(id:number,
+async function run_func(id: number,
                         func_body: string,
                         inputs: any[],
-                        res_key?: string): Promise<SbxOut<any>> {
+                        res_key?: string): Promise<SbxOutInternal<any>> {
   inputs.push(get_helpers())
   let res = new Function(func_body)(...inputs)
   let msg = "Function ran."
@@ -40,10 +48,10 @@ async function run_func(id:number,
  * @param subkeys Subkeys inside result
  * @param inputs Inputs into function
  */
-async function run_func_res(id:number,
+async function run_func_res(id: number,
                             res_key: string,
                             subkeys: any[],
-                            inputs: any[]): Promise<SbxOut<any>> {
+                            inputs: any[]): Promise<SbxOutInternal<any>> {
   inputs.push(get_helpers())
   let curr_res = loaded_scripts[res_key]
   let msg = "Function ran."
@@ -55,7 +63,7 @@ async function run_func_res(id:number,
     msg = res["message"]
   }
   return {
-    sbx_id:id,
+    sbx_id: id,
     status: SbxOutStatus.Ok,
     message: msg,
     data: res
@@ -71,7 +79,7 @@ function get_helpers() {
       return new Readability(dom).parse();
     },
     "readerable": isProbablyReaderable,
-    "get_default_vals": function(parser_def) {
+    "get_default_vals": function (parser_def:ParserParams) {
       return Object.fromEntries(Object.entries(parser_def.inputs)
         .map(([k, v]) => [k, v["default"]]))
     }
@@ -83,7 +91,7 @@ function get_helpers() {
  * @param source Msg source
  * @param reply Reply
  */
-function send_reply(source: MessageEventSource, reply: SbxOut<any>) {
+function send_reply(source: MessageEventSource, reply: SbxOutInternal<any>) {
   source.postMessage(reply, "*" as WindowPostMessageOptions);
 }
 
@@ -91,11 +99,11 @@ function send_reply(source: MessageEventSource, reply: SbxOut<any>) {
  * Main sandbox listener function
  * @param event Input event
  */
-async function window_listener(event: MessageEvent<SbxIn<any>>) {
+async function window_listener(event: MessageEvent<SbxInInternal<any>>) {
   if (event.origin !== window.location.origin) {
     return
   }
-  if (!("sbx_id" in event.data )){
+  if (!("sbx_id" in event.data)) {
     return
   }
   let id: number = event.data.sbx_id
@@ -111,7 +119,7 @@ async function window_listener(event: MessageEvent<SbxIn<any>>) {
       case SbxCommand.RunFuncRes:
         let edata_fr: SbxInRunFuncRes = JSON.parse(event.data.data)
         const res_func_res = await run_func_res(
-          id,edata_fr.res_key, edata_fr.subkeys ?? [], edata_fr.inputs ?? [])
+          id, edata_fr.res_key, edata_fr.subkeys ?? [], edata_fr.inputs ?? [])
         send_reply(event.source!, res_func_res)
         break;
       default:

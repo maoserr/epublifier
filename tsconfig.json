@@ -14,6 +14,7 @@
   "exclude": [
     "./node_modules/",
     "./test/",
+    "./old/",
     "./int_tests/"
   ]
 }

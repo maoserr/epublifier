@@ -34,7 +34,7 @@ export default class ParserManager {
             res_key: key
           }
         })
-    this.parsers[key] = res.data
+    this.parsers[key] = (res.data as ParserLoadResult)
     return res.message
   }
 
@@ -127,8 +127,8 @@ export default class ParserManager {
             url: chaps_ref.value[id].info.url,
             src: f_txt
           }, chaps_ref.value[id].info.parse_doc, chaps_ref.value[id].info.parser)
-        chaps_ref.value[id].html_parsed = chap_res.data?.html
-        chaps_ref.value[id].title = chap_res.data?.title
+        chaps_ref.value[id].html_parsed = chap_res.data?.html ?? ""
+        chaps_ref.value[id].title = chap_res.data?.title ?? ""
       }
       progress_val.value += cnt_slice;
     }

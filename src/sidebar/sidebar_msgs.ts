@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import {iframe, meta} from "./sidebar_win";
+import {iframe} from "./sidebar_win";
 
 export async function msg_func(evt: any) {
     const data = evt.data

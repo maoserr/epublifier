@@ -126,11 +126,6 @@ module.exports = (env, argv) => {
         plugins: [
             new VueLoaderPlugin(),
             new HtmlWebpackPlugin({
-                chunks: ['main'],
-                filename: 'main.html',
-                template: 'templates/main.html'
-            }),
-            new HtmlWebpackPlugin({
                 chunks: ['sandbox'],
                 filename: 'sandbox.html',
                 template: 'templates/sandbox.html'

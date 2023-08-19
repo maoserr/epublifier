@@ -13,6 +13,7 @@ export default class DocumentManager {
 
   constructor(doc: Document) {
     this.doc = doc
+    this.overlay = (doc.getElementById('overlay') as HTMLDivElement)
   }
 
   get_next_move(e: any) {

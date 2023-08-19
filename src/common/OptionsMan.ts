@@ -7,14 +7,16 @@ interface Options {
 
 export default class OptionsManager {
   private static _instance: OptionsManager;
-  options: Options
+  options?: Options
 
   private constructor() {
-
   }
 
   static get Instance() {
-    return this._instance || (this._instance = new this());
+    if (!this._instance){
+      this._instance = new this()
+    }
+    return this._instance;
   }
 
   async get_option<T>(name:keyof Options):Promise<T>{
