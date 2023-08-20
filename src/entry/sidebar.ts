@@ -1,5 +1,5 @@
 import {createApp} from 'vue'
-import App from "../sidebar/SideBar.vue"
+import App from "../pages/sidebar/SideBar.vue"
 import PrimeVue from "primevue/config";
 import Tooltip from 'primevue/tooltip';
 

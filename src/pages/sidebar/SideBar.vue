@@ -76,9 +76,9 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
 import {computed, ref} from "vue";
-import {Chapter, ChapterMeta} from "../common/novel_data";
+import {Chapter, ChapterMeta} from "../../services/novel/novel_data";
 import {Readability} from "@mozilla/readability";
-import ParserManager from "../common/ParserMan";
+import ParserManager from "../../services/scraping/ParserMan";
 
 const parse_man = new ParserManager(document, window)
 parse_man.load_parsers()

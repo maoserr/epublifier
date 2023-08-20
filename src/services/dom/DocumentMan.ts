@@ -1,4 +1,4 @@
-import {reply_func} from "../sidebar/sidebar_msgs";
+import {reply_func} from "../../pages/sidebar/sidebar_msgs";
 
 export default class DocumentManager {
   private readonly doc: Document

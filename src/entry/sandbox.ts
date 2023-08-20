@@ -7,8 +7,8 @@ import {
   SbxInRunFuncRes,
   SbxOutStatus
 }
-  from '../common/sandbox_types';
-import {ParserParams} from "../common/parser_types";
+  from '../services/sandbox/sandbox_types';
+import {ParserParams} from "../services/scraping/parser_types";
 
 let loaded_scripts: Record<string, any> = {}
 

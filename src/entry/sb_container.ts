@@ -1,4 +1,4 @@
-import {add_float_window} from "../sidebar/sidebar_win";
+import {add_float_window} from "../pages/sidebar/sidebar_win";
 
 const sb_id = "epublifier_sidebar"
 let prev_cont = document.getElementById(sb_id)

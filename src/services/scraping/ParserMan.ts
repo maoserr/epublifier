@@ -1,11 +1,11 @@
-import SandboxInput from "./SandboxInput";
+import SandboxInput from "../sandbox/SandboxInput";
 import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultInit}
   from "./parser_types";
 import {SbxCommand, SbxInRunFunc, SbxInRunFuncRes, SbxOut, SbxOutStatus}
-  from "./sandbox_types";
-import {Chapter, NovelMetaData} from "./novel_data";
+  from "../sandbox/sandbox_types";
+import {Chapter, NovelMetaData} from ".././novel/novel_data";
 import {Ref} from "vue";
-import OptionsManager from "./OptionsMan";
+import OptionsManager from "../common/OptionsMan";
 import * as Parallel from "async-parallel";
 
 

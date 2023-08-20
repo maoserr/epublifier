@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import MyApp from "../options/OptionsApp.vue";
+import MyApp from "../pages/options/OptionsApp.vue";
 import PrimeVue from 'primevue/config';
 
 const app = createApp(MyApp);
