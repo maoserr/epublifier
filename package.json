@@ -37,7 +37,7 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
-    "@codemirror/lang-javascript": "^6.1.9",
+    "@codemirror/lang-javascript": "^6.2.1",
     "@vueuse/core": "^10.4.0",
     "async-parallel": "^1.2.3",
     "buffer": "^6.0.3",
