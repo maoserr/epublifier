@@ -25,15 +25,17 @@ export default class ParserManager {
    * @param body
    */
   async load_parser(key: string, body: string): Promise<string> {
+    const func_in: SbxInRunFunc = {
+      body: body + "\nreturn load()",
+      res_key: key
+    }
     const res =
       await this.sandbox.RunInSandbox<SbxInRunFunc, ParserLoadResult>(
         {
-          command: SbxCommand.RunFuncRes,
-          data: {
-            body: body + "\nreturn load()",
-            res_key: key
-          }
+          command: SbxCommand.RunFunc,
+          data: func_in
         })
+    console.info("Parse Load", res)
     this.parsers[key] = (res.data as ParserLoadResult)
     return res.message
   }

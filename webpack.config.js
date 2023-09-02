@@ -26,7 +26,7 @@ function modify_manifest(buffer, browser_type, version, mode) {
         default_title: manifest.name
     }
     manifest.web_accessible_resources = [{
-        resources: ["js/*.js", "js/*.map",
+        resources: ["js/*.js", "js/*.map","css/*.css",
             "*.woff", "*.woff2", "*.ttf", "sidebar.html", "sandbox.html"],
         matches: ["<all_urls>"]
     }]

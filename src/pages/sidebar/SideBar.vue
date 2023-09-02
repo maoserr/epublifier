@@ -5,7 +5,7 @@
       <Toolbar>
         <template #start>
           <Button label="Pick Next" @click="pick_next" class="mr-2"
-                       v-tooltip="'Select the next chapter link/button for auto progression'"/>
+                  v-tooltip="'Select the next chapter link/button for auto progression'"/>
           <Button label="Pick Title" @click="pick_title" class="mr-2"
                   v-tooltip="'Select the title element, otherwise auto-detect'"/>
           <Checkbox v-model="scroll" :binary="true"
@@ -75,13 +75,12 @@ import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
-import {computed, ref} from "vue";
+import {onMounted, computed, ref} from "vue";
 import {Chapter, ChapterMeta} from "../../services/novel/novel_data";
 import {Readability} from "@mozilla/readability";
 import ParserManager from "../../services/scraping/ParserMan";
 
 const parse_man = new ParserManager(document, window)
-parse_man.load_parsers()
 
 const status_txt = ref<string>('Loading')
 const max_chaps = ref<number>(5)
@@ -96,6 +95,18 @@ const text = computed(() => {
 const chaps = ref<Chapter[]>([])
 const selected_chaps = ref<Chapter[]>([])
 const logmsgs = ref<string>("")
+
+onMounted(async () => {
+  await parse_man.load_parsers()
+  const init_res = parse_man.run_init_parser(
+      {
+        inputs: {},
+        url: window.location.href,
+        src: (new XMLSerializer()).serializeToString(document)
+      }
+  )
+  console.log(init_res)
+})
 
 window.addEventListener('message', (evt: any) => {
   const data = evt.data
@@ -157,16 +168,3 @@ function load_main(evt: any) {
   }, '*' as WindowPostMessageOptions)
 }
 </script>
-
-<style>
-html {
-  font-size: 14px;
-  padding: .5rem;
-}
-
-body {
-  font-size: 14px;
-  color: var(--text-color);
-  background-color: var(--surface-card);
-}
-</style>

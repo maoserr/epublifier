@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import {SbxOutStatus, SbxOut, SbxIn, SbxInInternal} from './sandbox_types';
+import {SbxOutStatus, SbxOut, SbxIn, SbxInInternal, SbxOutInternal} from './sandbox_types';
 
 /**
  * Class to setup an input pipeline to the sandbox iframe
@@ -38,25 +38,28 @@ export default class SandboxInput {
    */
   private setup_sbx_listener() {
     this.win.addEventListener('message',
-      (event: MessageEvent<SbxOut<any>>) => {
+      (event: MessageEvent<string>) => {
         if (event.origin !== "null") {
           // Not from sandbox
           return
         }
-        if (!("sbx_id" in event.data )){
+        const data: SbxOutInternal<any> = JSON.parse(event.data)
+        console.info("Sandbox Reply", data)
+        if (!("sbx_id" in data)) {
           return
         }
-        let id: number = event.data.sbx_id as number
+        let id: number = data.sbx_id
         const err_func = this.inputs[id].reject
         const success_func = this.inputs[id].resolve
         delete this.inputs[id]
         if (!("data" in event))
           return err_func("No data")
-        if (!("status" in event.data))
+        if (!("status" in data.sbx_out))
           return err_func("No status")
-        if (event.data.status == SbxOutStatus.Error)
-          return err_func(event.data.message)
-        return success_func(event.data);
+        if (data.sbx_out.status == SbxOutStatus.Error)
+          return err_func(data.sbx_out.message)
+        console.info("Sandbox success", data)
+        return success_func(data);
       })
   }
 
@@ -70,7 +73,10 @@ export default class SandboxInput {
       (resolve, reject) => {
         this.inputs[this.curr_id] = {resolve: resolve, reject: reject}
       })
-    const internal_data = data as SbxInInternal<T>
+    const internal_data: SbxInInternal<T> = {
+      sbx_id: this.curr_id,
+      sbx_in: data
+    }
     internal_data["sbx_id"] = this.curr_id
     this.send_sandbox_cmd(internal_data);
     this.curr_id++;

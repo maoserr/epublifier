@@ -26,14 +26,25 @@ export interface SbxIn<T> {
   data: T
 }
 
+export interface SbxInInternal<T> {
+  sbx_id: number
+  sbx_in: SbxIn<T>
+}
+
 /**
  * Sandbox output
  */
 export interface SbxOut<T> {
   status: SbxOutStatus
   message: string
-  data: T
+  data?: T
 }
+
+export interface SbxOutInternal<T> {
+  sbx_id: number
+  sbx_out: SbxOut<T>
+}
+
 
 /**
  * Sandbox output status
@@ -43,13 +54,5 @@ export enum SbxOutStatus {
   Ok,
 }
 
-export interface SbxInInternal<T> extends SbxIn<T> {
-  sbx_id: number
-}
 
-export interface SbxOutInternal<T>{
-  sbx_id: number
-  status: SbxOutStatus
-  message: string
-  data?: T
-}
+

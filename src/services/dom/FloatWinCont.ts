@@ -1,7 +1,7 @@
 import {
   set_float_win_style,
   set_titlebar_style,
-  set_closebtn_style
+  set_closebtn_style, set_iframe_style
 } from "./behaviors/styles"
 import MovableWin from "./behaviors/MovableWin";
 
@@ -12,6 +12,7 @@ export default class FloatWinCont {
   constructor(doc: Document, src: string) {
     let prev_cont = doc.getElementById(src)
     if (prev_cont === null) {
+      console.info("Creating new sidebar")
       this.cont = doc.createElement('div')
       this.cont.id = src
       set_float_win_style(this.cont)
@@ -30,12 +31,14 @@ export default class FloatWinCont {
 
       const iframe = doc.createElement('iframe');
       iframe.id = "iframe"
+      set_iframe_style(iframe)
       this.cont.appendChild(iframe);
 
       new MovableWin(doc, this.cont, titlebar)
 
       setTimeout(()=> iframe.src = src, 0)
     } else {
+      console.info("Showing already loaded.")
       this.cont = prev_cont as HTMLDivElement
       set_float_win_style(this.cont)
     }

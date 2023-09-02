@@ -137,7 +137,7 @@ function chap_name_search(inputs, url, source, helpers) {
     ancs.forEach((element) => {
         if (chap_reg.test(element.innerText)) {
             chaps.push({
-                title: element.innerText, url: helpers["link_fixer"](element.href, url), parser: 'Default'
+                title: element.innerText, url: element.href, parser: 'Default'
             });
         }
     });
@@ -199,10 +199,10 @@ async function readability_ex(inputs, url, source, helpers) {
         ancs.forEach((element) => {
             if (RegExp(/click here to read|read here|continue reading/i).test(element.innerText)) {
                 console.log("Intro page found");
-                new_link = helpers["link_fixer"](element.href, url);
+                new_link = element.href;
             } else if (RegExp(/^chapter|^part/i).test(element.innerText)) {
                 console.log("Subchapters found");
-                subchaps.push(helpers["link_fixer"](element.href, url))
+                subchaps.push(element.href)
             }
         });
     }
