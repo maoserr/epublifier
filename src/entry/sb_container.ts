@@ -1,9 +1,6 @@
-import {add_float_window} from "../pages/sidebar/sidebar_win";
+import FloatWinCont from "../services/dom/FloatWinCont";
+import browser from "webextension-polyfill";
 
-const sb_id = "epublifier_sidebar"
-let prev_cont = document.getElementById(sb_id)
-if (prev_cont === null) {
-    add_float_window(sb_id).then()
-} else {
-    prev_cont.style.display = "block"
-}
+const src = browser.runtime.getURL('sidebar.html')
+
+new FloatWinCont(document, src)

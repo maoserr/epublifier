@@ -99,11 +99,12 @@ function send_reply(source: MessageEventSource, reply: SbxOutInternal<any>) {
  * Main sandbox listener function
  * @param event Input event
  */
-async function window_listener(event: MessageEvent<SbxInInternal<any>>) {
+async function window_listener(event: MessageEvent<any>) {
   if (event.origin !== window.location.origin) {
     return
   }
-  if (!("sbx_id" in event.data)) {
+  const data: SbxInInternal<any> = JSON.parse(event.data)
+  if (!("sbx_id" in data)) {
     return
   }
   let id: number = event.data.sbx_id

@@ -1,7 +1,11 @@
 
 export function set_float_win_style(cont:HTMLDivElement) {
   cont.style.all = "initial"
-  cont.style.display = "flex";
+  if (cont.style.display == "flex") {
+    cont.style.display = "none"
+  } else {
+    cont.style.display = "flex";
+  }
   cont.style.flexDirection = "column";
   cont.style.margin = "0";
   cont.style.padding = "0";
@@ -10,8 +14,8 @@ export function set_float_win_style(cont:HTMLDivElement) {
   cont.style.height = "600px";
   cont.style.width = "600px";
   cont.style.position = "fixed";
-  cont.style.top = "0px";
-  cont.style.right = "0px";
+  cont.style.top = "20px";
+  cont.style.left = "20px";
   cont.style.zIndex = "9000000000000000000";
   cont.style.background = "#D3D3D3";
   cont.style.borderRadius = "5px";

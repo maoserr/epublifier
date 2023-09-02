@@ -12,10 +12,14 @@ export default class MovableWin {
 
   constructor(doc: Document,
               cont: HTMLDivElement,
-              draggable: HTMLDivElement) {
+              draggable: HTMLDivElement,
+              enable = true) {
     this.doc = doc
     this.cont = cont
     this.draggable = draggable
+    if (enable) {
+      this.enable()
+    }
   }
   enable() {
     this.draggable.addEventListener('mousedown', this.evt_handleDragStart)
