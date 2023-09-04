@@ -1,8 +1,8 @@
-import SandboxInput from "../sandbox/SandboxInput";
+import SandboxInput from ".././messaging/SandboxInput";
 import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultInit}
   from "./parser_types";
-import {SbxCommand, SbxInRunFunc, SbxInRunFuncRes, SbxOut, SbxOutStatus}
-  from "../sandbox/sandbox_types";
+import {MsgCommand, SbxInRunFunc, SbxInRunFuncRes, MsgOut, MsgOutStatus}
+  from ".././messaging/msg_types";
 import {Chapter, NovelMetaData} from ".././novel/novel_data";
 import {Ref} from "vue";
 import OptionsManager from "../common/OptionsMan";
@@ -30,9 +30,9 @@ export default class ParserManager {
       res_key: key
     }
     const res =
-      await this.sandbox.RunInSandbox<SbxInRunFunc, ParserLoadResult>(
+      await this.sandbox.run_in_sandbox<SbxInRunFunc, ParserLoadResult>(
         {
-          command: SbxCommand.RunFunc,
+          command: MsgCommand.SbxRunFunc,
           data: func_in
         })
     console.info("Parse Load", res)
@@ -43,14 +43,14 @@ export default class ParserManager {
   /**
    * Load all parser definitions into sandbox
    */
-  async load_parsers(): Promise<SbxOut<Record<string, ParserLoadResult>>> {
+  async load_parsers(): Promise<MsgOut<Record<string, ParserLoadResult>>> {
     const parser_strs =
       await this.options.get_parsers_definitions()
     for (let k in parser_strs) {
       await this.load_parser(k, parser_strs[k])
     }
     return Promise.resolve({
-      status: SbxOutStatus.Ok,
+      status: MsgOutStatus.Ok,
       message: 'Loaded',
       data: this.parsers
     })
@@ -64,10 +64,10 @@ export default class ParserManager {
    */
   async run_init_parser(
     params: ParserParams, parse_doc?: string, parser?: string,
-  ): Promise<SbxOut<ParserResultInit>> {
-    return await this.sandbox.RunInSandbox<SbxInRunFuncRes, ParserResultInit>(
+  ): Promise<MsgOut<ParserResultInit>> {
+    return await this.sandbox.run_in_sandbox<SbxInRunFuncRes, ParserResultInit>(
       {
-        command: SbxCommand.RunFuncRes,
+        command: MsgCommand.SbxRunFuncRes,
         data: {
           res_key: parse_doc ?? "main",
           inputs: [params.inputs, params.url, params.src],
@@ -84,10 +84,10 @@ export default class ParserManager {
    */
   async run_chap_parser(
     params: ParserParams, parse_doc?: string, parser?: string,
-  ): Promise<SbxOut<ParserResultChap>> {
-    return await this.sandbox.RunInSandbox<SbxInRunFuncRes, ParserResultChap>(
+  ): Promise<MsgOut<ParserResultChap>> {
+    return await this.sandbox.run_in_sandbox<SbxInRunFuncRes, ParserResultChap>(
       {
-        command: SbxCommand.RunFuncRes,
+        command: MsgCommand.SbxRunFuncRes,
         data: {
           res_key: parse_doc ?? "main",
           inputs: [params.inputs, params.url, params.src],

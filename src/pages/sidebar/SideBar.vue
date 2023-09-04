@@ -98,13 +98,14 @@ const logmsgs = ref<string>("")
 
 onMounted(async () => {
   await parse_man.load_parsers()
-  const init_res = parse_man.run_init_parser(
+  const init_res = await parse_man.run_init_parser(
       {
         inputs: {},
         url: window.location.href,
         src: (new XMLSerializer()).serializeToString(document)
       }
   )
+  status_txt.value = init_res.message
   console.log(init_res)
 })
 

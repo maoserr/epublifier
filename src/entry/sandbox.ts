@@ -1,15 +1,13 @@
 import {isProbablyReaderable, Readability} from "@mozilla/readability";
 import {
-  SbxCommand,
-  SbxInInternal,
-  SbxOut,
-  SbxOutInternal,
+  MsgCommand,
+  MsgOut,
   SbxInRunFunc,
   SbxInRunFuncRes,
-  SbxOutStatus
-}
-  from '../services/sandbox/sandbox_types';
+  MsgOutStatus
+} from '../services/messaging/msg_types';
 import {ParserParams} from "../services/scraping/parser_types";
+import MsgReceiver from "../services/messaging/MsgReceiver";
 
 let loaded_scripts: Record<string, any> = {}
 
@@ -21,7 +19,7 @@ let loaded_scripts: Record<string, any> = {}
  */
 async function run_func(func_body: string,
                         inputs: any[],
-                        res_key?: string): Promise<SbxOut<any>> {
+                        res_key?: string): Promise<MsgOut<any>> {
   inputs.push(get_helpers())
   let res = new Function(func_body)(...inputs)
   let msg = "Function ran."
@@ -33,7 +31,7 @@ async function run_func(func_body: string,
     msg = res["message"]
   }
   return {
-    status: SbxOutStatus.Ok,
+    status: MsgOutStatus.Ok,
     message: msg,
     data: res
   }
@@ -47,7 +45,7 @@ async function run_func(func_body: string,
  */
 async function run_func_res(res_key: string,
                             subkeys: any[],
-                            inputs: any[]): Promise<SbxOut<any>> {
+                            inputs: any[]): Promise<MsgOut<any>> {
   inputs.push(get_helpers())
   let curr_res = loaded_scripts[res_key]
   let msg = "Function ran."
@@ -59,7 +57,7 @@ async function run_func_res(res_key: string,
     msg = res["message"]
   }
   return {
-    status: SbxOutStatus.Ok,
+    status: MsgOutStatus.Ok,
     message: msg,
     data: res
   }
@@ -81,65 +79,22 @@ function get_helpers() {
   }
 }
 
-/**
- * Sends reply to main window
- * @param source Msg source
- * @param reply Reply
- * @param id Command ID
- */
-function send_reply<T>(source: MessageEventSource, reply: SbxOut<T>, id: number) {
-  const reply_internal:SbxOutInternal<T> = {
-    sbx_id: id,
-    sbx_out: reply
-  }
-  source.postMessage(JSON.stringify(reply_internal), "*" as WindowPostMessageOptions);
-}
-
-/**
- * Main sandbox listener function
- * @param event Input event
- */
-async function window_listener(event: MessageEvent<string>) {
-  if (event.origin !== window.location.origin) {
-    return
-  }
-  const data: SbxInInternal<any> = JSON.parse(event.data)
-  console.info("Sandbox Input", data)
-  if (!("sbx_id" in data)) {
-    return
-  }
-  let id: number = data.sbx_id
-  try {
-    let cmd: number = data.sbx_in.command
+new MsgReceiver(window, window.location.origin,
+  async (cmd: MsgCommand, data: SbxInRunFunc | SbxInRunFuncRes) => {
+    let cmd_str= cmd.toString()
     switch (cmd) {
-      case SbxCommand.RunFunc:
-        let edata_f: SbxInRunFunc = data.sbx_in.data
-        const res_func = await run_func(
+      case MsgCommand.SbxRunFunc:
+        let edata_f: SbxInRunFunc = data as SbxInRunFunc
+        return await run_func(
           edata_f.body, edata_f.inputs ?? [], edata_f.res_key)
-        send_reply<any>(event.source!, res_func, id)
-        break;
-      case SbxCommand.RunFuncRes:
-        let edata_fr: SbxInRunFuncRes = data.sbx_in.data
-        const res_func_res = await run_func_res(
+      case MsgCommand.SbxRunFuncRes:
+        let edata_fr: SbxInRunFuncRes = data as SbxInRunFuncRes
+        return await run_func_res(
           edata_fr.res_key, edata_fr.subkeys ?? [], edata_fr.inputs ?? [])
-        send_reply<any>(event.source!, res_func_res, id)
-        break;
       default:
-        send_reply<any>(event.source!,
-          {
-            status: SbxOutStatus.Error,
-            message: "Unknown command: " + cmd.toString()
-          }, id)
-        break;
+        return {
+          status: MsgOutStatus.Error,
+          message: "Unknown command: " + cmd_str
+        }
     }
-  } catch (error) {
-    console.warn(error)
-    send_reply<any>(event.source!,
-      {
-        status: SbxOutStatus.Error,
-        message: ((error instanceof Error) ? error.message : String(error))
-      }, id)
-  }
-}
-
-window.addEventListener('message', window_listener);
+  })

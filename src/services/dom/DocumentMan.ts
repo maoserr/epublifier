@@ -1,5 +1,3 @@
-import {reply_func} from "../../pages/sidebar/sidebar_msgs";
-
 export default class DocumentManager {
   private readonly doc: Document
   private overlay: HTMLDivElement
@@ -53,7 +51,7 @@ export default class DocumentManager {
       ),)
   }
   stop_get_title(e: any) {
-    reply_func({msg: 'SELECTED_NEXT', els: this.tit_els.length})
+    // reply_func({msg: 'SELECTED_NEXT', els: this.tit_els.length})
     this.overlay.remove()
     document.removeEventListener('mousemove', this.evt_get_title_move)
     document.removeEventListener('mousedown', this.evt_stop_title_move)
@@ -87,7 +85,7 @@ export default class DocumentManager {
       if (this.tit_els.length > 0) {
         title = this.tit_els[0].innerText
       }
-      reply_func({msg: 'PARSED_PAGE', source: src, title: title, status: "Testa"})
+      // reply_func({msg: 'PARSED_PAGE', source: src, title: title, status: "Testa"})
       if (this.next_opt === "click") {
         if (this.all_els.length == 0) {
           break
