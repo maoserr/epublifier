@@ -4,6 +4,17 @@ import Checkbox from "primevue/checkbox";
 import InputNumber from "primevue/inputnumber";
 import Button from "primevue/button";
 import Toolbar from "primevue/toolbar";
+import {ref} from "vue";
+
+const scroll=ref<boolean>()
+const max_chaps=ref<number>()
+const wait_s=ref<number>()
+
+function pick_next(){}
+function pick_title(){}
+function onDelete(){}
+function parse(){}
+function load_main(){}
 </script>
 
 <template>

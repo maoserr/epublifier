@@ -1,5 +1,8 @@
 <script setup lang="ts">
 
+import {ref} from "vue";
+
+const text = ref<string>("")
 </script>
 
 <template>

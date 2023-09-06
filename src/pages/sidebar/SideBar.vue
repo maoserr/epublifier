@@ -39,17 +39,22 @@ import {MsgCommand, MsgOut} from "../../services/messaging/msg_types";
 const status_txt = ref<string>('Loading')
 const logmsgs = ref<string>("")
 
+const sb_origin = window.location.href
+    .split("?",2)[1]
+    .split("=",2)[1]
 const parse_man = new ParserManager(document, window)
 const msg_win = new MsgWindow(document, window,
-    window.parent, window.location.origin)
+    window.parent, sb_origin)
 
 onMounted(async () => {
   await parse_man.load_parsers()
+  console.log("Sidebar Send message")
   const doc_info:MsgOut<{ url: string; src: string }> =
       await msg_win.send_message<{},{url:string; src:string}>({
     command: MsgCommand.ContGetSource,
     data: {}
   })
+  console.log("Sidebar Msg result", doc_info)
   const init_res = await parse_man.run_init_parser(
       {
         inputs: {},
@@ -58,6 +63,7 @@ onMounted(async () => {
       }
   )
   status_txt.value = init_res.message
+  console.log(init_res)
 })
 
 </script>

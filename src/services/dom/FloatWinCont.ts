@@ -36,10 +36,11 @@ export default class FloatWinCont {
       set_iframe_style(iframe)
       this.cont.appendChild(iframe);
 
-      setTimeout(() => iframe.src = src, 0)
+      setTimeout(() =>
+        iframe.src = src+"?origin="+window.location.origin, 0)
 
       new MovableWin(doc, this.cont, titlebar)
-      this.set_receiver(win, window.location.origin)
+      this.set_receiver(win, new URL(src).origin)
     } else {
       console.info("Showing already loaded.")
       this.cont = prev_cont as HTMLDivElement

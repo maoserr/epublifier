@@ -2,6 +2,10 @@
 
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
+import {ref} from "vue";
+
+const chaps=ref<[]>([])
+const selected_chaps=ref<[]>([])
 </script>
 
 <template>
