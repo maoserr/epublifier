@@ -1,14 +1,19 @@
-import {
-  MsgCommand,
-  MsgInInternal,
-  MsgOut,
-  MsgOutInternal,
-  MsgOutStatus,
-} from "./msg_types";
+import {MsgCommand, MsgInInternal, MsgOut, MsgOutInternal, MsgOutStatus,} from "./msg_types";
 
+export function msg_ok<T>(msg: string, data: T): MsgOut<T> {
+  return {
+    status: MsgOutStatus.Ok,
+    message: msg,
+    data: data
+  }
+}
+
+/**
+ * Message receiving window
+ */
 export default class MsgReceiver {
 
-  constructor(win: Window, origin: string, procs:Function) {
+  constructor(win: Window, origin: string, procs: Function) {
     win.addEventListener('message',
       async (event: MessageEvent<string>) => {
         if (event.origin !== origin) {
@@ -42,7 +47,7 @@ export default class MsgReceiver {
    * @param reply Reply
    * @param id Command ID
    */
-  send_reply<T>(source: MessageEventSource, reply: MsgOut<T>, id: number) {
+  private send_reply<T>(source: MessageEventSource, reply: MsgOut<T>, id: number) {
     const reply_internal: MsgOutInternal<T> = {
       msg_id: id,
       msg_out: reply

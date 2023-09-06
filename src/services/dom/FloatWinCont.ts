@@ -1,13 +1,13 @@
-import {
-  set_float_win_style,
-  set_titlebar_style,
-  set_closebtn_style, set_iframe_style
-} from "./behaviors/styles"
+import {set_closebtn_style, set_float_win_style, set_iframe_style, set_titlebar_style} from "./behaviors/styles"
 import MovableWin from "./behaviors/MovableWin";
-import MsgWindow from "../messaging/MsgWindow";
-import browser from "webextension-polyfill";
+import MsgReceiver from "../messaging/MsgReceiver";
+import {msg_ok} from "../messaging/MsgReceiver";
+import {MsgCommand, MsgOut, MsgOutStatus} from "../messaging/msg_types";
 
 
+/**
+ * Floating window container
+ */
 export default class FloatWinCont {
   private readonly cont: HTMLDivElement
 
@@ -39,11 +39,31 @@ export default class FloatWinCont {
       setTimeout(() => iframe.src = src, 0)
 
       new MovableWin(doc, this.cont, titlebar)
-      new MsgWindow(doc, win, iframe.contentWindow!,new URL(src).origin)
+      this.set_receiver(win, window.location.origin)
     } else {
       console.info("Showing already loaded.")
       this.cont = prev_cont as HTMLDivElement
       set_float_win_style(this.cont)
     }
+  }
+
+  private set_receiver(win: Window, origin: string) {
+    new MsgReceiver(win, origin,
+      async (cmd: MsgCommand, data: any
+      ): Promise<MsgOut<any>> => {
+        switch (cmd) {
+          case MsgCommand.ContGetSource:
+            return msg_ok<any>("Got source", {
+              url: window.location.href,
+              src: (new XMLSerializer()).serializeToString(document)
+            })
+          case MsgCommand.ContSelNext:
+
+        }
+        return {
+          status: MsgOutStatus.Error,
+          message: "Unknown command: " + cmd.toString()
+        }
+      })
   }
 }

@@ -1,6 +1,8 @@
 import {MsgIn, MsgInInternal, MsgOut, MsgOutInternal, MsgOutStatus} from "./msg_types";
 
-
+/**
+ * Message sending window
+ */
 export default class MsgWindow {
   private msg_target: Window
   private curr_id = 1

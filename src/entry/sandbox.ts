@@ -80,8 +80,8 @@ function get_helpers() {
 }
 
 new MsgReceiver(window, window.location.origin,
-  async (cmd: MsgCommand, data: SbxInRunFunc | SbxInRunFuncRes) => {
-    let cmd_str= cmd.toString()
+  async (cmd: MsgCommand, data: SbxInRunFunc | SbxInRunFuncRes
+  ): Promise<MsgOut<any>> => {
     switch (cmd) {
       case MsgCommand.SbxRunFunc:
         let edata_f: SbxInRunFunc = data as SbxInRunFunc
@@ -91,10 +91,9 @@ new MsgReceiver(window, window.location.origin,
         let edata_fr: SbxInRunFuncRes = data as SbxInRunFuncRes
         return await run_func_res(
           edata_fr.res_key, edata_fr.subkeys ?? [], edata_fr.inputs ?? [])
-      default:
-        return {
-          status: MsgOutStatus.Error,
-          message: "Unknown command: " + cmd_str
-        }
+    }
+    return {
+      status: MsgOutStatus.Error,
+      message: "Unknown command: " + cmd.toString()
     }
   })

@@ -22,6 +22,8 @@ export interface SbxInRunFuncRes {
 export enum MsgCommand {
   SbxRunFunc,
   SbxRunFuncRes,
+  ContGetSource,
+  ContSelNext
 }
 
 /**

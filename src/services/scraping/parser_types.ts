@@ -1,5 +1,5 @@
 import {ChapterMeta, NovelMetaData}
-  from ".././novel/novel_data";
+  from "../novel/novel_data";
 
 /**
  * Parser Parameters
