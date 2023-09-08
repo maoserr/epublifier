@@ -101,7 +101,8 @@ function nu_toc_parser(inputs, url, source, helpers) {
                     info: {
                         title: element.innerText.trim(),
                         url: element.href
-                    }
+                    },
+                    title: element.innerText.trim()
                 });
             }
         });
@@ -137,7 +138,8 @@ function chap_name_search(inputs, url, source, helpers) {
     ancs.forEach((element) => {
         if (chap_reg.test(element.innerText)) {
             chaps.push({
-                title: element.innerText, url: element.href, parser: 'Default'
+                info: {title: element.innerText, url: element.href, parser: 'Default'},
+                title: element.innerText
             });
         }
     });

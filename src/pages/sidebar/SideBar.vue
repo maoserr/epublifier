@@ -8,26 +8,21 @@
           <Button label="Epub" @click="load_main" icon="pi pi-book" size="small"/>
         </template>
       </Toolbar>
-      <Splitter layout="vertical">
-        <SplitterPanel class="flex align-items-center justify-content-center">
-          <Chaps/>
-        </SplitterPanel>
-        <SplitterPanel class="flex align-items-center justify-content-center">
-          <TabView>
-            <TabPanel header="Preview">
+      <TabView>
+        <TabPanel header="Preview">
 
-            </TabPanel>
-            <TabPanel header="Parsing">
+        </TabPanel>
+        <TabPanel header="Parsing">
 
-            </TabPanel>
-            <TabPanel header="Log">
-              <div id="log" style="overflow:auto">
-                {{ logmsgs }}
-              </div>
-            </TabPanel>
-          </TabView>
-        </SplitterPanel>
-      </Splitter>
+        </TabPanel>
+        <TabPanel header="Log">
+          <div id="log" style="overflow:auto">
+            {{ logmsgs }}
+          </div>
+        </TabPanel>
+      </TabView>
+      <Chaps/>
+
     </div>
   </div>
 </template>
@@ -37,8 +32,6 @@ import TabPanel from "primevue/tabpanel";
 import TabView from "primevue/tabview";
 import Button from "primevue/button";
 import Toolbar from "primevue/toolbar";
-import Splitter from 'primevue/splitter';
-import SplitterPanel from 'primevue/splitterpanel';
 
 import 'primeflex/primeflex.css';
 import 'primevue/resources/primevue.min.css';
@@ -79,14 +72,7 @@ onMounted(async () => {
       }
   )
   status_txt.value = init_res.message
-  chaps.value = init_res.data!.chaps.map(c => {
-    return {
-      info: c,
-      title: c.title,
-      html: "test",
-      html_parsed: ""
-    }
-  })
+  chaps.value = init_res.data!.chaps
   console.log(init_res)
 })
 

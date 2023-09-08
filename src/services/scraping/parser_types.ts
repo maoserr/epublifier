@@ -1,4 +1,4 @@
-import {ChapterMeta, NovelMetaData}
+import {Chapter, NovelMetaData}
   from "../novel/novel_data";
 
 /**
@@ -24,7 +24,7 @@ export interface ParserLoadResult {
  * Results from running toc parser
  */
 export interface ParserResultInit {
-  chaps: ChapterMeta[];
+  chaps: Chapter[];
   message: string,
   meta: NovelMetaData;
 }
