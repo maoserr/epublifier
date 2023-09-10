@@ -7,14 +7,18 @@ import {
   chaps,
   selected_chaps
 } from "../sidebar_state"
+import {Chapter} from "../../../services/novel/novel_data";
+import {Ref} from "vue";
 
-
+function reorder(reordered_chaps: Ref<Chapter[]>) {
+  chaps.value = reordered_chaps.value
+}
 </script>
 
 <template>
   <DataTable :value="chaps"
              v-model:selection="selected_chaps"
-             @rowReorder="chaps = $event.value"
+             @rowReorder="reorder($event)"
              selectionMode="multiple"
              scrollable scrollHeight="60vh"
              class="p-datatable-sm"

@@ -81,6 +81,7 @@ onMounted(async () => {
   )
   status_txt.value = init_res.message
   chaps.value = init_res.data!.chaps
+  meta.value = init_res.data!.meta
   console.log(init_res)
 })
 

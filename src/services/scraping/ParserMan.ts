@@ -2,8 +2,8 @@ import SandboxInput from ".././messaging/SandboxInput";
 import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultInit}
   from "./parser_types";
 import {MsgCommand, SbxInRunFunc, SbxInRunFuncRes, MsgOut, MsgOutStatus}
-  from ".././messaging/msg_types";
-import {Chapter} from ".././novel/novel_data";
+  from "../messaging/msg_types";
+import {Chapter} from "../novel/novel_data";
 import {Ref} from "vue";
 import OptionsManager from "../common/OptionsMan";
 import * as Parallel from "async-parallel";
