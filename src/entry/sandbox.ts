@@ -21,7 +21,7 @@ async function run_func(func_body: string,
                         inputs: any[],
                         res_key?: string): Promise<MsgOut<any>> {
   inputs.push(get_helpers())
-  let res = new Function(func_body)(...inputs)
+  let res = await new Function(func_body)(...inputs)
   let msg = "Function ran."
   if (res_key !== undefined) {
     loaded_scripts[res_key] = res
@@ -49,10 +49,19 @@ async function run_func_res(res_key: string,
   inputs.push(get_helpers())
   let curr_res = loaded_scripts[res_key]
   let msg = "Function ran."
+  console.log(subkeys,curr_res)
   for (let i of subkeys) {
-    curr_res = curr_res[i]
+    if (i in curr_res) {
+      curr_res = curr_res[i]
+    } else {
+      return {
+        status: MsgOutStatus.Error,
+        message: "Unable to run key: "+i
+      }
+    }
   }
-  let res = curr_res(...inputs)
+  let res = await curr_res(...inputs)
+  console.log(res)
   if ("message" in res) {
     msg = res["message"]
   }

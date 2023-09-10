@@ -1,7 +1,6 @@
 import {set_closebtn_style, set_float_win_style, set_iframe_style, set_titlebar_style} from "./behaviors/styles"
 import MovableWin from "./behaviors/MovableWin";
-import MsgWindow from "../messaging/MsgWindow";
-import {msg_ok} from "../messaging/MsgWindow";
+import MsgWindow, {msg_ok} from "../messaging/MsgWindow";
 import {MsgCommand, MsgOut, MsgOutStatus} from "../messaging/msg_types";
 
 
@@ -36,11 +35,11 @@ export default class FloatWinCont {
       set_iframe_style(iframe)
       this.cont.appendChild(iframe);
 
-      setTimeout(() =>
-        iframe.src = src + "?origin=" + window.location.origin, 0)
-
       new MovableWin(doc, this.cont, titlebar)
       this.set_receiver(win, new URL(src).origin, iframe.contentWindow!)
+
+      setTimeout(() =>
+        iframe.src = src + "?origin=" + window.location.origin, 300)
     } else {
       console.info("Showing already loaded.")
       this.cont = prev_cont as HTMLDivElement
@@ -50,10 +49,15 @@ export default class FloatWinCont {
 
   private set_receiver(win: Window, origin: string, target: Window) {
     new MsgWindow(win, origin, target,
-      async (cmd: MsgCommand, data: any
-      ): Promise<MsgOut<any>> => {
+      (cmd: MsgCommand, data: any
+      ): MsgOut<any> => {
         switch (cmd) {
           case MsgCommand.ContGetSource:
+            if (document.head.getElementsByTagName('base').length == 0) {
+              let baseEl = document.createElement('base');
+              baseEl.setAttribute('href', window.location.origin);
+              document.head.appendChild(baseEl)
+            }
             return msg_ok<any>("Got source", {
               url: window.location.href,
               src: (new XMLSerializer()).serializeToString(document)

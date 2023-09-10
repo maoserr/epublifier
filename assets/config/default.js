@@ -138,7 +138,10 @@ function chap_name_search(inputs, url, source, helpers) {
     ancs.forEach((element) => {
         if (chap_reg.test(element.innerText)) {
             chaps.push({
-                info: {title: element.innerText, url: element.href, parser: 'Default'},
+                info: {
+                    title: element.innerText,
+                    url: element.href
+                },
                 title: element.innerText
             });
         }

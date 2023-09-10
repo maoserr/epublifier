@@ -5,7 +5,7 @@
       <Toolbar>
         <template #end>
           <Button label="Parse" @click="parse" class="mr-2" size="small"/>
-          <Button label="Epub" @click="load_main" icon="pi pi-book" size="small"/>
+          <Button label="Epub" @click="run_epub" icon="pi pi-book" size="small"/>
         </template>
       </Toolbar>
       <TabView>
@@ -43,12 +43,18 @@ import {onMounted, ref} from "vue";
 import ParserManager from "../../services/scraping/ParserMan";
 import MsgWindow from "../../services/messaging/MsgWindow";
 import {MsgCommand, MsgOut} from "../../services/messaging/msg_types";
-import {chaps} from "./sidebar_state"
+import {chaps, meta, selected_chaps} from "./sidebar_state"
 
 import Chaps from "./parts/Chaps.vue"
+import browser from "webextension-polyfill";
+import {NovelData} from "../../services/novel/novel_data";
+import {generate_epub} from "../../services/novel/epub_generator";
+
 
 const status_txt = ref<string>('Loading')
 const logmsgs = ref<string>("")
+const parse_cancel = ref<boolean>(false)
+const parse_progress = ref<number>(0)
 
 const sb_origin = window.location.href
     .split("?", 2)[1]
@@ -58,12 +64,14 @@ const msg_win = new MsgWindow(window, sb_origin,
     window.parent)
 
 onMounted(async () => {
+  console.log("Mounting...")
   await parse_man.load_parsers()
   const doc_info: MsgOut<{ url: string; src: string }> =
       await msg_win.send_message<{}, { url: string; src: string }>({
         command: MsgCommand.ContGetSource,
         data: {}
       })
+  console.log(doc_info)
   const init_res = await parse_man.run_init_parser(
       {
         inputs: {},
@@ -75,5 +83,36 @@ onMounted(async () => {
   chaps.value = init_res.data!.chaps
   console.log(init_res)
 })
+
+async function parse() {
+  console.log("Parsing chapters...", selected_chaps)
+  await parse_man.parser_chaps(selected_chaps,
+      parse_cancel, status_txt, parse_progress)
+}
+
+async function run_epub() {
+  let nov_data: NovelData = {
+    meta: meta.value,
+    chapters: selected_chaps.value,
+    filename: meta.value.title.toLowerCase().replace(/[\W_]+/g, "_") + ".epub"
+  }
+  if (meta.value.cover != null) {
+    let response = await fetch(meta.value.cover);
+    if (response.ok) {
+      nov_data.cover = await response.blob();
+    }
+  }
+  const filecontent = await generate_epub(nov_data, (msg: string) => {
+    status_txt.value = msg
+  })
+  if (filecontent === undefined) {
+    status_txt.value = "No file generated."
+    return
+  }
+  await browser.downloads.download({
+    url: URL.createObjectURL(filecontent),
+    filename: nov_data.filename,
+  });
+}
 
 </script>

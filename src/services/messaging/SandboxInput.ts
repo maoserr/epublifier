@@ -7,7 +7,8 @@ import {MsgOut, MsgIn} from './msg_types';
  */
 export default class SandboxInput {
   private readonly ifram: HTMLIFrameElement
-  private msg_win:MsgWindow
+  private msg_win: MsgWindow
+
   /**
    * Creates the Sandbox iframe
    * @param doc
@@ -21,14 +22,14 @@ export default class SandboxInput {
     this.ifram.title = "Sandbox"
     this.ifram.hidden = true
     doc.body.appendChild(this.ifram)
-    this.msg_win = new MsgWindow(win,"null", this.ifram.contentWindow!)
+    this.msg_win = new MsgWindow(win, "null", this.ifram.contentWindow!)
   }
 
   /**
    * Sends message and gets response from sandbox
    * @param data Data
    */
-  async run_in_sandbox<T, S>(data: MsgIn<T>): Promise<MsgOut<S>>{
-    return this.msg_win.send_message<T,S>(data)
+  async run_in_sandbox<T, S>(data: MsgIn<T>, tries = 2, timeout = 1000): Promise<MsgOut<S>> {
+    return this.msg_win.send_message<T, S>(data, tries, timeout)
   }
 }

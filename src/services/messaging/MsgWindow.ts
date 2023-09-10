@@ -7,6 +7,7 @@ export function msg_ok<T>(msg: string, data: T): MsgOut<T> {
     data: data
   }
 }
+
 /**
  * Message sending window
  */
@@ -33,6 +34,60 @@ export default class MsgWindow {
     this.setup_listener(win, msg_origin)
   }
 
+  /**
+   * Sends a message to target
+   * @param data Data
+   * @param timeout
+   */
+  async send_message<T, S>(data: MsgIn<T>,
+                           tries: number = 2,
+                           timeout: number = 500
+  ): Promise<MsgOut<S>> {
+    console.debug("Sending message to target", this.msg_target!)
+    this.curr_id++;
+    let curr_try = 0
+    let curr_res = {
+      status: MsgOutStatus.Timeout,
+      message: "Message timed out."
+    }
+    while (curr_try < tries) {
+      console.debug("Try ", curr_try)
+      let res: Promise<MsgOut<S>> = new Promise(
+        (resolve, reject) => {
+          this.inputs[this.curr_id] = {resolve: resolve, reject: reject}
+        })
+      let timeout_p: Promise<MsgOut<S>> = new Promise(
+        (res) => setTimeout(() => res({
+          status: MsgOutStatus.Timeout,
+          message: "Message timed out."
+        }), timeout)
+      )
+      const internal_data: MsgInInternal<T> = {
+        msg_id: this.curr_id,
+        msg_type: 'in',
+        msg_in: data
+      }
+      internal_data["msg_id"] = this.curr_id
+      this.msg_target!.postMessage(JSON.stringify(internal_data),
+        '*' as WindowPostMessageOptions)
+      if (timeout > 0) {
+        curr_res = await Promise.race([res, timeout_p])
+      } else {
+        curr_res = await res
+      }
+      if (curr_res.status != MsgOutStatus.Timeout) {
+        return curr_res
+      }
+      curr_try++
+    }
+    return curr_res
+  }
+
+  /**
+   * Handle returning messages from target
+   * @param data Data
+   * @private
+   */
   private handle_msgout(data: MsgOutInternal<any>) {
     console.info("Msg Reply", data)
     let id: number = data.msg_id
@@ -47,6 +102,12 @@ export default class MsgWindow {
     return success_func(data.msg_out);
   }
 
+  /**
+   * Handle received commands from source
+   * @param data Data
+   * @param source Source
+   * @private
+   */
   private async handle_msgin(data: MsgInInternal<any>,
                              source: Window | MessagePort | ServiceWorker) {
     let id: number = data.msg_id
@@ -65,6 +126,12 @@ export default class MsgWindow {
     }
   }
 
+  /**
+   * Setup window listener
+   * @param win Window
+   * @param source Source to check origin
+   * @private
+   */
   private setup_listener(win: Window, source: string) {
     win.addEventListener('message',
       (event: MessageEvent<string>) => {
@@ -85,23 +152,6 @@ export default class MsgWindow {
           this.handle_msgout(data)
         }
       })
-  }
-
-  async send_message<T, S>(data: MsgIn<T>): Promise<MsgOut<S>> {
-    let res: Promise<MsgOut<S>> = new Promise(
-      (resolve, reject) => {
-        this.inputs[this.curr_id] = {resolve: resolve, reject: reject}
-      })
-    const internal_data: MsgInInternal<T> = {
-      msg_id: this.curr_id,
-      msg_type: 'in',
-      msg_in: data
-    }
-    internal_data["msg_id"] = this.curr_id
-    this.msg_target!.postMessage(JSON.stringify(internal_data),
-      '*' as WindowPostMessageOptions)
-    this.curr_id++;
-    return res
   }
 
   /**

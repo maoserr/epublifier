@@ -68,6 +68,7 @@ export interface MsgOutInternal<T> {
 export enum MsgOutStatus {
   Error,
   Ok,
+  Timeout
 }
 
 

@@ -3,7 +3,7 @@ import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultInit}
   from "./parser_types";
 import {MsgCommand, SbxInRunFunc, SbxInRunFuncRes, MsgOut, MsgOutStatus}
   from ".././messaging/msg_types";
-import {Chapter, NovelMetaData} from ".././novel/novel_data";
+import {Chapter} from ".././novel/novel_data";
 import {Ref} from "vue";
 import OptionsManager from "../common/OptionsMan";
 import * as Parallel from "async-parallel";
@@ -44,6 +44,7 @@ export default class ParserManager {
    * Load all parser definitions into sandbox
    */
   async load_parsers(): Promise<MsgOut<Record<string, ParserLoadResult>>> {
+    console.log("Loading parsers.")
     const parser_strs =
       await this.options.get_parsers_definitions()
     for (let k in parser_strs) {
@@ -73,7 +74,7 @@ export default class ParserManager {
           inputs: [params.inputs, params.url, params.src],
           subkeys: ["init_parsers", parser ?? "Auto", "func"]
         }
-      })
+      }, 1, 0)
   }
 
   /**
@@ -85,7 +86,7 @@ export default class ParserManager {
   async run_chap_parser(
     params: ParserParams, parse_doc?: string, parser?: string,
   ): Promise<MsgOut<ParserResultChap>> {
-    return await this.sandbox.run_in_sandbox<SbxInRunFuncRes, ParserResultChap>(
+    const chap_res = await this.sandbox.run_in_sandbox<SbxInRunFuncRes, ParserResultChap>(
       {
         command: MsgCommand.SbxRunFuncRes,
         data: {
@@ -93,11 +94,13 @@ export default class ParserManager {
           inputs: [params.inputs, params.url, params.src],
           subkeys: ["chap_parsers", parser ?? "Auto", "func"]
         }
-      })
+      }, 1, 0)
+    console.log(chap_res)
+    console.log(chap_res.data)
+    return chap_res
   }
 
   async parser_chaps(chaps_ref: Ref<Chapter[]>,
-                     meta: NovelMetaData,
                      cancel: Ref<boolean>,
                      status_txt: Ref<string>,
                      progress_val: Ref<number>) {
@@ -106,10 +109,10 @@ export default class ParserManager {
     progress_val.value = 0;
     const parse_man = this
     let extract_chap = async function (id: number) {
+      console.log("Chapter ", id)
       if (cancel.value) {
         throw new Error('User cancelled')
       }
-      if (chaps_ref.value[id].html_parsed)
       if (chaps_ref.value[id].info.url !== undefined) {
         let f_res
         let f_txt = ''
