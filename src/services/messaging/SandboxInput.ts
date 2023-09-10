@@ -21,8 +21,7 @@ export default class SandboxInput {
     this.ifram.title = "Sandbox"
     this.ifram.hidden = true
     doc.body.appendChild(this.ifram)
-    this.msg_win = new MsgWindow(doc, win, this.ifram.contentWindow!,
-      "null")
+    this.msg_win = new MsgWindow(win,"null", this.ifram.contentWindow!)
   }
 
   /**

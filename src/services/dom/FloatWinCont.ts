@@ -1,7 +1,7 @@
 import {set_closebtn_style, set_float_win_style, set_iframe_style, set_titlebar_style} from "./behaviors/styles"
 import MovableWin from "./behaviors/MovableWin";
-import MsgReceiver from "../messaging/MsgReceiver";
-import {msg_ok} from "../messaging/MsgReceiver";
+import MsgWindow from "../messaging/MsgWindow";
+import {msg_ok} from "../messaging/MsgWindow";
 import {MsgCommand, MsgOut, MsgOutStatus} from "../messaging/msg_types";
 
 
@@ -37,10 +37,10 @@ export default class FloatWinCont {
       this.cont.appendChild(iframe);
 
       setTimeout(() =>
-        iframe.src = src+"?origin="+window.location.origin, 0)
+        iframe.src = src + "?origin=" + window.location.origin, 0)
 
       new MovableWin(doc, this.cont, titlebar)
-      this.set_receiver(win, new URL(src).origin)
+      this.set_receiver(win, new URL(src).origin, iframe.contentWindow!)
     } else {
       console.info("Showing already loaded.")
       this.cont = prev_cont as HTMLDivElement
@@ -48,8 +48,8 @@ export default class FloatWinCont {
     }
   }
 
-  private set_receiver(win: Window, origin: string) {
-    new MsgReceiver(win, origin,
+  private set_receiver(win: Window, origin: string, target: Window) {
+    new MsgWindow(win, origin, target,
       async (cmd: MsgCommand, data: any
       ): Promise<MsgOut<any>> => {
         switch (cmd) {

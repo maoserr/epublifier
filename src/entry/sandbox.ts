@@ -7,7 +7,7 @@ import {
   MsgOutStatus
 } from '../services/messaging/msg_types';
 import {ParserParams} from "../services/scraping/parser_types";
-import MsgReceiver from "../services/messaging/MsgReceiver";
+import MsgWindow from "../services/messaging/MsgWindow";
 
 let loaded_scripts: Record<string, any> = {}
 
@@ -79,7 +79,7 @@ function get_helpers() {
   }
 }
 
-new MsgReceiver(window, window.location.origin,
+new MsgWindow(window, window.location.origin,undefined,
   async (cmd: MsgCommand, data: SbxInRunFunc | SbxInRunFuncRes
   ): Promise<MsgOut<any>> => {
     switch (cmd) {

@@ -54,8 +54,8 @@ const sb_origin = window.location.href
     .split("?", 2)[1]
     .split("=", 2)[1]
 const parse_man = new ParserManager(document, window)
-const msg_win = new MsgWindow(document, window,
-    window.parent, sb_origin)
+const msg_win = new MsgWindow(window, sb_origin,
+    window.parent)
 
 onMounted(async () => {
   await parse_man.load_parsers()

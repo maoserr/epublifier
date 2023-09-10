@@ -39,6 +39,7 @@ export interface MsgIn<T> {
  */
 export interface MsgInInternal<T> {
   msg_id: number
+  msg_type: "in"
   msg_in: MsgIn<T>
 }
 
@@ -56,6 +57,7 @@ export interface MsgOut<T> {
  */
 export interface MsgOutInternal<T> {
   msg_id: number
+  msg_type: "out"
   msg_out: MsgOut<T>
 }
 
