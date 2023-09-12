@@ -20,6 +20,7 @@ function reorder(reordered_chaps: Ref<Chapter[]>) {
              v-model:selection="selected_chaps"
              @rowReorder="reorder($event)"
              selectionMode="multiple"
+             :metaKeySelection="false"
              scrollable scrollHeight="60vh"
              class="p-datatable-sm"
              responsiveLayout="scroll"

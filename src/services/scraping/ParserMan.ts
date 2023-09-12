@@ -1,8 +1,6 @@
 import SandboxInput from ".././messaging/SandboxInput";
-import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultInit}
-  from "./parser_types";
-import {MsgCommand, SbxInRunFunc, SbxInRunFuncRes, MsgOut, MsgOutStatus}
-  from "../messaging/msg_types";
+import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultInit} from "./parser_types";
+import {MsgCommand, MsgOut, MsgOutStatus, SbxInRunFunc, SbxInRunFuncRes} from "../messaging/msg_types";
 import {Chapter} from "../novel/novel_data";
 import {Ref} from "vue";
 import OptionsManager from "../common/OptionsMan";
@@ -35,7 +33,6 @@ export default class ParserManager {
           command: MsgCommand.SbxRunFunc,
           data: func_in
         })
-    console.info("Parse Load", res)
     this.parsers[key] = (res.data as ParserLoadResult)
     return res.message
   }
@@ -86,7 +83,7 @@ export default class ParserManager {
   async run_chap_parser(
     params: ParserParams, parse_doc?: string, parser?: string,
   ): Promise<MsgOut<ParserResultChap>> {
-    const chap_res = await this.sandbox.run_in_sandbox<SbxInRunFuncRes, ParserResultChap>(
+    return await this.sandbox.run_in_sandbox<SbxInRunFuncRes, ParserResultChap>(
       {
         command: MsgCommand.SbxRunFuncRes,
         data: {
@@ -95,9 +92,6 @@ export default class ParserManager {
           subkeys: ["chap_parsers", parser ?? "Auto", "func"]
         }
       }, 1, 0)
-    console.log(chap_res)
-    console.log(chap_res.data)
-    return chap_res
   }
 
   async parser_chaps(chaps_ref: Ref<Chapter[]>,

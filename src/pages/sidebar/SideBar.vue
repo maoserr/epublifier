@@ -8,12 +8,16 @@
           <Button label="Epub" @click="run_epub" icon="pi pi-book" size="small"/>
         </template>
       </Toolbar>
+      <Chaps/>
       <TabView>
+        <TabPanel header="Info">
+          <Meta/>
+        </TabPanel>
         <TabPanel header="Preview">
-
+          <Preview/>
         </TabPanel>
         <TabPanel header="Parsing">
-
+          <Parsing/>
         </TabPanel>
         <TabPanel header="Log">
           <div id="log" style="overflow:auto">
@@ -21,8 +25,6 @@
           </div>
         </TabPanel>
       </TabView>
-      <Chaps/>
-
     </div>
   </div>
 </template>
@@ -38,15 +40,19 @@ import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
+import browser from "webextension-polyfill";
 import {onMounted, ref} from "vue";
+
+import Chaps from "./parts/Chaps.vue"
+import Preview from "./parts/Preview.vue"
+import Meta from "./parts/Meta.vue"
+import Parsing from "./parts/Parsing.vue";
 
 import ParserManager from "../../services/scraping/ParserMan";
 import MsgWindow from "../../services/messaging/MsgWindow";
 import {MsgCommand, MsgOut} from "../../services/messaging/msg_types";
 import {chaps, meta, selected_chaps} from "./sidebar_state"
 
-import Chaps from "./parts/Chaps.vue"
-import browser from "webextension-polyfill";
 import {NovelData} from "../../services/novel/novel_data";
 import {generate_epub} from "../../services/novel/epub_generator";
 
@@ -64,14 +70,12 @@ const msg_win = new MsgWindow(window, sb_origin,
     window.parent)
 
 onMounted(async () => {
-  console.log("Mounting...")
   await parse_man.load_parsers()
   const doc_info: MsgOut<{ url: string; src: string }> =
       await msg_win.send_message<{}, { url: string; src: string }>({
         command: MsgCommand.ContGetSource,
         data: {}
       })
-  console.log(doc_info)
   const init_res = await parse_man.run_init_parser(
       {
         inputs: {},
@@ -82,7 +86,6 @@ onMounted(async () => {
   status_txt.value = init_res.message
   chaps.value = init_res.data!.chaps
   meta.value = init_res.data!.meta
-  console.log(init_res)
 })
 
 async function parse() {
@@ -92,9 +95,15 @@ async function parse() {
 }
 
 async function run_epub() {
+  let epub_chaps = []
+  for (let c of chaps.value) {
+    if (selected_chaps.value.includes(c)) {
+      epub_chaps.push(c)
+    }
+  }
   let nov_data: NovelData = {
     meta: meta.value,
-    chapters: selected_chaps.value,
+    chapters: epub_chaps,
     filename: meta.value.title.toLowerCase().replace(/[\W_]+/g, "_") + ".epub"
   }
   if (meta.value.cover != null) {

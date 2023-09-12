@@ -28,8 +28,12 @@ export default class SandboxInput {
   /**
    * Sends message and gets response from sandbox
    * @param data Data
+   * @param tries Number of tries
+   * @param timeout Timeout between tries
    */
-  async run_in_sandbox<T, S>(data: MsgIn<T>, tries = 2, timeout = 1000): Promise<MsgOut<S>> {
+  async run_in_sandbox<T, S>(data: MsgIn<T>,
+                             tries: number  = 2,
+                             timeout: number = 200): Promise<MsgOut<S>> {
     return this.msg_win.send_message<T, S>(data, tries, timeout)
   }
 }

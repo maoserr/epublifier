@@ -41,9 +41,8 @@ export default class MsgWindow {
    */
   async send_message<T, S>(data: MsgIn<T>,
                            tries: number = 2,
-                           timeout: number = 500
+                           timeout: number = 100
   ): Promise<MsgOut<S>> {
-    console.debug("Sending message to target", this.msg_target!)
     this.curr_id++;
     let curr_try = 0
     let curr_res = {
@@ -51,7 +50,6 @@ export default class MsgWindow {
       message: "Message timed out."
     }
     while (curr_try < tries) {
-      console.debug("Try ", curr_try)
       let res: Promise<MsgOut<S>> = new Promise(
         (resolve, reject) => {
           this.inputs[this.curr_id] = {resolve: resolve, reject: reject}
@@ -79,6 +77,7 @@ export default class MsgWindow {
         return curr_res
       }
       curr_try++
+      console.log("Trying again", curr_try)
     }
     return curr_res
   }
@@ -89,7 +88,6 @@ export default class MsgWindow {
    * @private
    */
   private handle_msgout(data: MsgOutInternal<any>) {
-    console.info("Msg Reply", data)
     let id: number = data.msg_id
     const err_func = this.inputs[id].reject
     const success_func = this.inputs[id].resolve
@@ -98,7 +96,6 @@ export default class MsgWindow {
       return err_func("No status")
     if (data.msg_out.status == MsgOutStatus.Error)
       return err_func(data.msg_out.message)
-    console.info("Msg success", data)
     return success_func(data.msg_out);
   }
 

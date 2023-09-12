@@ -49,7 +49,6 @@ async function run_func_res(res_key: string,
   inputs.push(get_helpers())
   let curr_res = loaded_scripts[res_key]
   let msg = "Function ran."
-  console.log(subkeys,curr_res)
   for (let i of subkeys) {
     if (i in curr_res) {
       curr_res = curr_res[i]
@@ -61,7 +60,6 @@ async function run_func_res(res_key: string,
     }
   }
   let res = await curr_res(...inputs)
-  console.log(res)
   if ("message" in res) {
     msg = res["message"]
   }
