@@ -23,13 +23,15 @@ export function set_float_win_style(cont:HTMLDivElement) {
 }
 
 export function set_titlebar_style(titlebar:HTMLDivElement) {
-  titlebar.style.height = "40px";
+  titlebar.style.all = "initial"
+  titlebar.style.height = "1.2rem";
   titlebar.style.color = "black";
   titlebar.style.padding = "5px";
   titlebar.textContent = "";
 }
 
 export function set_closebtn_style(closebtn:HTMLDivElement) {
+  closebtn.style.all = "initial"
   closebtn.style.float = "right";
   closebtn.style.borderRadius = "50%";
   closebtn.style.marginRight = "8px";
@@ -37,14 +39,15 @@ export function set_closebtn_style(closebtn:HTMLDivElement) {
   closebtn.style.height = "20px";
   closebtn.style.width = "20px";
   closebtn.style.backgroundColor = "#E96E4C";
+  closebtn.style.border = "1px solid red"
 }
 
 export function set_iframe_style(ifram:HTMLDivElement) {
+  ifram.style.all = "initial"
   ifram.style.background = "white"
   ifram.style.flexGrow = "1";
-  ifram.style.border = "0";
-  ifram.style.width = "100%";
-  ifram.style.height = "100%";
-  ifram.style.margin = "0";
-  ifram.style.padding = "0"
+  ifram.style.margin = "6px";
+  ifram.style.padding = "0";
+  ifram.style.borderRadius = "5px";
+  ifram.style.border = "1px solid black";
 }

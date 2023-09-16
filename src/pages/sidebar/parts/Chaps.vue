@@ -21,11 +21,12 @@ function reorder(reordered_chaps: Ref<Chapter[]>) {
              @rowReorder="reorder($event)"
              selectionMode="multiple"
              :metaKeySelection="false"
-             scrollable scrollHeight="60vh"
+             scrollable scrollHeight="40vh"
              class="p-datatable-sm"
              responsiveLayout="scroll"
              tableStyle="min-width: 50rem">
-    <Column :rowReorder="true" headerStyle="width: 3rem" :reorderableColumn="false"/>
+    <Column :rowReorder="true" headerStyle="width: 2rem" :reorderableColumn="false"/>
+    <Column selectionMode="multiple" style="width: 2rem" :exportable="false"></Column>
     <Column field="html_parsed" header="Parsed">
       <template #body="{data}:any">
         <i class="pi" :class="(!(data as any).html_parsed)?'pi-circle':'pi-check'"></i>

@@ -3,10 +3,19 @@
     <div class="col-12">
       <span>{{ status_txt }}</span>
       <Toolbar>
-        <template #end>
-          <Button label="Parse" @click="parse" class="mr-2" size="small"/>
-          <Button label="Epub" @click="run_epub" icon="pi pi-book" size="small"/>
+        <template #start>
+          <Button v-tooltip:a.bottom="'Parse'" @click="parse" icon="pi pi-play" class="mr-2" size="small"/>
+          <Button v-tooltip:a.bottom="'Epub'" @click="run_epub" icon="pi pi-book" class="mr-2" size="small"/>
+          <Button v-tooltip:a.bottom="'Delete'" @click="delete_chap" icon="pi pi-trash" severity="warning"
+                  size="small"/>
         </template>
+        <template #end>
+          <Button type="button" v-tooltip:a.bottom="'More'" icon="pi pi-ellipsis-v" @click="toggle"
+                  severity="secondary" size="small"
+                  aria-haspopup="true" aria-controls="overlay_menu"/>
+          <Menu ref="menu" id="overlay_menu" :model="items" :popup="true"/>
+        </template>
+        <Menu ref="menu" id="overlay_menu" :model="items" :popup="true"/>
       </Toolbar>
       <Chaps/>
       <TabView>
@@ -19,11 +28,6 @@
         <TabPanel header="Parsing">
           <Parsing/>
         </TabPanel>
-        <TabPanel header="Log">
-          <div id="log" style="overflow:auto">
-            {{ logmsgs }}
-          </div>
-        </TabPanel>
       </TabView>
     </div>
   </div>
@@ -34,6 +38,7 @@ import TabPanel from "primevue/tabpanel";
 import TabView from "primevue/tabview";
 import Button from "primevue/button";
 import Toolbar from "primevue/toolbar";
+import Menu from 'primevue/menu';
 
 import 'primeflex/primeflex.css';
 import 'primevue/resources/primevue.min.css';
@@ -58,9 +63,35 @@ import {generate_epub} from "../../services/novel/epub_generator";
 
 
 const status_txt = ref<string>('Loading')
-const logmsgs = ref<string>("")
 const parse_cancel = ref<boolean>(false)
 const parse_progress = ref<number>(0)
+const menu = ref();
+const items = ref([
+  {
+    label: 'Editor',
+    icon: 'pi pi-file-edit',
+    command: () => {
+
+    }
+  },
+  {
+    label: 'Help',
+    icon: 'pi pi-question-circle',
+    command: () => {
+
+    }
+  },
+  {
+    label: 'Report Issue',
+    icon: 'pi pi-external-link',
+    command: () => {
+
+    }
+  }
+]);
+const toggle = (event: any) => {
+  menu.value.toggle(event);
+};
 
 const sb_origin = window.location.href
     .split("?", 2)[1]
@@ -123,6 +154,11 @@ async function run_epub() {
     url: URL.createObjectURL(filecontent),
     filename: nov_data.filename,
   });
+}
+
+function delete_chap(event: any) {
+  chaps.value = chaps.value.filter(val => !selected_chaps.value.includes(val));
+  selected_chaps.value = [];
 }
 
 </script>
