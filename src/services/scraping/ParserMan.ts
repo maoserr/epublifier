@@ -96,14 +96,14 @@ export default class ParserManager {
 
   async parser_chaps(chaps_ref: Ref<Chapter[]>,
                      cancel: Ref<boolean>,
-                     status_txt: Ref<string>,
+                     status_cb: Function,
                      progress_val: Ref<number>) {
 
     let cnt_slice = 100.0 / chaps_ref.value.length;
     progress_val.value = 0;
     const parse_man = this
     let extract_chap = async function (id: number) {
-      console.log("Chapter ", id)
+      status_cb("Chapter " + id.toString())
       if (cancel.value) {
         throw new Error('User cancelled')
       }
@@ -114,12 +114,12 @@ export default class ParserManager {
           f_res = await fetch(chaps_ref.value[id].info.url);
           f_txt = await f_res.text();
         } catch (e) {
-          status_txt.value = "Can't download. Please check permissions in extension page "
-            + "-> permission -> Access your data for all websites"
+          status_cb("Can't download. Please check permissions in extension page "
+            + "-> permission -> Access your data for all websites")
           return
         }
         chaps_ref.value[id].html = f_txt;
-        status_txt.value = "Parsing chapter content: " + id;
+        status_cb("Parsing chapter content: " + id)
         const chap_res =
           await parse_man.run_chap_parser({
             inputs: {},
@@ -135,8 +135,7 @@ export default class ParserManager {
       await Parallel.each(Array.from(Array(chaps_ref.value.length).keys()), extract_chap,
         await this.options.get_option("max_sync_fetch"));
     } catch (e) {
-      status_txt.value = "Error: " + e
-      console.log(e)
+      status_cb("Error: " + e)
     }
   }
 }
