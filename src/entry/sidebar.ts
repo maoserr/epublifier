@@ -1,4 +1,5 @@
 import {createApp} from 'vue'
+import { RouterLink } from 'vue-router';
 import App from "../pages/sidebar/SideBar.vue"
 import PrimeVue from "primevue/config";
 import Tooltip from 'primevue/tooltip';
@@ -26,6 +27,7 @@ import {highlightSelectionMatches, searchKeymap} from "@codemirror/search";
 import {lintKeymap} from "@codemirror/lint";
 
 const app = createApp(App)
+app.component('router-link', RouterLink);
 app.use(PrimeVue)
 app.directive('tooltip', Tooltip);
 

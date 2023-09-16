@@ -23,8 +23,7 @@ function reorder(reordered_chaps: Ref<Chapter[]>) {
              :metaKeySelection="false"
              scrollable scrollHeight="40vh"
              class="p-datatable-sm"
-             responsiveLayout="scroll"
-             tableStyle="min-width: 50rem">
+             responsiveLayout="scroll">
     <Column :rowReorder="true" headerStyle="width: 2rem" :reorderableColumn="false"/>
     <Column selectionMode="multiple" style="width: 2rem" :exportable="false"></Column>
     <Column field="html_parsed" header="Parsed">
