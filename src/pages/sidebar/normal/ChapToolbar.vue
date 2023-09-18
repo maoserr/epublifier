@@ -8,7 +8,7 @@ import {ref} from "vue";
 import {chaps, selected_chaps} from "../sidebar_state";
 import {parse, run_epub} from "../sidebar_parsing";
 
-const menu = ref();
+const menu_bar = ref();
 const items = ref([
   {
     label: 'Editor',
@@ -33,7 +33,7 @@ const items = ref([
   }
 ]);
 const toggle = (event: any) => {
-  menu.value.toggle(event);
+  menu_bar.value.toggle(event);
 };
 
 function delete_chap() {
@@ -47,7 +47,7 @@ function delete_chap() {
   <Toolbar>
     <template #start>
       <Button v-tooltip:a.bottom="'Parse'" @click="parse" icon="pi pi-play" class="mr-2" size="small"/>
-      <Button v-tooltip:a.bottom="'Epub'" @click="run_epub" icon="pi pi-book" class="mr-2" size="small"/>
+      <Button v-tooltip:a.bottom="'Epub'" @click="run_epub" icon="pi pi-book" severity="success" class="mr-2" size="small"/>
       <Button v-tooltip:a.bottom="'Delete'" @click="delete_chap" icon="pi pi-trash" severity="warning"
               size="small"/>
     </template>
@@ -55,8 +55,8 @@ function delete_chap() {
       <Button type="button" v-tooltip:a.bottom="'More'" icon="pi pi-ellipsis-v" @click="toggle"
               severity="secondary" size="small"
               aria-haspopup="true" aria-controls="overlay_menu"/>
-      <Menu ref="menu" id="overlay_menu" :model="items" :popup="true"/>
+      <Menu ref="menu_bar" id="overlay_menu" :model="items" :popup="true"/>
     </template>
-    <Menu ref="menu" id="overlay_menu" :model="items" :popup="true"/>
+    <Menu ref="menu_bar" id="overlay_menu" :model="items" :popup="true"/>
   </Toolbar>
 </template>

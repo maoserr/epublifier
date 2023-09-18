@@ -3,7 +3,25 @@ import {meta} from "../sidebar_state"
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 
-
+async function paste_cover() {
+  try {
+    const clipboardItems = await navigator.clipboard.read();
+    for (const clipboardItem of clipboardItems) {
+      console.log(clipboardItem)
+      for (const type of clipboardItem.types) {
+        console.log(type)
+        if (type.startsWith("image/")) {
+          const blob = await clipboardItem.getType(type);
+          meta.value.cover = URL.createObjectURL(blob)
+          return
+        }
+      }
+    }
+    // status_txt.value = "No image in clipboard!"
+  } catch (err: any) {
+    console.error(err.name, err.message);
+  }
+}
 </script>
 
 <template>

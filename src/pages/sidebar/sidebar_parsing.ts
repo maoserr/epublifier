@@ -12,10 +12,7 @@ let msg_win: MsgWindow
 
 export const parse_cancel = ref<boolean>(false)
 export const parse_progress = ref<number>(0)
-
-export async function reload_parser() {
-  await parse_man.load_parsers()
-}
+export const curr_parser_txt = ref<string>("")
 
 export async function init_parsing() {
   const sb_origin = window.location.href
@@ -25,6 +22,7 @@ export async function init_parsing() {
   msg_win = new MsgWindow(window, sb_origin,
     window.parent)
   await parse_man.load_parsers()
+  curr_parser_txt.value = parse_man.get_parse_doc()
   const doc_info: MsgOut<{ url: string; src: string }> =
     await msg_win.send_message<{}, { url: string; src: string }>({
       command: MsgCommand.ContGetSource,
@@ -73,8 +71,11 @@ export async function run_epub() {
     write_info("No file generated.")
     return
   }
-  await browser.downloads.download({
-    url: URL.createObjectURL(filecontent),
-    filename: nov_data.filename,
-  });
+  await browser.runtime.sendMessage(
+    {
+      cmd: "download",
+      file: URL.createObjectURL(filecontent),
+      filename: nov_data.filename
+    }
+  )
 }

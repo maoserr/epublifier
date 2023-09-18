@@ -2,19 +2,33 @@
   <div class="grid" style="width:100%">
     <div class="col-12">
       <span>{{ status_txt }}</span>
-      <ChapToolbar/>
-      <ChapsList/>
+      <ProgressBar v-if="parse_progress>0" :value="parse_progress"></ProgressBar>
       <TabView>
-        <TabPanel header="Info">
-          <Meta/>
+        <TabPanel header="Overview">
+          <ChapToolbar/>
+          <ChapsList/>
+          <TabView>
+            <TabPanel header="Info">
+              <Meta/>
+            </TabPanel>
+            <TabPanel header="Preview">
+              <Preview/>
+            </TabPanel>
+            <TabPanel header="Parsing">
+              <Parsing/>
+            </TabPanel>
+          </TabView>
         </TabPanel>
-        <TabPanel header="Preview">
-          <Preview/>
+        <TabPanel header="Advanced">
+          <Parser/>
         </TabPanel>
-        <TabPanel header="Parsing">
-          <Parsing/>
+        <TabPanel header="Logs">
+          <div id="logs" style="white-space: pre;">
+            {{ logs }}
+          </div>
         </TabPanel>
       </TabView>
+
     </div>
   </div>
 </template>
@@ -22,6 +36,8 @@
 <script setup lang="ts">
 import TabPanel from "primevue/tabpanel";
 import TabView from "primevue/tabview";
+import ProgressBar from 'primevue/progressbar';
+
 import {onMounted} from "vue";
 
 import 'primeflex/primeflex.css';
@@ -34,9 +50,10 @@ import Preview from "././normal/Preview.vue"
 import Meta from "././normal/Meta.vue"
 import Parsing from "././normal/Parsing.vue";
 import ChapToolbar from "./normal/ChapToolbar.vue";
+import Parser from "./advanced/Parser.vue";
 
-import {status_txt} from "./sidebar_state";
-import {init_parsing} from "./sidebar_parsing";
+import {status_txt, logs} from "./sidebar_state";
+import {init_parsing, parse_progress} from "./sidebar_parsing";
 
 
 onMounted(async () => {

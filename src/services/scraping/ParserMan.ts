@@ -8,6 +8,7 @@ import * as Parallel from "async-parallel";
 
 
 export default class ParserManager {
+  private parsers_str: Record<string, string> = {}
   private options: OptionsManager
   private sandbox: SandboxInput
   private parsers: Record<string, ParserLoadResult> = {}
@@ -15,6 +16,15 @@ export default class ParserManager {
   constructor(doc: Document, win: Window) {
     this.options = OptionsManager.Instance
     this.sandbox = new SandboxInput(doc, win)
+  }
+
+  get_parse_doc(doc:string='main'){
+    return this.parsers_str[doc]
+  }
+
+  async set_parse_doc(body:string, doc:string='main') {
+    this.parsers_str[doc] = body
+    await this.load_parser(doc, this.parsers_str[doc])
   }
 
   /**
@@ -42,10 +52,10 @@ export default class ParserManager {
    */
   async load_parsers(): Promise<MsgOut<Record<string, ParserLoadResult>>> {
     console.log("Loading parsers.")
-    const parser_strs =
+    this.parsers_str =
       await this.options.get_parsers_definitions()
-    for (let k in parser_strs) {
-      await this.load_parser(k, parser_strs[k])
+    for (let k in this.parsers_str) {
+      await this.load_parser(k, this.parsers_str[k])
     }
     return Promise.resolve({
       status: MsgOutStatus.Ok,
@@ -99,7 +109,7 @@ export default class ParserManager {
                      status_cb: Function,
                      progress_val: Ref<number>) {
 
-    let cnt_slice = 100.0 / chaps_ref.value.length;
+    let cnt_slice = (100.0 / chaps_ref.value.length);
     progress_val.value = 0;
     const parse_man = this
     let extract_chap = async function (id: number) {
@@ -134,6 +144,7 @@ export default class ParserManager {
     try {
       await Parallel.each(Array.from(Array(chaps_ref.value.length).keys()), extract_chap,
         await this.options.get_option("max_sync_fetch"));
+      progress_val.value = 0
     } catch (e) {
       status_cb("Error: " + e)
     }
