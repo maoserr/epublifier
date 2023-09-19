@@ -6,23 +6,33 @@ import {NovelData} from "../../services/novel/novel_data";
 import {generate_epub} from "../../services/novel/epub_generator";
 import browser from "webextension-polyfill";
 import {ref} from "vue";
+import {watchDebounced} from "@vueuse/core";
 
 let parse_man: ParserManager
 let msg_win: MsgWindow
 
 export const parse_cancel = ref<boolean>(false)
 export const parse_progress = ref<number>(0)
-export const curr_parser_txt = ref<string>("")
+export const curr_parser_txt =
+  ref<Record<string, string>>({'main': 'Loading...'})
 
-export async function init_parsing() {
-  const sb_origin = window.location.href
+export async function reload_parser(doc: string) {
+  await parse_man.load_parser(doc, curr_parser_txt.value[doc])
+}
+
+export function get_origin(){
+  return window.location.href
     .split("?", 2)[1]
     .split("=", 2)[1]
+}
+
+export async function init_parsing() {
+  const sb_origin= get_origin()
   parse_man = new ParserManager(document, window)
   msg_win = new MsgWindow(window, sb_origin,
     window.parent)
   await parse_man.load_parsers()
-  curr_parser_txt.value = parse_man.get_parse_doc()
+  curr_parser_txt.value = parse_man.get_parse_docs()
   const doc_info: MsgOut<{ url: string; src: string }> =
     await msg_win.send_message<{}, { url: string; src: string }>({
       command: MsgCommand.ContGetSource,
@@ -38,6 +48,15 @@ export async function init_parsing() {
   write_info(init_res.message)
   chaps.value = init_res.data!.chaps
   meta.value = init_res.data!.meta
+
+  watchDebounced(
+    curr_parser_txt,
+    async () => {
+      await reload_parser('main')
+      write_info("Parsers (re)loaded: " + new Date().toLocaleTimeString())
+    },
+    {deep: true, debounce: 1000, maxWait: 10000},
+  )
 }
 
 export async function parse() {

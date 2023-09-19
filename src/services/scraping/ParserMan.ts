@@ -18,8 +18,8 @@ export default class ParserManager {
     this.sandbox = new SandboxInput(doc, win)
   }
 
-  get_parse_doc(doc:string='main'){
-    return this.parsers_str[doc]
+  get_parse_docs(){
+    return this.parsers_str
   }
 
   async set_parse_doc(body:string, doc:string='main') {

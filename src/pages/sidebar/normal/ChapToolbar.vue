@@ -6,7 +6,7 @@ import Menu from 'primevue/menu';
 
 import {ref} from "vue";
 import {chaps, selected_chaps} from "../sidebar_state";
-import {parse, run_epub} from "../sidebar_parsing";
+import {get_origin, parse, run_epub} from "../sidebar_parsing";
 
 const menu_bar = ref();
 const items = ref([
@@ -21,14 +21,21 @@ const items = ref([
     label: 'Help',
     icon: 'pi pi-question-circle',
     command: () => {
-
+      window.open('https://github.com/maoserr/epublifier/blob/develop/README.md')
     }
   },
   {
     label: 'Report Issue',
     icon: 'pi pi-external-link',
     command: () => {
-
+      window.open('https://github.com/maoserr/epublifier/issues/new?'
+          + 'assignees=maoserr&labels=bug&projects=&template=bug_report.md&'
+          + 'title=%5BBUG%5D+New+bug&body=**Describe the bug**%0A'
+          + 'A clear and concise description of what the bug is.%0A%0A'
+          + '**Required info (please complete the following information):**%0A'
+          + ' - Url: ' + encodeURIComponent(get_origin()) + '%0A'
+          + ' - Browser: '+ encodeURIComponent(navigator.userAgent) +'%0A'
+          + ' - Extension Version: '+window.document.title)
     }
   }
 ]);
@@ -47,7 +54,8 @@ function delete_chap() {
   <Toolbar>
     <template #start>
       <Button v-tooltip:a.bottom="'Parse'" @click="parse" icon="pi pi-play" class="mr-2" size="small"/>
-      <Button v-tooltip:a.bottom="'Epub'" @click="run_epub" icon="pi pi-book" severity="success" class="mr-2" size="small"/>
+      <Button v-tooltip:a.bottom="'Epub'" @click="run_epub" icon="pi pi-book" severity="success" class="mr-2"
+              size="small"/>
       <Button v-tooltip:a.bottom="'Delete'" @click="delete_chap" icon="pi pi-trash" severity="warning"
               size="small"/>
     </template>
