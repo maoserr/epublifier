@@ -4,6 +4,7 @@ import Button from "primevue/button";
 import Toolbar from "primevue/toolbar";
 import Menu from 'primevue/menu';
 
+import browser from "webextension-polyfill";
 import {ref} from "vue";
 import {chaps, selected_chaps} from "../sidebar_state";
 import {get_origin, parse, run_epub} from "../sidebar_parsing";
@@ -21,21 +22,17 @@ const items = ref([
     label: 'Help',
     icon: 'pi pi-question-circle',
     command: () => {
-      window.open('https://github.com/maoserr/epublifier/blob/develop/README.md')
+      window.open('https://github.com/maoserr/epublifier/wiki')
     }
   },
   {
     label: 'Report Issue',
     icon: 'pi pi-external-link',
     command: () => {
-      window.open('https://github.com/maoserr/epublifier/issues/new?'
-          + 'assignees=maoserr&labels=bug&projects=&template=bug_report.md&'
-          + 'title=%5BBUG%5D+New+bug&body=**Describe the bug**%0A'
-          + 'A clear and concise description of what the bug is.%0A%0A'
-          + '**Required info (please complete the following information):**%0A'
-          + ' - Url: ' + encodeURIComponent(get_origin()) + '%0A'
-          + ' - Browser: '+ encodeURIComponent(navigator.userAgent) +'%0A'
-          + ' - Extension Version: '+window.document.title)
+      browser.runtime.sendMessage({
+        cmd:"report",
+        origin:get_origin()
+      })
     }
   }
 ]);

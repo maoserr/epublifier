@@ -24,6 +24,13 @@ function load_main(){}
 
 <template>
   <div class="grid">
+    Parse Current Page as:
+    List of Chapters
+    Chapter
+
+    Next Chapter Fetch Method:
+    Background Fetch
+    Follow Link
     <div class="col-12">
       <Button label="Re-Parse" @click="reparse"
               icon="pi pi-file"/>

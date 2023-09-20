@@ -22,11 +22,6 @@ export default class ParserManager {
     return this.parsers_str
   }
 
-  async set_parse_doc(body:string, doc:string='main') {
-    this.parsers_str[doc] = body
-    await this.load_parser(doc, this.parsers_str[doc])
-  }
-
   /**
    * Loads a single parser definition into sandbox
    * @param key
