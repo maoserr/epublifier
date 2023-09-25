@@ -1,5 +1,6 @@
 <script setup lang="ts">
 
+import RadioButton from 'primevue/radiobutton';
 import Checkbox from "primevue/checkbox";
 import InputNumber from "primevue/inputnumber";
 import Button from "primevue/button";
@@ -9,86 +10,81 @@ import InputText from "primevue/inputtext";
 import Listbox from "primevue/listbox";
 import Panel from "primevue/panel";
 
-const scroll=ref<boolean>()
-const max_chaps=ref<number>()
-const wait_s=ref<number>()
+import LinksParse from "./parseparts/LinksParse.vue";
+import NextParse from "./parseparts/NextParse.vue";
+import TextParse from "./parseparts/TextParse.vue";
 
-function pick_next(){}
-function pick_title(){}
-function onDelete(){}
-function parse(){}
-function load_main(){}
+const parser=ref<string>("")
+const parsers = ref<string[]>([])
+const parse_type = ref<string>("list_link")
+const page_type = ref<string>("regular")
+const p_inputs_val = ref<Record<string, any>>({})
+const p_inputs = ref<Record<string, any>>({})
+
+function parse_links() {
+}
+
+function pick_title() {
+}
+
+function onDelete() {
+}
+
+function parse() {
+}
+
+function load_main() {
+}
 
 
 </script>
 
 <template>
   <div class="grid">
-    Parse Current Page as:
-    List of Chapters
-    Chapter
-
-    Next Chapter Fetch Method:
-    Background Fetch
-    Follow Link
     <div class="col-12">
-      <Button label="Re-Parse" @click="reparse"
-              icon="pi pi-file"/>
-    </div>
-    <div class="col-12">
-      <Listbox v-model="parser" :options="parsers"
-               listStyle="max-height:12rem">
-        <template #option="{option}:any">
-          <div class="flex align-items-center">
-            <div>[{{ (option as any).parse_doc }}]
-              ({{ (option as any).type }})
-              {{ (option as any).parser }}
+      <Panel header="Page Options">
+        <div class="grid">
+          <div class="col-6">
+            Parse chapters through:
+            <div class="flex flex-wrap gap-3">
+              <div class="flex align-items-center">
+                <RadioButton v-model="parse_type" inputId="list_link"
+                             name="parse_type" value="list_link"/>
+                <label for="list_link" class="ml-2">List of links</label>
+              </div>
+              <div class="flex align-items-center">
+                <RadioButton v-model="parse_type" inputId="next_link"
+                             name="parse_type" value="next_link"/>
+                <label for="next_link" class="ml-2">Next link</label>
+              </div>
             </div>
           </div>
-        </template>
-      </Listbox>
-    </div>
-    <div class="col-12">
-      <Panel header="Parser Options">
-        <div class="grid">
-          <div class="field col-4" v-for="(inp, k) in p_inputs">
-                  <span class="p-float-label">
-                      <InputText v-if="inp.type=='text'" :id="k.toString()" type="text"
-                                 @change="set_input_val($event.value)"
-                                 v-model="p_inputs_val[k]"/>
-                      <label v-if="inp.type=='text'" :for="k">{{ k }}</label>
-                  </span>
+          <div class="col-6">
+            Website type:
+            <div class="flex flex-wrap gap-3">
+              <div class="flex align-items-center">
+                <RadioButton v-model="page_type" inputId="regular"
+                             name="page_type" value="regular"/>
+                <label for="regular" class="ml-2">Pages</label>
+              </div>
+              <div class="flex align-items-center">
+                <RadioButton v-model="page_type" inputId="spa"
+                             name="page_type" value="spa"/>
+                <label for="spa" class="ml-2">App</label>
+              </div>
+            </div>
           </div>
         </div>
       </Panel>
     </div>
+    <div class="col-12" v-if="parse_type=='list_link'">
+      <LinksParse/>
+    </div>
+    <div class="col-12" v-if="parse_type=='next_link'">
+      <NextParse/>
+    </div>
+    <div class="col-12">
+      <TextParse/>
+    </div>
   </div>
-  <Toolbar>
-    <template #start>
-      <Button label="Pick Next" @click="pick_next" class="mr-2"
-              v-tooltip="'Select the next chapter link/button for auto progression'"/>
-      <Button label="Pick Title" @click="pick_title" class="mr-2"
-              v-tooltip="'Select the title element, otherwise auto-detect'"/>
-      <Checkbox v-model="scroll" :binary="true"
-                v-tooltip="'Scroll page to bottom after auto progression, ' +
-                     'If this is checked wait time is also applied after scroll'"/>
-    </template>
-    <template #center>
-      <Button icon="pi pi-times" @click="onDelete" class="mr-2"
-              v-tooltip="'Delete selected chapters'"
-              severity="danger" rounded raised/>
-    </template>
-    <template #end>
-      <Button label="Parse" @click="parse" class="mr-2"/>
-      <InputNumber v-model="max_chaps" id="maxchap" input-class="mr-2"
-                   v-tooltip="'Maximum chapters to parse'"
-                   :input-style="{width: '4rem'}" suffix="c" :min="1"/>
-
-      <InputNumber v-model="wait_s" id="wait_s" input-class="mr-2"
-                   :maxFractionDigits="2" v-tooltip="'Wait interval between parsing'"
-                   :input-style="{width: '4rem'}" suffix="s" :min="0.01"/>
-      <Button label="Load" @click="load_main" icon="pi pi-book"
-              v-tooltip="'Load the epub generator interface'"/>
-    </template>
-  </Toolbar>
 </template>

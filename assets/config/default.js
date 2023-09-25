@@ -1,21 +1,34 @@
 const main_def = {
-    init_parsers: {
-        'Auto': {
-            func: main_parser, inputs: {}
-        },
+    detector: {
+        func: main_parser,
+        inputs: {
+
+        }
+    },
+    links: {
         'Novel Updates': {
-            func: nu_toc_parser, inputs: {}
+            func: nu_toc_parser,
+            inputs: {}
         },
         'Chapter Links': {
-            func: chap_name_search, inputs: {
+            func: chap_name_search,
+            inputs: {
                 'Link Regex': {type: 'text', default: '^c.*'},
                 'Query Selector': {type: 'text', default: 'a'}
             }
         },
     },
-    chap_parsers: {
-        'Auto': {func: readability_ex, inputs: {}},
-        'Simple': {func: readability, inputs: {}},
+    text: {
+        'Readability_Ex': {
+            func: readability_ex,
+            inputs: {
+
+            }},
+        'Readability': {
+            func: readability,
+            inputs: {
+
+            }},
     }
 }
 
@@ -28,13 +41,34 @@ function load() {
     return main_def
 }
 
+function meta_nu(inputs, url, source) {
+    let parser = new DOMParser();
+    let dom = parser.parseFromString(source, "text/html");
+    let tit = dom.querySelector(".seriestitlenu").innerText;
+    let desc = dom.querySelector("#editdescription").innerHTML;
+    let auth = dom.querySelector("#authtag").innerText;
+    let img = dom.querySelector(".serieseditimg > img");
+    if (img == null) {
+        img = dom.querySelector(".seriesimg > img");
+    }
+    return {
+        title: tit,
+        description: desc,
+        author: auth,
+        cover: img.src,
+        publisher: "Novel Update"
+    }
+}
+
 /**
  * Gets metadata from html metadata
  * @param url
  * @param dom
  * @returns {{author: string, description: *, publisher: string, title: string}}
  */
-function page_meta(url, dom) {
+function meta_page(inputs, url, source) {
+    let parser = new DOMParser();
+    let dom = parser.parseFromString(source, "text/html");
     return {
         title: dom.title ?? "No Title",
         description: dom.querySelector('meta[name="description"]')?.content,
@@ -82,13 +116,6 @@ function main_parser(inputs, url, source, helpers) {
 function nu_toc_parser(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
-    let tit = dom.querySelector(".seriestitlenu").innerText;
-    let desc = dom.querySelector("#editdescription").innerHTML;
-    let auth = dom.querySelector("#authtag").innerText;
-    let img = dom.querySelector(".serieseditimg > img");
-    if (img == null) {
-        img = dom.querySelector(".seriesimg > img");
-    }
     let chaps = [];
 
     let chap_popup = dom.querySelector("#my_popupreading");
@@ -111,13 +138,7 @@ function nu_toc_parser(inputs, url, source, helpers) {
         }
     }
     return {
-        chaps: chaps, message: parser_msg, meta: {
-            title: tit,
-            description: desc,
-            author: auth,
-            cover: img.src,
-            publisher: "Novel Update"
-        }
+        chaps: chaps, message: parser_msg
     };
 }
 
@@ -147,8 +168,8 @@ function chap_name_search(inputs, url, source, helpers) {
         }
     });
     return {
-        chaps: chaps, message: 'Parsing links with prefix chapter (' + chaps.length + ' chapters)',
-        meta: page_meta(url, dom)
+        chaps: chaps,
+        message: 'Parsing links with prefix chapter (' + chaps.length + ' chapters)'
     };
 }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {meta} from "../sidebar_state"
+import {meta, write_info} from "../sidebar_state"
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 
@@ -17,7 +17,7 @@ async function paste_cover() {
         }
       }
     }
-    // status_txt.value = "No image in clipboard!"
+    write_info("No image in clipboard!")
   } catch (err: any) {
     console.error(err.name, err.message);
   }

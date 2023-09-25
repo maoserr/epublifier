@@ -42,7 +42,7 @@ export function set_closebtn_style(closebtn:HTMLDivElement) {
   closebtn.style.border = "1px solid red"
 }
 
-export function set_iframe_style(ifram:HTMLDivElement) {
+export function set_iframe_style(ifram:HTMLIFrameElement) {
   ifram.style.all = "initial"
   ifram.style.background = "white"
   ifram.style.flexGrow = "1";
@@ -50,4 +50,5 @@ export function set_iframe_style(ifram:HTMLDivElement) {
   ifram.style.padding = "0";
   ifram.style.borderRadius = "5px";
   ifram.style.border = "1px solid black";
+  ifram.allow = "clipboard-read; clipboard-write"
 }

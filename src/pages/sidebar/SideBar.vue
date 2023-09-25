@@ -2,16 +2,17 @@
   <div class="grid" style="width:100%">
     <div class="col-12">
       <span>{{ status_txt }}</span>
-      <ProgressBar v-if="parse_progress>0" :value="parse_progress"></ProgressBar>
+      <ProgressBar v-if="parse_progress>0" :value="parse_progress"
+                   :show-value=false></ProgressBar>
       <TabView>
         <TabPanel header="Overview">
           <ChapToolbar/>
           <ChapsList/>
           <TabView>
-            <TabPanel header="Info">
+            <TabPanel header="Meta">
               <Meta/>
             </TabPanel>
-            <TabPanel header="Preview">
+            <TabPanel header="Chapter">
               <Preview/>
             </TabPanel>
             <TabPanel header="Parsing">
