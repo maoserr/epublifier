@@ -1,5 +1,5 @@
 import SandboxInput from ".././messaging/SandboxInput";
-import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultInit} from "./parser_types";
+import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultDetector, ParserResultInit} from "./parser_types";
 import {MsgCommand, MsgOut, MsgOutStatus, SbxInRunFunc, SbxInRunFuncRes} from "../messaging/msg_types";
 import {Chapter} from "../novel/novel_data";
 import {Ref} from "vue";
@@ -18,7 +18,10 @@ export default class ParserManager {
     this.sandbox = new SandboxInput(doc, win)
   }
 
-  get_parse_docs(){
+  /**
+   * Gets text definitions for all
+   */
+  get_parse_docs() {
     return this.parsers_str
   }
 
@@ -66,17 +69,31 @@ export default class ParserManager {
    * @param parser Parser
    */
   async run_init_parser(
-    params: ParserParams, parse_doc?: string, parser?: string,
-  ): Promise<MsgOut<ParserResultInit>> {
-    return await this.sandbox.run_in_sandbox<SbxInRunFuncRes, ParserResultInit>(
-      {
+    params: ParserParams, parse_doc?: string): Promise<MsgOut<ParserResultInit>> {
+    const det_res = (await this.sandbox
+      .run_in_sandbox<SbxInRunFuncRes, ParserResultDetector>({
         command: MsgCommand.SbxRunFuncRes,
         data: {
           res_key: parse_doc ?? "main",
           inputs: [params.inputs, params.url, params.src],
-          subkeys: ["init_parsers", parser ?? "Auto", "func"]
+          subkeys: ["detector", "func"]
         }
-      }, 1, 0)
+      }, 2, 0))
+    const det_data = det_res.data!
+    const parse_res =  await this.sandbox
+      .run_in_sandbox<SbxInRunFuncRes, ParserResultInit|ParserResultChap>({
+      command: MsgCommand.SbxRunFuncRes,
+      data: {
+        res_key: parse_doc ?? "main",
+        inputs: [params.inputs, params.url, params.src],
+        subkeys: [det_data.type, det_data.parser]
+      }
+    }, 2, 0)
+    const msgs = det_res.message + "\n"+ parse_res.message
+    return {
+      status: MsgOutStatus.Ok,
+      message: msgs
+    }
   }
 
   /**

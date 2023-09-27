@@ -16,17 +16,26 @@ export interface ParserInputDef {
 }
 
 export interface ParserLoadResult {
-  init_parsers: Record<string, { inputs: Record<string, ParserInputDef> }>
-  chap_parsers: Record<string, { inputs: Record<string, ParserInputDef> }>
+  links: Record<string, { inputs: Record<string, ParserInputDef> }>
+  text: Record<string, { inputs: Record<string, ParserInputDef> }>
+}
+
+/**
+ * Results from running detector
+ */
+export interface ParserResultDetector {
+  type: 'links'|'text'
+  parser: string
+  meta: NovelMetaData
 }
 
 /**
  * Results from running toc parser
  */
 export interface ParserResultInit {
+  detected: ParserResultDetector
   chaps: Chapter[];
   message: string,
-  meta: NovelMetaData;
 }
 
 /**

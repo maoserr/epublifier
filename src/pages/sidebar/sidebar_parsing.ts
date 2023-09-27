@@ -47,7 +47,7 @@ export async function init_parsing() {
   )
   write_info(init_res.message)
   chaps.value = init_res.data!.chaps
-  meta.value = init_res.data!.meta
+  // meta.value = init_res.data!.meta
 
   watchDebounced(
     curr_parser_txt,

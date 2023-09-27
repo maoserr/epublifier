@@ -41,9 +41,7 @@ function load() {
     return main_def
 }
 
-function meta_nu(inputs, url, source) {
-    let parser = new DOMParser();
-    let dom = parser.parseFromString(source, "text/html");
+function meta_nu(dom, url) {
     let tit = dom.querySelector(".seriestitlenu").innerText;
     let desc = dom.querySelector("#editdescription").innerHTML;
     let auth = dom.querySelector("#authtag").innerText;
@@ -66,9 +64,7 @@ function meta_nu(inputs, url, source) {
  * @param dom
  * @returns {{author: string, description: *, publisher: string, title: string}}
  */
-function meta_page(inputs, url, source) {
-    let parser = new DOMParser();
-    let dom = parser.parseFromString(source, "text/html");
+function meta_page(dom, url) {
     return {
         title: dom.title ?? "No Title",
         description: dom.querySelector('meta[name="description"]')?.content,
@@ -94,10 +90,14 @@ function main_parser(inputs, url, source, helpers) {
     switch (link.hostname) {
         case "www.novelupdates.com":
             if (paths.length > 1 && paths[1] === "series") {
+                const meta = meta_nu(dom, url)
+                return {type:'links',parser:'Novel Updates', meta:meta}
                 return nu_toc_parser(inputs, url, source, helpers)
             }
             break;
         default:
+            const meta = meta_page(dom, url)
+            return {message: '', type:'links', parser:'Chapter Links',meta:meta}
             return chap_name_search(
                 helpers["get_default_vals"](main_def.init_parsers["Chapter Links"]),
                 url, source, helpers)
