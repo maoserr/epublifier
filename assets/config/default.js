@@ -1,9 +1,7 @@
 const main_def = {
     detector: {
         func: main_parser,
-        inputs: {
-
-        }
+        inputs: {}
     },
     links: {
         'Novel Updates': {
@@ -21,14 +19,12 @@ const main_def = {
     text: {
         'Readability_Ex': {
             func: readability_ex,
-            inputs: {
-
-            }},
+            inputs: {}
+        },
         'Readability': {
             func: readability,
-            inputs: {
-
-            }},
+            inputs: {}
+        },
     }
 }
 
@@ -91,16 +87,12 @@ function main_parser(inputs, url, source, helpers) {
         case "www.novelupdates.com":
             if (paths.length > 1 && paths[1] === "series") {
                 const meta = meta_nu(dom, url)
-                return {type:'links',parser:'Novel Updates', meta:meta}
-                return nu_toc_parser(inputs, url, source, helpers)
+                return {type: 'links', parser: 'Novel Updates', meta: meta}
             }
             break;
         default:
             const meta = meta_page(dom, url)
-            return {message: '', type:'links', parser:'Chapter Links',meta:meta}
-            return chap_name_search(
-                helpers["get_default_vals"](main_def.init_parsers["Chapter Links"]),
-                url, source, helpers)
+            return {message: '', type: 'links', parser: 'Chapter Links', meta: meta}
     }
 }
 
@@ -125,10 +117,7 @@ function nu_toc_parser(inputs, url, source, helpers) {
         chap_lis.forEach((element) => {
             if (element.href.includes("extnu")) {
                 chaps.unshift({
-                    info: {
-                        title: element.innerText.trim(),
-                        url: element.href
-                    },
+                    url: element.href,
                     title: element.innerText.trim()
                 });
             }
@@ -159,10 +148,7 @@ function chap_name_search(inputs, url, source, helpers) {
     ancs.forEach((element) => {
         if (chap_reg.test(element.innerText)) {
             chaps.push({
-                info: {
-                    title: element.innerText,
-                    url: element.href
-                },
+                url: element.href,
                 title: element.innerText
             });
         }

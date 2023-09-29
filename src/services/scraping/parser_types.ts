@@ -1,6 +1,11 @@
 import {Chapter, NovelMetaData}
   from "../novel/novel_data";
 
+export function get_default_inputs(parser_def: Record<string,ParserInputDef>) {
+  return Object.fromEntries(Object.entries(parser_def)
+    .map(([k, v]) => [k, v["default"]]))
+}
+
 /**
  * Parser Parameters
  */
@@ -35,7 +40,11 @@ export interface ParserResultDetector {
 export interface ParserResultInit {
   detected: ParserResultDetector
   chaps: Chapter[];
-  message: string,
+}
+
+export interface ParserResultLinks {
+  chaps: Chapter[];
+  message: string;
 }
 
 /**
@@ -45,5 +54,4 @@ export interface ParserResultChap {
   title: string;
   html: string;
   message: string;
-  id: number
 }

@@ -43,7 +43,8 @@ export async function init_parsing() {
       inputs: {},
       url: doc_info.data!.url,
       src: doc_info.data!.src
-    }
+    },
+    'main'
   )
   write_info(init_res.message)
   chaps.value = init_res.data!.chaps

@@ -6,15 +6,8 @@ export interface NovelMetaData {
     publisher?: string
 }
 
-export interface ChapterMeta {
-    title: string;
-    url: string;
-    parser: string;
-    parse_doc: string;
-}
-
 export interface Chapter {
-    info: ChapterMeta
+    url: string;
     title: string;
     html: string;
     html_parsed: string;

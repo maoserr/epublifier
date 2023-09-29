@@ -1,5 +1,12 @@
 import SandboxInput from ".././messaging/SandboxInput";
-import {ParserLoadResult, ParserParams, ParserResultChap, ParserResultDetector, ParserResultInit} from "./parser_types";
+import {
+  get_default_inputs,
+  ParserLoadResult,
+  ParserParams,
+  ParserResultChap,
+  ParserResultDetector,
+  ParserResultInit, ParserResultLinks
+} from "./parser_types";
 import {MsgCommand, MsgOut, MsgOutStatus, SbxInRunFunc, SbxInRunFuncRes} from "../messaging/msg_types";
 import {Chapter} from "../novel/novel_data";
 import {Ref} from "vue";
@@ -66,33 +73,42 @@ export default class ParserManager {
    * Runs initial parser
    * @param params Parameters for parser
    * @param parse_doc Parser doc
-   * @param parser Parser
    */
   async run_init_parser(
-    params: ParserParams, parse_doc?: string): Promise<MsgOut<ParserResultInit>> {
+    params: ParserParams, parse_doc: string): Promise<MsgOut<ParserResultInit>> {
     const det_res = (await this.sandbox
       .run_in_sandbox<SbxInRunFuncRes, ParserResultDetector>({
         command: MsgCommand.SbxRunFuncRes,
         data: {
-          res_key: parse_doc ?? "main",
+          res_key: parse_doc,
           inputs: [params.inputs, params.url, params.src],
           subkeys: ["detector", "func"]
         }
       }, 2, 0))
     const det_data = det_res.data!
+    const det_inputs = get_default_inputs(this.parsers[parse_doc]
+      [det_data.type][det_data.parser]['inputs'])
     const parse_res =  await this.sandbox
-      .run_in_sandbox<SbxInRunFuncRes, ParserResultInit|ParserResultChap>({
+      .run_in_sandbox<SbxInRunFuncRes, ParserResultLinks|ParserResultChap>({
       command: MsgCommand.SbxRunFuncRes,
       data: {
-        res_key: parse_doc ?? "main",
-        inputs: [params.inputs, params.url, params.src],
-        subkeys: [det_data.type, det_data.parser]
+        res_key: parse_doc,
+        inputs: [det_inputs, params.url, params.src],
+        subkeys: [det_data.type, det_data.parser, 'func']
       }
     }, 2, 0)
     const msgs = det_res.message + "\n"+ parse_res.message
+    let parse_chaps:Chapter[] = []
+    if (det_data.type == 'links') {
+      parse_chaps = (parse_res.data! as ParserResultLinks).chaps
+    }
     return {
       status: MsgOutStatus.Ok,
-      message: msgs
+      message: msgs,
+      data: {
+        detected: det_data,
+        chaps: parse_chaps,
+      }
     }
   }
 
@@ -103,17 +119,21 @@ export default class ParserManager {
    * @param parser Parser
    */
   async run_chap_parser(
-    params: ParserParams, parse_doc?: string, parser?: string,
+    params: ParserParams, parse_doc: string, parser: string,
   ): Promise<MsgOut<ParserResultChap>> {
     return await this.sandbox.run_in_sandbox<SbxInRunFuncRes, ParserResultChap>(
       {
         command: MsgCommand.SbxRunFuncRes,
         data: {
-          res_key: parse_doc ?? "main",
+          res_key: parse_doc,
           inputs: [params.inputs, params.url, params.src],
-          subkeys: ["chap_parsers", parser ?? "Auto", "func"]
+          subkeys: ["text", parser, "func"]
         }
       }, 1, 0)
+  }
+
+  async parse_chaps_fetch(){
+
   }
 
   async parser_chaps(chaps_ref: Ref<Chapter[]>,
@@ -129,11 +149,11 @@ export default class ParserManager {
       if (cancel.value) {
         throw new Error('User cancelled')
       }
-      if (chaps_ref.value[id].info.url !== undefined) {
+      if (chaps_ref.value[id].url !== undefined) {
         let f_res
         let f_txt = ''
         try {
-          f_res = await fetch(chaps_ref.value[id].info.url);
+          f_res = await fetch(chaps_ref.value[id].url);
           f_txt = await f_res.text();
         } catch (e) {
           status_cb("Can't download. Please check permissions in extension page "
@@ -145,20 +165,24 @@ export default class ParserManager {
         const chap_res =
           await parse_man.run_chap_parser({
             inputs: {},
-            url: chaps_ref.value[id].info.url,
+            url: chaps_ref.value[id].url,
             src: f_txt
-          }, chaps_ref.value[id].info.parse_doc, chaps_ref.value[id].info.parser)
+          }, 'main', 'Readability_Ex')
         chaps_ref.value[id].html_parsed = chap_res.data?.html ?? ""
         chaps_ref.value[id].title = chap_res.data?.title ?? ""
       }
       progress_val.value += cnt_slice;
     }
     try {
-      await Parallel.each(Array.from(Array(chaps_ref.value.length).keys()), extract_chap,
+      await Parallel.each(Array.from(Array(chaps_ref.value.length).keys()),
+        extract_chap,
         await this.options.get_option("max_sync_fetch"));
       progress_val.value = 0
-    } catch (e) {
-      status_cb("Error: " + e)
+    } catch (e:any) {
+      status_cb(e)
+      for (let item of e.list){
+        status_cb(item)
+      }
     }
   }
 }

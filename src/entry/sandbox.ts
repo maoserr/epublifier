@@ -6,7 +6,6 @@ import {
   SbxInRunFuncRes,
   MsgOutStatus
 } from '../services/messaging/msg_types';
-import {ParserParams} from "../services/scraping/parser_types";
 import MsgWindow from "../services/messaging/MsgWindow";
 
 let loaded_scripts: Record<string, any> = {}
@@ -49,6 +48,7 @@ async function run_func_res(res_key: string,
   inputs.push(get_helpers())
   let curr_res = loaded_scripts[res_key]
   let msg = "Function ran."
+  console.log(curr_res)
   for (let i of subkeys) {
     if (i in curr_res) {
       curr_res = curr_res[i]
@@ -79,10 +79,6 @@ function get_helpers() {
       return new Readability(dom).parse();
     },
     "readerable": isProbablyReaderable,
-    "get_default_vals": function (parser_def: ParserParams) {
-      return Object.fromEntries(Object.entries(parser_def.inputs)
-        .map(([k, v]) => [k, v["default"]]))
-    }
   }
 }
 
