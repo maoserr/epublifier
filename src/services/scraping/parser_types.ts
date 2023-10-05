@@ -6,6 +6,11 @@ export function get_default_inputs(parser_def: Record<string,ParserInputDef>) {
     .map(([k, v]) => [k, v["default"]]))
 }
 
+export interface ParseOpt {
+  doc: string
+  parser: string
+}
+
 /**
  * Parser Parameters
  */

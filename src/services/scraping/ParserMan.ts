@@ -20,9 +20,9 @@ export default class ParserManager {
   private sandbox: SandboxInput
   private parsers: Record<string, ParserLoadResult> = {}
 
-  constructor(doc: Document, win: Window) {
+  constructor(sandbox: SandboxInput) {
     this.options = OptionsManager.Instance
-    this.sandbox = new SandboxInput(doc, win)
+    this.sandbox = sandbox
   }
 
   /**
@@ -37,51 +37,48 @@ export default class ParserManager {
    * @param key
    * @param body
    */
-  async load_parser(key: string, body: string): Promise<string> {
+  async load_parser(key: string, body: string): Promise<ParserLoadResult> {
     const func_in: SbxInRunFunc = {
-      body: body + "\nreturn load()",
+      body: body + "\nreturn main_def",
       res_key: key
     }
-    const res =
-      await this.sandbox.run_in_sandbox<SbxInRunFunc, ParserLoadResult>(
+    const res = await this.sandbox
+      .run_in_sandbox<SbxInRunFunc, ParserLoadResult>(
         {
           command: MsgCommand.SbxRunFunc,
           data: func_in
         })
     this.parsers[key] = (res.data as ParserLoadResult)
-    return res.message
+    return res.data!
   }
 
   /**
    * Load all parser definitions into sandbox
    */
-  async load_parsers(): Promise<MsgOut<Record<string, ParserLoadResult>>> {
+  async load_all_parsers(): Promise<Record<string, ParserLoadResult>> {
     console.log("Loading parsers.")
     this.parsers_str =
       await this.options.get_parsers_definitions()
     for (let k in this.parsers_str) {
       await this.load_parser(k, this.parsers_str[k])
     }
-    return Promise.resolve({
-      status: MsgOutStatus.Ok,
-      message: 'Loaded',
-      data: this.parsers
-    })
+    return Promise.resolve(this.parsers)
   }
 
   /**
-   * Runs initial parser
-   * @param params Parameters for parser
+   * Runs initial detector and then detected parser
+   * @param url URL of page
+   * @param src Source of page
    * @param parse_doc Parser doc
    */
-  async run_init_parser(
-    params: ParserParams, parse_doc: string): Promise<MsgOut<ParserResultInit>> {
+  async run_init_parser(url:string, src:string, parse_doc: string
+  ): Promise<MsgOut<ParserResultInit>> {
     const det_res = (await this.sandbox
       .run_in_sandbox<SbxInRunFuncRes, ParserResultDetector>({
         command: MsgCommand.SbxRunFuncRes,
         data: {
           res_key: parse_doc,
-          inputs: [params.inputs, params.url, params.src],
+          inputs: [{}, url, src],
           subkeys: ["detector", "func"]
         }
       }, 2, 0))
@@ -93,7 +90,7 @@ export default class ParserManager {
       command: MsgCommand.SbxRunFuncRes,
       data: {
         res_key: parse_doc,
-        inputs: [det_inputs, params.url, params.src],
+        inputs: [det_inputs, url, src],
         subkeys: [det_data.type, det_data.parser, 'func']
       }
     }, 2, 0)

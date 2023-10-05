@@ -15,13 +15,17 @@
             <TabPanel header="Chapter">
               <Preview/>
             </TabPanel>
-            <TabPanel header="Parsing">
-              <Parsing/>
-            </TabPanel>
           </TabView>
         </TabPanel>
         <TabPanel header="Advanced">
-          <Parser/>
+          <TabView>
+            <TabPanel header="Parsing">
+              <Parsing/>
+            </TabPanel>
+            <TabPanel header="Parser">
+              <Parser/>
+            </TabPanel>
+          </TabView>
         </TabPanel>
         <TabPanel header="Logs">
           <div id="logs" style="white-space: pre;">
@@ -49,7 +53,7 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 import ChapsList from "././normal/ChapsList.vue"
 import Preview from "././normal/Preview.vue"
 import Meta from "././normal/Meta.vue"
-import Parsing from "././normal/Parsing.vue";
+import Parsing from "./advanced/Parsing.vue";
 import ChapToolbar from "./normal/ChapToolbar.vue";
 import Parser from "./advanced/Parser.vue";
 

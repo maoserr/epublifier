@@ -21,22 +21,23 @@ export default class MsgWindow {
    *
    * @param win Window that send/receives messages
    * @param msg_origin Target window origin
-   * @param msg_target Target to send messages to (sender only)
-   * @param proc_func Reply processing function (receive only)
+   * @param send_target Target to send messages to (sender only)
+   * @param receive_func Reply processing function (receive only)
    */
   constructor(win: Window,
               msg_origin: string,
-              msg_target?: Window,
-              proc_func?: Function
+              send_target?: Window,
+              receive_func?: Function
   ) {
-    this.msg_target = msg_target
-    this.procs = proc_func
+    this.msg_target = send_target
+    this.procs = receive_func
     this.setup_listener(win, msg_origin)
   }
 
   /**
    * Sends a message to target
    * @param data Data
+   * @param tries Number of tries
    * @param timeout
    */
   async send_message<T, S>(data: MsgIn<T>,

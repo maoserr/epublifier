@@ -7,6 +7,7 @@ import {
   MsgOutStatus
 } from '../services/messaging/msg_types';
 import MsgWindow from "../services/messaging/MsgWindow";
+import {get_default_inputs} from "../services/scraping/parser_types";
 
 let loaded_scripts: Record<string, any> = {}
 
@@ -79,6 +80,7 @@ function get_helpers() {
       return new Readability(dom).parse();
     },
     "readerable": isProbablyReaderable,
+    "get_default_inputs": get_default_inputs,
   }
 }
 

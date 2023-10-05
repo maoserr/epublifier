@@ -29,14 +29,15 @@ const main_def = {
 }
 
 /**
- * Initialization function
- * @returns
+ * Gets metadata from Novel updates
+ * @param {string}url
+ * @param {HTMLElement}dom
+ * @returns {{
+ * author: string,
+ * description: string,
+ * publisher: string,
+ * title: string}}
  */
-function load() {
-    console.debug("Parser loaded.")
-    return main_def
-}
-
 function meta_nu(dom, url) {
     let tit = dom.querySelector(".seriestitlenu").innerText;
     let desc = dom.querySelector("#editdescription").innerHTML;
@@ -56,9 +57,13 @@ function meta_nu(dom, url) {
 
 /**
  * Gets metadata from html metadata
- * @param url
- * @param dom
- * @returns {{author: string, description: *, publisher: string, title: string}}
+ * @param {string}url
+ * @param {HTMLElement}dom
+ * @returns {{
+ * author: string,
+ * description: string,
+ * publisher: string,
+ * title: string}}
  */
 function meta_page(dom, url) {
     return {
@@ -92,7 +97,7 @@ function main_parser(inputs, url, source, helpers) {
             break;
         default:
             const meta = meta_page(dom, url)
-            return {message: '', type: 'links', parser: 'Chapter Links', meta: meta}
+            return {type: 'links', parser: 'Chapter Links', meta: meta}
     }
 }
 
@@ -133,13 +138,14 @@ function nu_toc_parser(inputs, url, source, helpers) {
 
 /**
  * Search for chapter by link names
- * @param inputs
- * @param url
- * @param source
- * @param helpers
- * @returns {{meta: {title: string}, chaps: *[], message: string}}
+ * @param {{'Query Selector':string,'Link Regex':string}} inputs
+ * @param {string} url
+ * @param {string} source
+ * @param {{}} helpers
+ * @returns {{chaps: *[], message: string}}
  */
-function chap_name_search(inputs, url, source, helpers) {
+function chap_name_search(inputs,
+                          url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
     let ancs = dom.querySelectorAll(inputs['Query Selector']);
@@ -186,12 +192,11 @@ function readability(inputs, url, source, helpers) {
  * @param url
  * @param source
  * @param helpers
- * @returns {Promise<{html: string, title: string, message: string}|{html: *, title: *, message: string}>}
+ * @returns {Promise<{html: string, title: string, message: string}>}
  */
 async function readability_ex(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
-
     let new_link = null;
     let subchaps = [];
 
@@ -256,3 +261,4 @@ async function readability_ex(inputs, url, source, helpers) {
     };
 }
 
+console.log(main_def)
