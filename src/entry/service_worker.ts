@@ -18,7 +18,6 @@ browser.action.onClicked.addListener((tab: Tabs.Tab) => {
       files: ["js/sb_container.js"]
     }
   ).then().catch((err) => {
-    window.alert(err)
   });
 })
 

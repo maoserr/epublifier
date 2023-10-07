@@ -60,8 +60,14 @@ function delete_chap() {
       <Button type="button" v-tooltip:a.bottom="'More'" icon="pi pi-ellipsis-v" @click="toggle"
               severity="secondary" size="small"
               aria-haspopup="true" aria-controls="overlay_menu"/>
-      <Menu ref="menu_bar" id="overlay_menu" :model="items" :popup="true"/>
+      <Menu ref="menu_bar" id="overlay_menu" :model="items" :popup="true">
+        <template #item="{ label, item, props }">
+          <a v-bind="props.action">
+            <span v-bind="props.icon" />
+            <span v-bind="props.label">{{ label }}</span>
+          </a>
+        </template>
+      </Menu>
     </template>
-    <Menu ref="menu_bar" id="overlay_menu" :model="items" :popup="true"/>
   </Toolbar>
 </template>
