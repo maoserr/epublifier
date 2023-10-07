@@ -61,7 +61,7 @@ function delete_chap() {
               severity="secondary" size="small"
               aria-haspopup="true" aria-controls="overlay_menu"/>
       <Menu ref="menu_bar" id="overlay_menu" :model="items" :popup="true">
-        <template #item="{ label, item, props }">
+        <template #item="{ label, item, props }:any">
           <a v-bind="props.action">
             <span v-bind="props.icon" />
             <span v-bind="props.label">{{ label }}</span>

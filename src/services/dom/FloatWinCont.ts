@@ -9,7 +9,6 @@ import {MsgCommand, MsgOut, MsgOutStatus} from "../messaging/msg_types";
  */
 export default class FloatWinCont {
   private readonly cont: HTMLDivElement
-  private msgwin?: MsgWindow
 
   constructor(doc: Document, win: Window, src: string) {
     let prev_cont = doc.getElementById(src)
@@ -35,13 +34,14 @@ export default class FloatWinCont {
       iframe.id = "iframe"
       set_iframe_style(iframe)
       this.cont.appendChild(iframe);
-
       new MovableWin(doc, this.cont, titlebar)
-      this.msgwin = this.set_receiver(win,
-        new URL(src).origin, iframe.contentWindow!)
 
-      setTimeout(() =>
-        iframe.src = src + "?origin=" + window.location.origin, 0)
+
+      setTimeout(() => {
+        this.set_receiver(win,
+          new URL(src).origin, iframe.contentWindow!)
+        iframe.src = src + "?origin=" + window.location.origin
+      }, 0)
     } else {
       console.info("Showing already loaded.")
       this.cont = prev_cont as HTMLDivElement

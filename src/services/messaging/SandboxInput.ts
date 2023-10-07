@@ -13,16 +13,20 @@ export default class SandboxInput {
    * Creates the Sandbox iframe
    * @param doc
    * @param win
+   * @param onrdy
    */
-  constructor(doc: Document, win: Window) {
+  constructor(doc: Document, win: Window, onrdy: Function) {
     this.ifram = doc.createElement('iframe')
     this.ifram.src = browser.runtime.getURL('sandbox.html')
     this.ifram.sandbox.add('allow-scripts')
     this.ifram.sandbox.add('allow-forms')
     this.ifram.title = "Sandbox"
     this.ifram.hidden = true
+    this.ifram.addEventListener("load", ()=>onrdy(this))
     doc.body.appendChild(this.ifram)
     this.msg_win = new MsgWindow(win, "null", this.ifram.contentWindow!)
+
+
   }
 
   /**

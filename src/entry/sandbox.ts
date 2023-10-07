@@ -49,7 +49,6 @@ async function run_func_res(res_key: string,
   inputs.push(get_helpers())
   let curr_res = loaded_scripts[res_key]
   let msg = "Function ran."
-  console.log(curr_res)
   for (let i of subkeys) {
     if (i in curr_res) {
       curr_res = curr_res[i]
@@ -102,3 +101,4 @@ new MsgWindow(window, window.location.origin,undefined,
       message: "Unknown command: " + cmd.toString()
     }
   })
+console.log("sandbox ready")

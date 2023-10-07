@@ -261,4 +261,3 @@ async function readability_ex(inputs, url, source, helpers) {
     };
 }
 
-console.log(main_def)

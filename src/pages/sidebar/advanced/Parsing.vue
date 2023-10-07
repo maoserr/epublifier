@@ -1,41 +1,12 @@
 <script setup lang="ts">
-
 import RadioButton from 'primevue/radiobutton';
-import Checkbox from "primevue/checkbox";
-import InputNumber from "primevue/inputnumber";
-import Button from "primevue/button";
-import Toolbar from "primevue/toolbar";
-import {ref} from "vue";
-import InputText from "primevue/inputtext";
-import Listbox from "primevue/listbox";
 import Panel from "primevue/panel";
 
 import LinksParse from "./parseparts/LinksParse.vue";
 import NextParse from "./parseparts/NextParse.vue";
 import TextParse from "./parseparts/TextParse.vue";
 
-const parser=ref<string>("")
-const parsers = ref<string[]>([])
-const parse_type = ref<string>("list_link")
-const page_type = ref<string>("regular")
-const p_inputs_val = ref<Record<string, any>>({})
-const p_inputs = ref<Record<string, any>>({})
-
-function parse_links() {
-}
-
-function pick_title() {
-}
-
-function onDelete() {
-}
-
-function parse() {
-}
-
-function load_main() {
-}
-
+import {parse_type, page_type} from "../sidebar_parsing";
 
 </script>
 

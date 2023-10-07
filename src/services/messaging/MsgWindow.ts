@@ -145,7 +145,7 @@ export default class MsgWindow {
           return
         }
         if (data.msg_type == "in") {
-          this.handle_msgin(data, event.source!)
+          this.handle_msgin(data, event.source!).then()
         } else {
           this.handle_msgout(data)
         }

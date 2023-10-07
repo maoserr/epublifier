@@ -19,13 +19,14 @@ export const parse_progress = ref<number>(0)
 export const curr_parser_txt =
   ref<Record<string, string>>({'main': 'Loading...'})
 export const parsers = ref<Record<string, ParserLoadResult>>(
-  {main:{links:{},text:{}}})
+  {main: {links: {}, text: {}}})
 export const curr_parse_doc = ref<string>('main')
 export const p_inputs_val_link = ref<Record<string, any>>({})
 export const p_inputs_val_text = ref<Record<string, any>>({})
+export const parse_type = ref<string>("list_link")
+export const page_type = ref<string>("regular")
 
 // Exported functions
-
 export async function reload_parser(doc: string) {
   parsers.value[doc] = await parse_man.load_parser(doc, curr_parser_txt.value[doc])
 }
@@ -38,30 +39,41 @@ export function get_origin() {
 
 export async function init_parsing() {
   const sb_origin = get_origin()
-  parse_man = new ParserManager(new SandboxInput(document, window))
   msg_win = new MsgWindow(window, sb_origin,
     window.parent)
-  parsers.value = await parse_man.load_all_parsers()
-  curr_parser_txt.value = parse_man.get_parse_docs()
-  const doc_info: MsgOut<{ url: string; src: string }> =
-    await msg_win.send_message<{}, { url: string; src: string }>({
-      command: MsgCommand.ContGetSource,
-      data: {}
-    })
-  const init_res = await parse_man.run_init_parser(
-    doc_info.data!.url, doc_info.data!.src, curr_parse_doc.value)
-  write_info(init_res.message)
-  chaps.value = init_res.data!.chaps
-  meta.value = init_res.data!.detected.meta
 
-  watchDebounced(
-    curr_parser_txt,
-    async () => {
-      await reload_parser(curr_parse_doc.value)
-      write_info("Parsers (re)loaded: " + new Date().toLocaleTimeString())
-    },
-    {deep: true, debounce: 1000, maxWait: 10000},
-  )
+  new SandboxInput(document, window,
+    async (this_sbx:SandboxInput) => {
+      parse_man = new ParserManager(this_sbx)
+
+      parsers.value = await parse_man.load_all_parsers()
+      curr_parser_txt.value = parse_man.get_parse_docs()
+      const doc_info: MsgOut<{ url: string; src: string }> =
+        await msg_win.send_message<{}, { url: string; src: string }>({
+          command: MsgCommand.ContGetSource,
+          data: {}
+        })
+      const init_res = await parse_man.run_init_parser(
+        doc_info.data!.url, doc_info.data!.src, curr_parse_doc.value)
+      write_info(init_res.message)
+      chaps.value = init_res.data!.chaps
+      meta.value = init_res.data!.detected.meta
+
+      watchDebounced(
+        curr_parser_txt,
+        async () => {
+          await reload_parser(curr_parse_doc.value)
+          write_info("Parsers (re)loaded: " + new Date().toLocaleTimeString())
+        },
+        {deep: true, debounce: 1000, maxWait: 10000},
+      )
+
+    })
+
+}
+
+export async function sel_elnext(){
+
 }
 
 export async function parse() {
