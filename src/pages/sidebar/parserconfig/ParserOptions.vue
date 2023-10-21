@@ -2,11 +2,12 @@
 import RadioButton from 'primevue/radiobutton';
 import Panel from "primevue/panel";
 
-import LinksParse from "./parseparts/LinksParse.vue";
-import NextParse from "./parseparts/NextParse.vue";
-import TextParse from "./parseparts/TextParse.vue";
+import LinksParse from "././parseopts/LinksParse.vue";
+import NextParse from "././parseopts/ManualAdd.vue";
+import TextParse from "././parseopts/TextParse.vue";
 
-import {parse_type, page_type} from "../sidebar_parsing";
+import {page_type} from "../../../services/parser_state";
+
 
 </script>
 
@@ -15,21 +16,6 @@ import {parse_type, page_type} from "../sidebar_parsing";
     <div class="col-12">
       <Panel header="Page Options">
         <div class="grid">
-          <div class="col-6">
-            Parse chapters through:
-            <div class="flex flex-wrap gap-3">
-              <div class="flex align-items-center">
-                <RadioButton v-model="parse_type" inputId="list_link"
-                             name="parse_type" value="list_link"/>
-                <label for="list_link" class="ml-2">List of links</label>
-              </div>
-              <div class="flex align-items-center">
-                <RadioButton v-model="parse_type" inputId="next_link"
-                             name="parse_type" value="next_link"/>
-                <label for="next_link" class="ml-2">Next link</label>
-              </div>
-            </div>
-          </div>
           <div class="col-6">
             Website type:
             <div class="flex flex-wrap gap-3">
@@ -48,10 +34,10 @@ import {parse_type, page_type} from "../sidebar_parsing";
         </div>
       </Panel>
     </div>
-    <div class="col-12" v-if="parse_type=='list_link'">
+    <div class="col-12">
       <LinksParse/>
     </div>
-    <div class="col-12" v-if="parse_type=='next_link'">
+    <div class="col-12">
       <NextParse/>
     </div>
     <div class="col-12">

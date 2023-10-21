@@ -2,16 +2,27 @@ import {set_closebtn_style, set_float_win_style, set_iframe_style, set_titlebar_
 import MovableWin from "./behaviors/MovableWin";
 import MsgWindow, {msg_ok} from "../messaging/MsgWindow";
 import {MsgCommand, MsgOut, MsgOutStatus} from "../messaging/msg_types";
+import SelectorWin from "./behaviors/SelectorWin";
 
+/**
+ * Gets origin from window location bar
+ */
+export function get_origin() {
+  return window.location.href
+    .split("?", 2)[1]
+    .split("=", 2)[1]
+}
 
 /**
  * Floating window container
  */
-export default class FloatWinCont {
+export default class SidebarContainer {
   private readonly cont: HTMLDivElement
+  private readonly sel_win: SelectorWin
 
   constructor(doc: Document, win: Window, src: string) {
     let prev_cont = doc.getElementById(src)
+    this.sel_win = new SelectorWin(doc)
     if (prev_cont === null) {
       console.info("Creating new sidebar")
       this.cont = doc.createElement('div')
@@ -36,7 +47,6 @@ export default class FloatWinCont {
       this.cont.appendChild(iframe);
       new MovableWin(doc, this.cont, titlebar)
 
-
       setTimeout(() => {
         this.set_receiver(win,
           new URL(src).origin, iframe.contentWindow!)
@@ -51,8 +61,8 @@ export default class FloatWinCont {
 
   private set_receiver(win: Window, origin: string, target: Window) {
     return new MsgWindow(win, origin, target,
-      (cmd: MsgCommand, data: any
-      ): MsgOut<any> => {
+      async (cmd: MsgCommand, data: any
+      ): Promise<MsgOut<any>> => {
         switch (cmd) {
           case MsgCommand.ContGetSource:
             if (document.head.getElementsByTagName('base').length == 0) {
@@ -65,7 +75,13 @@ export default class FloatWinCont {
               src: (new XMLSerializer()).serializeToString(document)
             })
           case MsgCommand.ContSelNext:
-
+            const next_res = await this.sel_win.start_get((x: HTMLElement) => {
+                return (x.tagName.toUpperCase() === "BUTTON"
+                  || x.tagName.toUpperCase() === "A"
+                  || (x.onclick != null))
+              }
+            )
+            return msg_ok<any>("Got next", {})
         }
         return {
           status: MsgOutStatus.Error,

@@ -17,12 +17,12 @@
             </TabPanel>
           </TabView>
         </TabPanel>
-        <TabPanel header="Advanced">
+        <TabPanel header="Parser Config">
           <TabView>
-            <TabPanel header="Parsing">
+            <TabPanel header="Parse Options">
               <Parsing/>
             </TabPanel>
-            <TabPanel header="Parser">
+            <TabPanel header="Parser Definition">
               <Parser/>
             </TabPanel>
           </TabView>
@@ -50,19 +50,34 @@ import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
-import ChapsList from "././normal/ChapsList.vue"
-import Preview from "././normal/Preview.vue"
-import Meta from "././normal/Meta.vue"
-import Parsing from "./advanced/Parsing.vue";
-import ChapToolbar from "./normal/ChapToolbar.vue";
-import Parser from "./advanced/Parser.vue";
+import ChapsList from "./././overview/ChapsList.vue"
+import Preview from "./././overview/Preview.vue"
+import Meta from "./././overview/Meta.vue"
+import Parsing from "././parserconfig/ParserOptions.vue";
+import ChapToolbar from "././overview/ChapToolbar.vue";
+import Parser from "././parserconfig/ParserCode.vue";
 
-import {status_txt, logs} from "./sidebar_state";
-import {init_parsing, parse_progress} from "./sidebar_parsing";
+import {status_txt, logs, meta} from "./sidebar_state";
+import MsgWindow from "../../services/messaging/MsgWindow";
+import SandboxInput from "../../services/messaging/SandboxInput";
+import {ref} from "vue/dist/vue";
+import {init_parseman} from "../../services/parser_state";
+import {get_origin} from "../../services/dom/SidebarContainer";
 
+export let container_win: MsgWindow
+
+export const parse_cancel = ref<boolean>(false)
+export const parse_progress = ref<number>(0)
 
 onMounted(async () => {
-  await init_parsing()
+  const sb_origin = get_origin()
+  container_win = new MsgWindow(window, sb_origin,
+      window.parent)
+
+  new SandboxInput(document, window,
+      async (this_sbx: SandboxInput) => {
+        await init_parseman(this_sbx, container_win)
+      })
 })
 
 </script>
