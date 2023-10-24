@@ -1,7 +1,8 @@
 import {ref} from "vue";
-import {ParserLoadResult} from "../services/scraping/parser_types";
+import {ParseOpt, ParserLoadResult} from "../services/scraping/parser_types";
 
 // Current parser state
+export const parser = ref<ParseOpt>()
 export const curr_parse_doc =
   ref<string>('main')
 export const curr_parser_txt =

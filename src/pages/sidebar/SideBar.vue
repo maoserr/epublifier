@@ -30,20 +30,13 @@
               <Meta/>
             </TabPanel>
             <TabPanel header="Chapter">
-              <Preview/>
+              <iframe title="Preview"
+                      :srcdoc="selected_chaps[selected_chaps.length-1]?.html_parsed || 'No data'"
+                      style="border-width: 1px;width: 100%;height: 30vh;overflow: auto;"></iframe>
             </TabPanel>
           </TabView>
         </TabPanel>
-        <TabPanel header="Parser Config">
-          <TabView>
-            <TabPanel header="Parse Options">
-              <Parsing/>
-            </TabPanel>
-            <TabPanel header="Parser Definition">
-              <Parser/>
-            </TabPanel>
-          </TabView>
-        </TabPanel>
+        <ParserConfig />
         <TabPanel header="Logs">
           <div id="logs" style="white-space: pre;">
             {{ logs }}
@@ -71,13 +64,9 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
 import ChapToolbar from "././overview/ChapToolbar.vue";
-import Preview from "./././overview/Preview.vue"
-import Meta from "./././overview/Meta.vue"
-import Parsing from "././parserconfig/ParserOptions.vue";
-import Parser from "././parserconfig/ParserCode.vue";
+import ParserConfig from "./parserconfig/ParserConfig.vue";
 
 import ParserManager from "../../services/scraping/ParserMan";
-import MsgSendWindow from "../../services/messaging/MsgSendWindow"
 import SandboxInput from "../../services/messaging/SandboxInput";
 import {MsgCommand, MsgOut} from "../../services/messaging/msg_types";
 import {Chapter} from "../../services/novel/novel_data";
@@ -87,13 +76,10 @@ import {status_txt, logs, write_info} from "./sidebar_utils";
 import {parsers, curr_parser_txt, curr_parse_doc} from "../parser_state"
 import {meta, chaps, selected_chaps} from "../novel_state"
 import {msg_sendwin, init_sidebarwin} from "../win_state"
-import {get_origin} from "../../services/dom/SidebarContainer";
 import {run_epub} from "../proc_funcs"
 
 
 let parse_man: ParserManager
-
-
 
 // Status tracking
 const parse_cancel = ref<boolean>(false)
