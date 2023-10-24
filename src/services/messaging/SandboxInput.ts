@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import MsgWindow from "./MsgWindow"
+import MsgSendWindow from "./MsgSendWindow"
 import {MsgOut, MsgIn} from './msg_types';
 
 /**
@@ -7,7 +7,7 @@ import {MsgOut, MsgIn} from './msg_types';
  */
 export default class SandboxInput {
   private readonly ifram: HTMLIFrameElement
-  private msg_win: MsgWindow
+  private msg_win: MsgSendWindow
 
   /**
    * Creates the Sandbox iframe
@@ -24,7 +24,7 @@ export default class SandboxInput {
     this.ifram.hidden = true
     this.ifram.addEventListener("load", ()=>onrdy(this))
     doc.body.appendChild(this.ifram)
-    this.msg_win = new MsgWindow(win, "null", this.ifram.contentWindow!)
+    this.msg_win = new MsgSendWindow(win, "null", this.ifram.contentWindow!)
 
 
   }

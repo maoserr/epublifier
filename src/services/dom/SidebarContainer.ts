@@ -1,6 +1,6 @@
 import {set_closebtn_style, set_float_win_style, set_iframe_style, set_titlebar_style} from "./behaviors/styles"
 import MovableWin from "./behaviors/MovableWin";
-import MsgWindow, {msg_ok} from "../messaging/MsgWindow";
+import MsgRecvWindow, {msg_ok} from "../messaging/MsgRecvWindow"
 import {MsgCommand, MsgOut, MsgOutStatus} from "../messaging/msg_types";
 import SelectorWin from "./behaviors/SelectorWin";
 
@@ -49,7 +49,7 @@ export default class SidebarContainer {
 
       setTimeout(() => {
         this.set_receiver(win,
-          new URL(src).origin, iframe.contentWindow!)
+          new URL(src).origin)
         iframe.src = src + "?origin=" + window.location.origin
       }, 0)
     } else {
@@ -59,8 +59,8 @@ export default class SidebarContainer {
     }
   }
 
-  private set_receiver(win: Window, origin: string, target: Window) {
-    return new MsgWindow(win, origin, target,
+  private set_receiver(win: Window, origin: string) {
+    return new MsgRecvWindow(win, origin,
       async (cmd: MsgCommand, data: any
       ): Promise<MsgOut<any>> => {
         switch (cmd) {

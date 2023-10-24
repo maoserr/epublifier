@@ -6,9 +6,8 @@ import Listbox from "primevue/listbox";
 import Button from "primevue/button";
 import {ref, computed, ComputedRef, watch} from "vue";
 
-import {parsers, curr_parse_doc, p_inputs_val_link} from "../../sidebar_parsing";
 import {ParseOpt, ParserInputDef, get_default_inputs} from "../../../../services/scraping/parser_types";
-
+import {parsers, curr_parse_doc, p_inputs_val_link} from "../../../parser_state";
 
 
 const parser = ref<ParseOpt>()

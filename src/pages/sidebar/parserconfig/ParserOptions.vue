@@ -6,8 +6,7 @@ import LinksParse from "././parseopts/LinksParse.vue";
 import NextParse from "././parseopts/ManualAdd.vue";
 import TextParse from "././parseopts/TextParse.vue";
 
-import {page_type} from "../../../services/parser_state";
-
+import {page_type} from "../../parser_state";
 
 </script>
 

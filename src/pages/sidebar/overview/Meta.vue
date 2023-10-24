@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import {meta, write_info} from "../sidebar_state"
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
+
+import {meta} from "../../novel_state"
+import {write_info} from "../sidebar_utils"
+
 
 async function paste_cover() {
   try {

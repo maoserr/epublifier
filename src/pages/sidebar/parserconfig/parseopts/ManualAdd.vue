@@ -7,8 +7,8 @@ import Checkbox from "primevue/checkbox";
 import InputNumber from "primevue/inputnumber";
 import InputText from 'primevue/inputtext';
 import {MsgCommand} from "../../../../services/messaging/msg_types";
-import {container_win} from "../../SideBar.vue"
-import {page_type} from "../../../../services/parser_state";
+import {page_type} from "../../../parser_state";
+import {msg_sendwin} from "../../../win_state";
 
 const scroll = ref<boolean>(false)
 const max_chaps = ref<number>(5)
@@ -16,15 +16,15 @@ const wait_s = ref<number>(5)
 const next_id = ref<string>('')
 const title_id = ref<string>('')
 
-export async function sel_elnext(){
-  await container_win.send_message<{}, { url: string; src: string }>({
+async function sel_elnext(){
+  await msg_sendwin.send_message<{}, { url: string; src: string }>({
     command: MsgCommand.ContSelNext,
     data: {}
   })
 }
 
-export async function sel_title() {
-  await container_win.send_message<{}, { url: string; src: string }>({
+async function sel_title() {
+  await msg_sendwin.send_message<{}, { url: string; src: string }>({
     command: MsgCommand.ContSelNext,
     data: {}
   })

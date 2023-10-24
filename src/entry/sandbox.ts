@@ -6,7 +6,7 @@ import {
   SbxInRunFuncRes,
   MsgOutStatus
 } from '../services/messaging/msg_types';
-import MsgWindow from "../services/messaging/MsgWindow";
+import MsgRecvWindow from "../services/messaging/MsgRecvWindow"
 import {get_default_inputs} from "../services/scraping/parser_types";
 
 let loaded_scripts: Record<string, any> = {}
@@ -83,7 +83,7 @@ function get_helpers() {
   }
 }
 
-new MsgWindow(window, window.location.origin,undefined,
+new MsgRecvWindow(window, window.location.origin,
   async (cmd: MsgCommand, data: SbxInRunFunc | SbxInRunFuncRes
   ): Promise<MsgOut<any>> => {
     switch (cmd) {

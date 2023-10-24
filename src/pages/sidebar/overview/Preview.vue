@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {selected_chaps} from "../sidebar_state";
+import {selected_chaps} from "../../novel_state";
 
 </script>
 

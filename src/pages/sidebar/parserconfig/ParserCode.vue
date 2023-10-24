@@ -4,7 +4,7 @@ import {Codemirror} from "vue-codemirror";
 import {javascript} from "@codemirror/lang-javascript";
 import {computed, shallowRef} from "vue";
 
-import {curr_parser_txt, reload_parser} from "../sidebar_parsing";
+import {curr_parser_txt} from "../../parser_state";
 
 const code = computed({
   get() {

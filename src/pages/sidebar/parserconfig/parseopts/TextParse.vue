@@ -6,7 +6,7 @@ import {ref, computed, ComputedRef, watch} from "vue";
 
 import {get_default_inputs, ParseOpt, ParserInputDef} from "../../../../services/scraping/parser_types";
 import InputText from "primevue/inputtext";
-import {curr_parse_doc, parsers, p_inputs_val_text} from "../../sidebar_parsing";
+import {curr_parse_doc, parsers, p_inputs_val_text} from "../../../parser_state";
 
 
 const parser = ref<ParseOpt>()
