@@ -15,6 +15,9 @@ import LinksParse from "./parseopts/LinksParse.vue";
 import NextParse from "./parseopts/ManualAdd.vue";
 import TextParse from "./parseopts/TextParse.vue";
 
+const emits = defineEmits<{
+  
+}>()
 
 const code = computed({
   get() {
