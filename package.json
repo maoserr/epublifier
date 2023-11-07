@@ -21,7 +21,7 @@
   "homepage": "https://github.com/maoserr/epublifier#readme",
   "devDependencies": {
     "@mozilla/readability": "^0.4.4",
-    "@types/prismjs": "^1.26.2",
+    "@types/prismjs": "^1.26.3",
     "@types/webextension-polyfill": "^0.10.5",
     "@vue/compiler-sfc": "^3.3.8",
     "copy-webpack-plugin": "^11.0.0",
