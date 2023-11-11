@@ -4,9 +4,9 @@ import Panel from "primevue/panel";
 import Listbox from "primevue/listbox";
 import {ref, computed, ComputedRef, watch} from "vue";
 
-import {get_default_inputs, ParseOpt, ParserInputDef} from "../../../../services/scraping/parser_types";
+import {get_default_inputs, ParseOpt, ParserInputDef} from "../../../services/scraping/parser_types";
 import InputText from "primevue/inputtext";
-import {curr_parse_doc, parsers, p_inputs_val_text} from "../../../parser_state";
+import {curr_parse_doc, parsers, p_inputs_val_text} from "../../parser_state";
 
 
 const parser = ref<ParseOpt>()
@@ -40,7 +40,6 @@ watch(parser, ()=>{
 </script>
 
 <template>
-  <Panel header="Text Parser" toggleable>
     <div class="grid">
       <div class="col-12">
         <Listbox v-model="parser" :options="parser_ops"
@@ -68,7 +67,6 @@ watch(parser, ()=>{
         </Panel>
       </div>
     </div>
-  </Panel>
 </template>
 
 <style scoped>

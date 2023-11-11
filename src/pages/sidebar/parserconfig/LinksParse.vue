@@ -6,8 +6,8 @@ import Listbox from "primevue/listbox";
 import Button from "primevue/button";
 import {computed, ComputedRef, watch} from "vue";
 
-import {ParseOpt, ParserInputDef, get_default_inputs} from "../../../../services/scraping/parser_types";
-import {parser, parsers, curr_parse_doc, p_inputs_val_link} from "../../../parser_state";
+import {ParseOpt, ParserInputDef, get_default_inputs} from "../../../services/scraping/parser_types";
+import {parser, parsers, curr_parse_doc, p_inputs_val_link} from "../../parser_state";
 
 const parser_ops: ComputedRef<ParseOpt[]> = computed(() => {
   let parse_op:ParseOpt[] = []
@@ -41,8 +41,9 @@ function parse_links() {
 </script>
 
 <template>
-      <div class="col-6">
-        Links: <Button label="(Re)Parse Links" @click="parse_links" icon="pi pi-file"/>
+  <div class="grid">
+      <div class="col-12">
+        <Button label="(Re)Parse Links" @click="parse_links" icon="pi pi-file"/>
         <Listbox v-model="parser" :options="parser_ops"
                  listStyle="max-height:12rem">
           <template #option="{option}:any">
@@ -67,6 +68,7 @@ function parse_links() {
           </div>
         </Panel>
       </div>
+  </div>
 </template>
 
 <style scoped>

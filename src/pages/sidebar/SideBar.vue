@@ -47,8 +47,14 @@
                       :srcdoc="selected_chaps[selected_chaps.length-1]?.html_parsed || 'No data'"
                       style="border-width: 1px;width: 100%;height: 30vh;overflow: auto;"></iframe>
             </TabPanel>
-            <TabPanel header="Parser">
-              <ParserConfig />
+            <TabPanel header="Link Parser">
+              <LinksParse/>
+            </TabPanel>
+            <TabPanel header="Add Page Parser">
+              <NextParse/>
+            </TabPanel>
+            <TabPanel header="Chapter Parser">
+              <TextParse/>
             </TabPanel>
           </TabView>
         </TabPanel>
@@ -83,7 +89,6 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
 import ChapToolbar from "./overview/ChapToolbar.vue";
 import Meta from "./overview/Meta.vue"
-import ParserConfig from "./parserconfig/ParserConfig.vue";
 import ParserDef from "./parserconfig/ParserDef.vue";
 
 import ParserManager from "../../services/scraping/ParserMan";
@@ -98,6 +103,9 @@ import {meta, chaps, selected_chaps} from "../novel_state"
 import {msg_sendwin, init_sidebarwin} from "../win_state"
 import {run_epub} from "../proc_funcs"
 import RadioButton from "primevue/radiobutton";
+import LinksParse from "./parserconfig/LinksParse.vue";
+import NextParse from "./parserconfig/AddPageParse.vue";
+import TextParse from "./parserconfig/TextParse.vue";
 
 
 let parse_man: ParserManager

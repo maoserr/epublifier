@@ -1,6 +1,5 @@
 <script setup lang="ts">
 
-import TabPanel from "primevue/tabpanel";
 import {Codemirror} from "vue-codemirror";
 import {computed, shallowRef} from "vue";
 import {curr_parser_txt} from "../../parser_state";

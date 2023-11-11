@@ -51,12 +51,12 @@ const toggle = (event: any) => {
 <template>
   <Toolbar>
     <template #start>
-      <Button v-tooltip:a.bottom="'Add This Page \n& Next Chapter(s)'"
-              @click="$emit('add')"
-              icon="pi pi-plus-circle" class="mr-2" size="small"/>
       <Button v-tooltip:a.bottom="'Parse selected links'"
               @click="$emit('parse')"
               icon="pi pi-play" class="mr-2" size="small"/>
+      <Button v-tooltip:a.bottom="'Add This Page \n& Next Chapter(s)'"
+              @click="$emit('add')"
+              icon="pi pi-plus-circle" class="mr-2" size="small"/>
       <Button v-tooltip:a.bottom="'Create Epub'"
               @click="$emit('epub')"
               icon="pi pi-book" severity="success" class="mr-2"
