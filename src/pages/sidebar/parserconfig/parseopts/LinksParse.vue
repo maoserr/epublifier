@@ -41,12 +41,8 @@ function parse_links() {
 </script>
 
 <template>
-  <Panel header="Link Parser" toggleable>
-    <div class="grid">
-      <div class="col-12">
-        <Button label="(Re)Parse Links" @click="parse_links" icon="pi pi-file"/>
-      </div>
-      <div class="col-12">
+      <div class="col-6">
+        Links: <Button label="(Re)Parse Links" @click="parse_links" icon="pi pi-file"/>
         <Listbox v-model="parser" :options="parser_ops"
                  listStyle="max-height:12rem">
           <template #option="{option}:any">
@@ -71,8 +67,6 @@ function parse_links() {
           </div>
         </Panel>
       </div>
-    </div>
-  </Panel>
 </template>
 
 <style scoped>

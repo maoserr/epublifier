@@ -4,6 +4,19 @@
       <span>{{ status_txt }}</span>
       <ProgressBar v-if="parse_progress>0" :value="parse_progress"
                    :show-value=false></ProgressBar>
+      <div class="flex flex-wrap gap-3">
+        Parse as:
+        <div class="flex align-items-center">
+          <RadioButton v-model="page_type" inputId="regular"
+                       name="page_type" value="regular"/>
+          <label for="regular" class="ml-2">Pages</label>
+        </div>
+        <div class="flex align-items-center">
+          <RadioButton v-model="page_type" inputId="spa"
+                       name="page_type" value="spa"/>
+          <label for="spa" class="ml-2">App</label>
+        </div>
+      </div>
       <TabView>
         <TabPanel header="Overview">
           <ChapToolbar @add="add" @parse="parse"
@@ -29,14 +42,19 @@
             <TabPanel header="Meta">
               <Meta/>
             </TabPanel>
-            <TabPanel header="Chapter">
+            <TabPanel header="Chapter Text">
               <iframe title="Preview"
                       :srcdoc="selected_chaps[selected_chaps.length-1]?.html_parsed || 'No data'"
                       style="border-width: 1px;width: 100%;height: 30vh;overflow: auto;"></iframe>
             </TabPanel>
+            <TabPanel header="Parser">
+              <ParserConfig />
+            </TabPanel>
           </TabView>
         </TabPanel>
-        <ParserConfig />
+        <TabPanel header="Parser Definition">
+          <ParserDef />
+        </TabPanel>
         <TabPanel header="Logs">
           <div id="logs" style="white-space: pre;">
             {{ logs }}
@@ -63,8 +81,10 @@ import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css';
 
-import ChapToolbar from "././overview/ChapToolbar.vue";
+import ChapToolbar from "./overview/ChapToolbar.vue";
+import Meta from "./overview/Meta.vue"
 import ParserConfig from "./parserconfig/ParserConfig.vue";
+import ParserDef from "./parserconfig/ParserDef.vue";
 
 import ParserManager from "../../services/scraping/ParserMan";
 import SandboxInput from "../../services/messaging/SandboxInput";
@@ -73,10 +93,11 @@ import {Chapter} from "../../services/novel/novel_data";
 
 
 import {status_txt, logs, write_info} from "./sidebar_utils";
-import {parsers, curr_parser_txt, curr_parse_doc} from "../parser_state"
+import {parsers, curr_parser_txt, curr_parse_doc, page_type} from "../parser_state"
 import {meta, chaps, selected_chaps} from "../novel_state"
 import {msg_sendwin, init_sidebarwin} from "../win_state"
 import {run_epub} from "../proc_funcs"
+import RadioButton from "primevue/radiobutton";
 
 
 let parse_man: ParserManager

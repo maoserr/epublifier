@@ -33,33 +33,29 @@ async function sel_title() {
 </script>
 
 <template>
-  <Panel header="Next Parser" toggleable>
-    <div class="grid">
-      <div class="col-12" v-if="page_type=='spa'">
-        <Button label="Pick Next Element" @click="sel_elnext" class="mr-2"/>
-        <InputText type="text" v-model="next_id"/>
-      </div>
-      <div class="col-12" v-if="page_type=='spa'">
-        <Button label="Pick Title Element" @click="sel_title" class="mr-2"/>
-        <InputText type="text" v-model="title_id"/>
-      </div>
-      <div class="col-12" v-if="page_type=='spa'">
-        <Checkbox inputId="scroll_chk" v-model="scroll" :binary="true"/>
-        <label for="scroll_chk" class="ml-2">Scroll to end of page after each parse</label>
-      </div>
-      <div class="col-12">
-        <InputNumber v-model="max_chaps" id="maxchap" input-class="mr-2"
-                     :input-style="{width: '4rem'}" suffix="c" :min="1"/>
-        <label for="maxchap">Max Chaps to parse</label>
-      </div>
-      <div class="col-12">
-        <InputNumber v-model="wait_s" id="wait_s" input-class="mr-2"
-                     :maxFractionDigits="2"
-                     :input-style="{width: '4rem'}" suffix="s" :min="0.01"/>
-        <label for="wait_s">Seconds to wait between parse</label>
-      </div>
+    <div class="col-4" v-if="page_type=='spa'">
+      <Button label="Pick Next Element" @click="sel_elnext" class="mr-2"/>
+      <InputText type="text" v-model="next_id"/>
     </div>
-  </Panel>
+    <div class="col-4" v-if="page_type=='spa'">
+      <Button label="Pick Title Element" @click="sel_title" class="mr-2"/>
+      <InputText type="text" v-model="title_id"/>
+    </div>
+    <div class="col-4" v-if="page_type=='spa'">
+      <Checkbox inputId="scroll_chk" v-model="scroll" :binary="true"/>
+      <label for="scroll_chk" class="ml-2">Scroll to end of page after each parse</label>
+    </div>
+    <div class="col-4">
+      <InputNumber v-model="max_chaps" id="maxchap" input-class="mr-2"
+                   :input-style="{width: '4rem'}" suffix="c" :min="1"/>
+      <label for="maxchap">Max Chaps to parse</label>
+    </div>
+    <div class="col-4">
+      <InputNumber v-model="wait_s" id="wait_s" input-class="mr-2"
+                   :maxFractionDigits="2"
+                   :input-style="{width: '4rem'}" suffix="s" :min="0.01"/>
+      <label for="wait_s">Seconds to wait between parse</label>
+    </div>
 </template>
 
 <style scoped>
