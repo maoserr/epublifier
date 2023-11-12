@@ -104,6 +104,7 @@ import {
   curr_parse_doc,
   page_type,
   p_inputs_val_link,
+  p_inputs_val_text,
   parser,
   parser_chap
 } from "../parser_state"
@@ -129,6 +130,27 @@ function reorder(reordered_chaps: Ref<Chapter[]>) {
 
 async function add() {
   console.log("Adding chapter...")
+  doc_info =
+      await msg_sendwin.send_message<{}, { url: string; src: string }>({
+        command: MsgCommand.ContGetSource,
+        data: {}
+      })
+  const res = await parse_man.run_chap_parser(
+      {
+        inputs: p_inputs_val_text.value,
+        url: doc_info.data!.url,
+        src: doc_info.data!.src
+      },
+      parser_chap.value!.doc,
+      parser_chap.value!.parser
+  )
+  write_info(res.message)
+  chaps.value.push({
+    url: '',
+    title: res.data!.title,
+    html: doc_info.data!.src,
+    html_parsed: res.data!.html
+  })
 }
 
 async function parse() {
