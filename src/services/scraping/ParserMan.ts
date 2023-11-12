@@ -5,13 +5,15 @@ import {
   ParserParams,
   ParserResultChap,
   ParserResultDetector,
-  ParserResultInit, ParserResultLinks
+  ParserResultInit,
+  ParserResultLinks
 } from "./parser_types";
 import {MsgCommand, MsgOut, MsgOutStatus, SbxInRunFunc, SbxInRunFuncRes} from "../messaging/msg_types";
 import {Chapter} from "../novel/novel_data";
 import {Ref} from "vue";
 import OptionsManager from "../common/OptionsMan";
 import * as Parallel from "async-parallel";
+import {p_inputs_val_link, p_inputs_val_text, parser, parser_chap} from "../../pages/parser_state";
 
 
 export default class ParserManager {
@@ -71,8 +73,10 @@ export default class ParserManager {
    * @param src Source of page
    * @param parse_doc Parser doc
    */
-  async run_init_parser(url:string, src:string, parse_doc: string
+  async run_init_parser(url: string, src: string, parse_doc: string
   ): Promise<MsgOut<ParserResultInit>> {
+
+    // Run detector
     const det_res = (await this.sandbox
       .run_in_sandbox<SbxInRunFuncRes, ParserResultDetector>({
         command: MsgCommand.SbxRunFuncRes,
@@ -85,17 +89,48 @@ export default class ParserManager {
     const det_data = det_res.data!
     const det_inputs = get_default_inputs(this.parsers[parse_doc]
       [det_data.type][det_data.parser]['inputs'])
-    const parse_res =  await this.sandbox
-      .run_in_sandbox<SbxInRunFuncRes, ParserResultLinks|ParserResultChap>({
-      command: MsgCommand.SbxRunFuncRes,
-      data: {
-        res_key: parse_doc,
-        inputs: [det_inputs, url, src],
-        subkeys: [det_data.type, det_data.parser, 'func']
+
+    // Set detected option
+    if (det_data.type == "links") {
+      parser.value = {
+        doc: parse_doc,
+        parser: det_data.parser,
       }
-    }, 2, 0)
-    const msgs = det_res.message + "\n"+ parse_res.message
-    let parse_chaps:Chapter[] = []
+      p_inputs_val_link.value = det_inputs
+
+      parser_chap.value = {
+        doc: parse_doc,
+        parser: Object.keys(this.parsers[parse_doc].text)[0]
+      }
+      p_inputs_val_text.value = get_default_inputs(this.parsers[parse_doc]
+        .text[parser_chap.value.parser]['inputs'])
+    } else {
+      parser_chap.value = {
+        doc: parse_doc,
+        parser: det_data.parser
+      }
+      p_inputs_val_text.value = det_inputs
+
+      parser.value = {
+        doc: parse_doc,
+        parser: Object.keys(this.parsers[parse_doc].links)[0]
+      }
+      p_inputs_val_link.value = get_default_inputs(this.parsers[parse_doc]
+        .links[parser.value.parser]['inputs'])
+    }
+
+    // Run detected parser
+    const parse_res = await this.sandbox
+      .run_in_sandbox<SbxInRunFuncRes, ParserResultLinks | ParserResultChap>({
+        command: MsgCommand.SbxRunFuncRes,
+        data: {
+          res_key: parse_doc,
+          inputs: [det_inputs, url, src],
+          subkeys: [det_data.type, det_data.parser, 'func']
+        }
+      }, 2, 0)
+    const msgs = det_res.message + "\n" + parse_res.message
+    let parse_chaps: Chapter[] = []
     if (det_data.type == 'links') {
       parse_chaps = (parse_res.data! as ParserResultLinks).chaps
     }
@@ -107,6 +142,25 @@ export default class ParserManager {
         chaps: parse_chaps,
       }
     }
+  }
+
+  /**
+   * Runs link parser
+   * @param params Parameters fro parser
+   * @param parse_doc Parser doc
+   * @param parser Parser
+   */
+  async run_links_parse(params: ParserParams, parse_doc: string, parser: string)
+    : Promise<MsgOut<ParserResultLinks>> {
+    return await this.sandbox
+      .run_in_sandbox<SbxInRunFuncRes, ParserResultLinks>({
+        command: MsgCommand.SbxRunFuncRes,
+        data: {
+          res_key: parse_doc,
+          inputs: [params.inputs, params.url, params.src],
+          subkeys: ["links", parser, 'func']
+        }
+      }, 2, 0)
   }
 
   /**
@@ -129,11 +183,10 @@ export default class ParserManager {
       }, 1, 0)
   }
 
-  async parse_chaps_fetch(){
 
-  }
-
-  async parser_chaps(chaps_ref: Ref<Chapter[]>,
+  async parser_chaps(parse_doc: string,
+                     parser: string,
+                     chaps_ref: Ref<Chapter[]>,
                      cancel: Ref<boolean>,
                      status_cb: Function,
                      progress_val: Ref<number>) {
@@ -164,7 +217,7 @@ export default class ParserManager {
             inputs: {},
             url: chaps_ref.value[id].url,
             src: f_txt
-          }, 'main', 'Readability_Ex')
+          }, parse_doc, parser)
         chaps_ref.value[id].html_parsed = chap_res.data?.html ?? ""
         chaps_ref.value[id].title = chap_res.data?.title ?? ""
       }
@@ -175,9 +228,9 @@ export default class ParserManager {
         extract_chap,
         await this.options.get_option("max_sync_fetch"));
       progress_val.value = 0
-    } catch (e:any) {
+    } catch (e: any) {
       status_cb(e)
-      for (let item of e.list){
+      for (let item of e.list) {
         status_cb(item)
       }
     }

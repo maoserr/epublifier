@@ -27,7 +27,7 @@
                      selectionMode="multiple"
                      :metaKeySelection="false"
                      scrollable scrollHeight="40vh"
-                     class="p-datatable-sm"
+                     class="p-datatable-sm mb-2"
                      responsiveLayout="scroll">
             <Column :rowReorder="true" headerStyle="width: 2rem" :reorderableColumn="false"/>
             <Column selectionMode="multiple" style="width: 2rem" :exportable="false"></Column>
@@ -47,19 +47,19 @@
                       :srcdoc="selected_chaps[selected_chaps.length-1]?.html_parsed || 'No data'"
                       style="border-width: 1px;width: 100%;height: 30vh;overflow: auto;"></iframe>
             </TabPanel>
-            <TabPanel header="Link Parser">
-              <LinksParse/>
-            </TabPanel>
-            <TabPanel header="Add Page Parser">
-              <NextParse/>
+            <TabPanel header="Links Parser">
+              <LinksParse @parse_links="parse_links"/>
             </TabPanel>
             <TabPanel header="Chapter Parser">
               <TextParse/>
             </TabPanel>
+            <TabPanel header="Add Page Parser">
+              <NextParse/>
+            </TabPanel>
           </TabView>
         </TabPanel>
         <TabPanel header="Parser Definition">
-          <ParserDef />
+          <ParserDef/>
         </TabPanel>
         <TabPanel header="Logs">
           <div id="logs" style="white-space: pre;">
@@ -98,7 +98,15 @@ import {Chapter} from "../../services/novel/novel_data";
 
 
 import {status_txt, logs, write_info} from "./sidebar_utils";
-import {parsers, curr_parser_txt, curr_parse_doc, page_type} from "../parser_state"
+import {
+  parsers,
+  curr_parser_txt,
+  curr_parse_doc,
+  page_type,
+  p_inputs_val_link,
+  parser,
+  parser_chap
+} from "../parser_state"
 import {meta, chaps, selected_chaps} from "../novel_state"
 import {msg_sendwin, init_sidebarwin} from "../win_state"
 import {run_epub} from "../proc_funcs"
@@ -113,6 +121,7 @@ let parse_man: ParserManager
 // Status tracking
 const parse_cancel = ref<boolean>(false)
 const parse_progress = ref<number>(0)
+let doc_info: MsgOut<{ url: string; src: string }>
 
 function reorder(reordered_chaps: Ref<Chapter[]>) {
   chaps.value = reordered_chaps.value
@@ -124,12 +133,34 @@ async function add() {
 
 async function parse() {
   console.log("Parsing chapters...", selected_chaps)
-  await parse_man.parser_chaps(selected_chaps,
-      parse_cancel, write_info, parse_progress)
+  await parse_man.parser_chaps(
+      parser_chap.value!.doc, parser_chap.value!.parser,
+      selected_chaps, parse_cancel, write_info, parse_progress)
+}
+
+async function parse_links(add: boolean) {
+  const res = await parse_man.run_links_parse(
+      {
+        inputs: p_inputs_val_link.value,
+        url: doc_info.data!.url,
+        src: doc_info.data!.src
+      },
+      parser.value!.doc,
+      parser.value!.parser
+  )
+  write_info(res.message)
+  if (add) {
+    write_info("Adding links...")
+    chaps.value = chaps.value.concat(res.data!.chaps)
+  } else {
+    chaps.value = res.data!.chaps
+    selected_chaps.value = []
+  }
+
 }
 
 async function gen_epub() {
-  await run_epub(chaps,selected_chaps,meta)
+  await run_epub(chaps, selected_chaps, meta)
 }
 
 function delete_chap() {
@@ -146,7 +177,7 @@ onMounted(async () => {
 
         parsers.value = await parse_man.load_all_parsers()
         curr_parser_txt.value = parse_man.get_parse_docs()
-        const doc_info: MsgOut<{ url: string; src: string }> =
+        doc_info =
             await msg_sendwin.send_message<{}, { url: string; src: string }>({
               command: MsgCommand.ContGetSource,
               data: {}

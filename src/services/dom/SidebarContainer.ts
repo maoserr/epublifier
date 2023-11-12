@@ -38,7 +38,8 @@ export default class SidebarContainer {
       const closebtn = doc.createElement('div')
       closebtn.id = "closebtn"
       set_closebtn_style(closebtn)
-      closebtn.onclick = () => this.cont.style.display = "none";
+      closebtn.addEventListener('mousedown',
+        () => this.cont.style.display = "none")
       titlebar.appendChild(closebtn)
 
       const iframe = doc.createElement('iframe');
