@@ -1,7 +1,8 @@
 export default class SelectorWin {
   private readonly doc: Document
   private overlay?: HTMLDivElement
-  private curr_candidates?: HTMLElement[]
+  private curr_candidate?: HTMLElement
+  private old_style: string
   private curr_filt_func?: (x: HTMLElement) => any
   private promise?: { resolve: Function, reject: Function }
 
@@ -10,7 +11,7 @@ export default class SelectorWin {
 
   constructor(doc: Document) {
     this.doc = doc
-
+    this.old_style = ""
   }
 
   private create_overlay() {
@@ -25,7 +26,7 @@ export default class SelectorWin {
     this.doc.body.appendChild(this.overlay)
   }
 
-  async start_get(filt_fn: (x: HTMLElement) => any) {
+  async start_get(filt_fn: (x: HTMLElement) => any): Promise<HTMLElement | undefined> {
     if (this.promise != undefined) {
       return Promise.reject(new Error("Already getting another."))
     }
@@ -42,8 +43,16 @@ export default class SelectorWin {
   get_move(e: any) {
     const candidate_els: Element[] = this.doc.elementsFromPoint(e.clientX, e.clientY)
       .filter(x => x != this.overlay)
-    this.curr_candidates = (candidate_els as HTMLElement[])
+    const filt_candidates = (candidate_els as HTMLElement[])
       .filter(this.curr_filt_func!)
+    if (filt_candidates.length > 0) {
+      if (this.curr_candidate != undefined){
+        this.curr_candidate.style.border = this.old_style
+      }
+      this.curr_candidate = filt_candidates[0]
+      this.old_style = this.curr_candidate.style.border
+      this.curr_candidate.style.border = "3px solid red"
+    }
   }
 
   stop_get(e: any) {
@@ -52,7 +61,11 @@ export default class SelectorWin {
     }
     this.doc.removeEventListener('mousemove', this.evt_get_move)
     this.doc.removeEventListener('mousedown', this.evt_stop_get)
-    this.promise!.resolve(this.curr_candidates!)
+    if (this.curr_candidate != undefined){
+      this.curr_candidate.style.border = this.old_style
+    }
+    this.promise!.resolve(this.curr_candidate!)
     this.promise = undefined
+    this.curr_candidate = undefined
   }
 }

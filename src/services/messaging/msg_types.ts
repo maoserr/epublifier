@@ -23,7 +23,8 @@ export enum MsgCommand {
   SbxRunFunc,
   SbxRunFuncRes,
   ContGetSource,
-  ContSelNext
+  ContSelNext,
+  ContSelTitle
 }
 
 /**

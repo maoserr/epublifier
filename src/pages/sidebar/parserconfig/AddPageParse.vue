@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {ref} from "vue";
 
-import Panel from "primevue/panel";
 import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import InputNumber from "primevue/inputnumber";
@@ -9,6 +8,7 @@ import InputText from 'primevue/inputtext';
 import {MsgCommand} from "../../../services/messaging/msg_types";
 import {page_type} from "../../parser_state";
 import {msg_sendwin} from "../../win_state";
+import {write_info} from "../sidebar_utils";
 
 const scroll = ref<boolean>(false)
 const max_chaps = ref<number>(5)
@@ -17,17 +17,21 @@ const next_id = ref<string>('')
 const title_id = ref<string>('')
 
 async function sel_elnext(){
-  await msg_sendwin.send_message<{}, { url: string; src: string }>({
+  const res = await msg_sendwin.send_message<{}, string>({
     command: MsgCommand.ContSelNext,
     data: {}
-  })
+  },1, 0)
+  write_info(res.message)
+  next_id.value = res.data!
 }
 
 async function sel_title() {
-  await msg_sendwin.send_message<{}, { url: string; src: string }>({
-    command: MsgCommand.ContSelNext,
+  const res = await msg_sendwin.send_message<{}, string>({
+    command: MsgCommand.ContSelTitle,
     data: {}
-  })
+  },1, 0)
+  write_info(res.message)
+  title_id.value = res.data!
 }
 
 </script>

@@ -3,6 +3,7 @@ import MovableWin from "./behaviors/MovableWin";
 import MsgRecvWindow, {msg_ok} from "../messaging/MsgRecvWindow"
 import {MsgCommand, MsgOut, MsgOutStatus} from "../messaging/msg_types";
 import SelectorWin from "./behaviors/SelectorWin";
+import {finder} from '@medv/finder'
 
 /**
  * Gets origin from window location bar
@@ -76,13 +77,36 @@ export default class SidebarContainer {
               src: (new XMLSerializer()).serializeToString(document)
             })
           case MsgCommand.ContSelNext:
-            const next_res = await this.sel_win.start_get((x: HTMLElement) => {
+            const next_res = await this.sel_win.start_get(
+              (x: HTMLElement) => {
                 return (x.tagName.toUpperCase() === "BUTTON"
                   || x.tagName.toUpperCase() === "A"
                   || (x.onclick != null))
               }
             )
-            return msg_ok<any>("Got next", {})
+            if (next_res != undefined ) {
+              const sel_next = finder(next_res)
+              console.log(next_res)
+              console.log(sel_next)
+              console.log(document.querySelector(sel_next))
+              return msg_ok<string>("Got next", sel_next)
+            } else {
+              return msg_ok<string>("No next element selected", "")
+            }
+          case MsgCommand.ContSelTitle:
+            const title_res = await this.sel_win.start_get(
+              (x: HTMLElement) => {
+                return (RegExp(/H\d/i).exec(x.tagName.toUpperCase())
+                  ?? x.tagName.toUpperCase() === "EM")
+              }
+            )
+            if (title_res != undefined ) {
+              const sel_title = finder(title_res)
+              console.log(title_res)
+              return msg_ok<string>("Got title", sel_title)
+            } else {
+              return msg_ok<string>("No title element selected", "")
+            }
         }
         return {
           status: MsgOutStatus.Error,

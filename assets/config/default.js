@@ -200,8 +200,6 @@ async function readability_ex(inputs, url, source, helpers) {
     let new_link = null;
     let subchaps = [];
 
-    console.log(source)
-    console.log(dom)
     // Wordpress content
     let main_cont = dom.querySelector(".entry-content")
     if (helpers["readerable"](dom, {"minContentLength": 1000})) {

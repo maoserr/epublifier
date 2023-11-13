@@ -146,7 +146,7 @@ async function add() {
   )
   write_info(res.message)
   chaps.value.push({
-    url: '',
+    url: doc_info.data!.url,
     title: res.data!.title,
     html: doc_info.data!.src,
     html_parsed: res.data!.html
