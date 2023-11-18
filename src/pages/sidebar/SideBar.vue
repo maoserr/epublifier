@@ -129,7 +129,7 @@ function reorder(reordered_chaps: Ref<Chapter[]>) {
 }
 
 async function add_chap() {
-  await add(parse_man,chaps,` p_inputs_val_text, parser_chap)
+  await add(parse_man,chaps,p_inputs_val_text, parser_chap)
 }
 
 async function parse() {
