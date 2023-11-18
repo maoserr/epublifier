@@ -5,8 +5,10 @@ import Toolbar from "primevue/toolbar";
 import Menu from 'primevue/menu';
 
 import browser from "webextension-polyfill";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import {get_origin} from "../../../services/dom/SidebarContainer";
+import {selected_chaps} from "../../novel_state";
+import {parse} from "@vue/compiler-sfc";
 
 defineEmits<{
   add: [],
@@ -43,6 +45,25 @@ const items = ref([
   }
 ]);
 
+const chap_op_disable = computed<boolean>(()=>{
+  if (selected_chaps.value.length == 0){
+    return true
+  }
+  return false
+})
+
+const epub_disable = computed<boolean>(()=>{
+  if (selected_chaps.value.length == 0){
+    return true
+  }
+  for (let chap of selected_chaps.value){
+    if (!chap.html_parsed){
+      return true
+    }
+  }
+  return false
+})
+
 const toggle = (event: any) => {
   menu_bar.value.toggle(event);
 };
@@ -52,16 +73,19 @@ const toggle = (event: any) => {
   <Toolbar>
     <template #start>
       <Button v-tooltip:a.bottom="'Parse selected links'"
+              :disabled="chap_op_disable"
               @click="$emit('parse')"
               icon="pi pi-play" class="mr-2" size="small"/>
       <Button v-tooltip:a.bottom="'Add This Page \n& Next Chapter(s)'"
               @click="$emit('add')"
               icon="pi pi-plus-circle" class="mr-2" size="small"/>
       <Button v-tooltip:a.bottom="'Create Epub'"
+              :disabled="epub_disable"
               @click="$emit('epub')"
               icon="pi pi-book" severity="success" class="mr-2"
               size="small"/>
       <Button v-tooltip:a.bottom="'Delete selected chapters'"
+              :disabled="chap_op_disable"
               @click="$emit('delete')"
               icon="pi pi-trash" severity="warning"
               size="small"/>

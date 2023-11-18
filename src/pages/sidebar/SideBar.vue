@@ -19,7 +19,7 @@
       </div>
       <TabView>
         <TabPanel header="Overview">
-          <ChapToolbar @add="add" @parse="parse"
+          <ChapToolbar @add="add_chap" @parse="parse"
                        @epub="gen_epub" @delete="delete_chap"/>
           <DataTable :value="chaps"
                      v-model:selection="selected_chaps"
@@ -110,7 +110,7 @@ import {
 } from "../parser_state"
 import {meta, chaps, selected_chaps} from "../novel_state"
 import {msg_sendwin, init_sidebarwin} from "../win_state"
-import {run_epub} from "../proc_funcs"
+import {run_epub, add} from "../proc_funcs"
 import RadioButton from "primevue/radiobutton";
 import LinksParse from "./parserconfig/LinksParse.vue";
 import NextParse from "./parserconfig/AddPageParse.vue";
@@ -128,29 +128,8 @@ function reorder(reordered_chaps: Ref<Chapter[]>) {
   chaps.value = reordered_chaps.value
 }
 
-async function add() {
-  console.log("Adding chapter...")
-  doc_info =
-      await msg_sendwin.send_message<{}, { url: string; src: string }>({
-        command: MsgCommand.ContGetSource,
-        data: {}
-      })
-  const res = await parse_man.run_chap_parser(
-      {
-        inputs: p_inputs_val_text.value,
-        url: doc_info.data!.url,
-        src: doc_info.data!.src
-      },
-      parser_chap.value!.doc,
-      parser_chap.value!.parser
-  )
-  write_info(res.message)
-  chaps.value.push({
-    url: doc_info.data!.url,
-    title: res.data!.title,
-    html: doc_info.data!.src,
-    html_parsed: res.data!.html
-  })
+async function add_chap() {
+  await add(parse_man,chaps,` p_inputs_val_text, parser_chap)
 }
 
 async function parse() {

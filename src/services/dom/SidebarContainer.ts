@@ -86,9 +86,6 @@ export default class SidebarContainer {
             )
             if (next_res != undefined ) {
               const sel_next = finder(next_res)
-              console.log(next_res)
-              console.log(sel_next)
-              console.log(document.querySelector(sel_next))
               return msg_ok<string>("Got next", sel_next)
             } else {
               return msg_ok<string>("No next element selected", "")
@@ -106,6 +103,15 @@ export default class SidebarContainer {
               return msg_ok<string>("Got title", sel_title)
             } else {
               return msg_ok<string>("No title element selected", "")
+            }
+          case MsgCommand.ContClickNext:
+            const next_sel = data['selector']
+            const el = document.querySelector(next_sel)
+            if (el){
+              el.click()
+              return msg_ok<boolean>("Clicked next element", true)
+            } else {
+              return msg_ok<boolean>("Next element not found", false)
             }
         }
         return {

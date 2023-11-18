@@ -19,3 +19,10 @@ export const p_inputs_val_text =
   ref<Record<string, any>>({})
 export const page_type =
   ref<string>("regular")
+
+// Add page options
+export const scroll = ref<boolean>(false)
+export const max_chaps = ref<number>(5)
+export const wait_s = ref<number>(2)
+export const next_id = ref<string>('')
+export const title_id = ref<string>('')

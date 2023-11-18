@@ -6,5 +6,5 @@ export const meta = ref({
   title: 'N/A', description: 'N/A'
 } as NovelMetaData)
 export const chaps: Ref<Chapter[]> = ref([] as Chapter[])
-export const selected_chaps =
+export const selected_chaps: Ref<Chapter[]> =
   ref([] as Chapter[])
