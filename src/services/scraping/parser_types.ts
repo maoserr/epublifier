@@ -1,7 +1,7 @@
 import {Chapter, NovelMetaData}
   from "../novel/novel_data";
 
-export function get_default_inputs(parser_def: Record<string,ParserInputDef>) {
+export function get_default_inputs(parser_def: Record<string, ParserInputDef>) {
   return Object.fromEntries(Object.entries(parser_def)
     .map(([k, v]) => [k, v["default"]]))
 }
@@ -31,20 +31,38 @@ export interface ParserLoadResult {
 }
 
 /**
- * Results from running detector
+ * Options for add page
  */
-export interface ParserResultDetector {
-  type: 'links'|'text'
+export interface AddDetected {
+  next_sel: string
+  title_sel: string
+  scroll_end: boolean
+}
+
+export interface ParserDetected {
+  type: 'links' | 'text'
   parser: string
-  meta: NovelMetaData
+  parser_inputs?: Record<string, any>
 }
 
 /**
- * Results from running toc parser
+ * Results from running detector
+ */
+export interface ParserResultDetector {
+  failed_message?: string
+  webtype?: 'pages' | 'spa'
+  meta?: NovelMetaData
+  parser_opt?: ParserDetected
+  add_opt?: AddDetected
+}
+
+/**
+ * Results from running init parser
  */
 export interface ParserResultInit {
-  detected: ParserResultDetector
-  chaps: Chapter[];
+  message: string
+  chaps: Chapter[]
+  meta?: NovelMetaData
 }
 
 export interface ParserResultLinks {

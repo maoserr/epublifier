@@ -13,7 +13,17 @@ import {Chapter} from "../novel/novel_data";
 import {Ref} from "vue";
 import OptionsManager from "../common/OptionsMan";
 import * as Parallel from "async-parallel";
-import {p_inputs_val_link, p_inputs_val_text, parser, parser_chap} from "../../pages/parser_state";
+import {
+  next_id,
+  p_inputs_val_link,
+  p_inputs_val_text,
+  page_type,
+  parser,
+  parser_chap, scroll,
+  title_id
+} from "../../pages/parser_state";
+import {chaps, meta} from "../../pages/novel_state";
+import {write_info} from "../../pages/sidebar/sidebar_utils";
 
 
 export default class ParserManager {
@@ -67,6 +77,21 @@ export default class ParserManager {
     return Promise.resolve(this.parsers)
   }
 
+  get_title_res(source: string) {
+    const parser = new DOMParser()
+    const dom = parser.parseFromString(source, "text/html");
+    let title_res = null
+    if (title_id.value != '') {
+      const title_el = dom.querySelector(title_id.value)
+      if (title_el == null) {
+        write_info("Unable to find title element")
+      } else {
+        title_res = title_el.textContent
+      }
+    }
+    return title_res
+  }
+
   /**
    * Runs initial detector and then detected parser
    * @param url URL of page
@@ -74,8 +99,7 @@ export default class ParserManager {
    * @param parse_doc Parser doc
    */
   async run_init_parser(url: string, src: string, parse_doc: string
-  ): Promise<MsgOut<ParserResultInit>> {
-
+  ) {
     // Run detector
     const det_res = (await this.sandbox
       .run_in_sandbox<SbxInRunFuncRes, ParserResultDetector>({
@@ -87,14 +111,30 @@ export default class ParserManager {
         }
       }, 2, 0))
     const det_data = det_res.data!
-    const det_inputs = get_default_inputs(this.parsers[parse_doc]
-      [det_data.type][det_data.parser]['inputs'])
+    console.log(det_data)
+    if (det_data.failed_message !== undefined) {
+      throw new Error(det_data.failed_message)
+    }
+    if (det_data.meta !== undefined) {
+      meta.value = det_data.meta
+    }
+
+    page_type.value = det_data.webtype ?? "pages"
+    next_id.value = det_data.add_opt?.next_sel ?? ''
+    title_id.value = det_data.add_opt?.title_sel ?? ''
+    scroll.value = det_data.add_opt?.scroll_end ?? false
+
+    let parser_opt = det_data.parser_opt!
+
+    let det_inputs = parser_opt.parser_inputs ?? get_default_inputs(
+      this.parsers[parse_doc][parser_opt.type][parser_opt.parser]['inputs'])
+
 
     // Set detected option
-    if (det_data.type == "links") {
+    if (parser_opt.type == "links") {
       parser.value = {
         doc: parse_doc,
-        parser: det_data.parser,
+        parser: parser_opt.parser,
       }
       p_inputs_val_link.value = det_inputs
 
@@ -107,7 +147,7 @@ export default class ParserManager {
     } else {
       parser_chap.value = {
         doc: parse_doc,
-        parser: det_data.parser
+        parser: parser_opt.parser
       }
       p_inputs_val_text.value = det_inputs
 
@@ -126,22 +166,26 @@ export default class ParserManager {
         data: {
           res_key: parse_doc,
           inputs: [det_inputs, url, src],
-          subkeys: [det_data.type, det_data.parser, 'func']
+          subkeys: [parser_opt.type, parser_opt.parser, 'func']
         }
       }, 2, 0)
     const msgs = det_res.message + "\n" + parse_res.message
     let parse_chaps: Chapter[] = []
-    if (det_data.type == 'links') {
+    if (parser_opt.type == 'links') {
       parse_chaps = (parse_res.data! as ParserResultLinks).chaps
+    } else {
+      const pchap = (parse_res.data! as ParserResultChap)
+      let res_sel = this.get_title_res(src)
+      parse_chaps.push({
+        url: url,
+        title: res_sel ?? pchap.title,
+        html: src,
+        html_parsed: pchap.html
+      })
     }
-    return {
-      status: MsgOutStatus.Ok,
-      message: msgs,
-      data: {
-        detected: det_data,
-        chaps: parse_chaps,
-      }
-    }
+
+    chaps.value = parse_chaps
+    write_info(msgs)
   }
 
   /**

@@ -9,20 +9,6 @@ import {MsgCommand} from "../services/messaging/msg_types";
 import {ParseOpt} from "../services/scraping/parser_types";
 import ParserManager from "../services/scraping/ParserMan";
 
-function get_title_res(source: string) {
-  const parser = new DOMParser()
-  const dom = parser.parseFromString(source, "text/html");
-  let title_res = null
-  if (title_id.value != '') {
-    const title_el = dom.querySelector(title_id.value)
-    if (title_el == null) {
-      write_info("Unable to find title element")
-    } else {
-      title_res = title_el.textContent
-    }
-  }
-  return title_res
-}
 
 export async function add(parse_man: ParserManager,
                           chaps: Ref<Chapter[]>,
@@ -45,7 +31,7 @@ export async function add(parse_man: ParserManager,
       parser_chap.value!.parser
     )
     write_info(res.message)
-    let res_sel = get_title_res(doc_info.data!.src)
+    let res_sel = parse_man.get_title_res(doc_info.data!.src)
     let curr_chap = {
       url: doc_info.data!.url,
       title: res_sel ?? res.data!.title,

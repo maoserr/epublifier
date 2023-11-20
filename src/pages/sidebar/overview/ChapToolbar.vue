@@ -52,6 +52,10 @@ const chap_op_disable = computed<boolean>(()=>{
   return false
 })
 
+const add_chap_disable = computed<boolean>(()=>{
+  return selected_chaps.value.length  == 0
+})
+
 const epub_disable = computed<boolean>(()=>{
   if (selected_chaps.value.length == 0){
     return true

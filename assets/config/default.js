@@ -91,13 +91,29 @@ function main_parser(inputs, url, source, helpers) {
     switch (link.hostname) {
         case "www.novelupdates.com":
             if (paths.length > 1 && paths[1] === "series") {
-                const meta = meta_nu(dom, url)
-                return {type: 'links', parser: 'Novel Updates', meta: meta}
+                return {
+                    message: 'Detected novel update.',
+                    parser_opt: {type: 'links', parser: 'Novel Updates'},
+                    meta: meta_nu(dom, url)
+                }
             }
-            break;
+            return {failed_message: "Please load specific series before running."}
+        case "www.wuxiaworld.com":
+            if (paths.length > 3 && paths[1] === 'novel') {
+                return {
+                    message: 'Detected Wuxia World.',
+                    webtype: 'spa',
+                    meta: meta_page(dom, url),
+                    parser_opt: {type: 'text', parser: 'Readability'},
+                    add_opt: {
+                        next_sel: '.MuiButton-root:nth-child(2)',
+                        title_sel: '.font-set-b18', scroll_end: true
+                    }
+                }
+            }
+            return {failed_message: "Please load first chapter of novel"}
         default:
-            const meta = meta_page(dom, url)
-            return {type: 'links', parser: 'Chapter Links', meta: meta}
+            return {failed_message: "No automatic parser available for: " + link.hostname}
     }
 }
 
