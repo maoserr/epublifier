@@ -112,6 +112,53 @@ function main_parser(inputs, url, source, helpers) {
                 }
             }
             return {failed_message: "Please load first chapter of novel"}
+        case "www.royalroad.com":
+            return {
+                message: 'Detected Royalroad.',
+                meta: {
+                    title: dom.title ?? "No Title",
+                    description: dom.querySelector('meta[name="description"]')?.content,
+                    author: dom.querySelector('span > .font-white').innerText ?? "No author",
+                    publisher: new URL(url).hostname,
+                    cover: dom.querySelector('.fic-header img')?.src,
+                },
+                parser_opt: {
+                    type: 'links', parser: 'Chapter Links',
+                    parser_inputs: {
+                        'Query Selector': '.chapter-row > td:nth-child(1) > a',
+                        'Link Regex': '.*'
+                    }
+                }
+            }
+        case "news.ycombinator.com":
+            // Just for some testing
+            if (link.pathname === '/' || (paths[1].startsWith("?p="))) {
+                return {
+                    message: 'Detected YCombinator.',
+                    meta: meta_page(dom, url),
+                    parser_opt: {
+                        type: 'links', parser: 'Chapter Links',
+                        parser_inputs: {
+                            'Query Selector': '.titleline > a',
+                            'Link Regex': '.*'
+                        }
+                    }
+                }
+            }
+            return {failed_message: "Please only load on front page(s)."}
+        case "www.reddit.com":
+            // Just for some testing
+            return {
+                message: 'Detected Reddit.',
+                meta: meta_page(dom, url),
+                parser_opt: {
+                    type: 'links', parser: 'Chapter Links',
+                    parser_inputs: {
+                        'Query Selector': '.SQnoC3ObvgnGjWt90zD9Z',
+                        'Link Regex': '.*'
+                    }
+                }
+            }
         default:
             return {failed_message: "No automatic parser available for: " + link.hostname}
     }

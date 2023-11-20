@@ -7,9 +7,9 @@
       <div class="flex flex-wrap gap-3">
         Parse as:
         <div class="flex align-items-center">
-          <RadioButton v-model="page_type" inputId="regular"
-                       name="page_type" value="regular"/>
-          <label for="regular" class="ml-2">Pages</label>
+          <RadioButton v-model="page_type" inputId="pages"
+                       name="page_type" value="pages"/>
+          <label for="pages" class="ml-2">Pages</label>
         </div>
         <div class="flex align-items-center">
           <RadioButton v-model="page_type" inputId="spa"
@@ -204,6 +204,7 @@ onMounted(async () => {
           if (typeof e === "string") {
             write_info(e)
           } else if (e instanceof Error) {
+            console.error(e)
             write_info(e.message)
           }
         }

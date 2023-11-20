@@ -111,7 +111,6 @@ export default class ParserManager {
         }
       }, 2, 0))
     const det_data = det_res.data!
-    console.log(det_data)
     if (det_data.failed_message !== undefined) {
       throw new Error(det_data.failed_message)
     }
