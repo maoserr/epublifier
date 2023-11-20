@@ -69,7 +69,7 @@ export default class SidebarContainer {
           case MsgCommand.ContGetSource:
             if (document.head.getElementsByTagName('base').length == 0) {
               let baseEl = document.createElement('base');
-              baseEl.setAttribute('href', window.location.origin);
+              baseEl.setAttribute('href', window.location.href);
               document.head.appendChild(baseEl)
             }
             return msg_ok<any>("Got source", {

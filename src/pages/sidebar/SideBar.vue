@@ -133,6 +133,7 @@ async function add_chap() {
 
 async function parse() {
   console.log("Parsing chapters...", selected_chaps)
+  console.log(parser_chap.value)
   await parse_man.parser_chaps(
       parser_chap.value!.doc, parser_chap.value!.parser,
       selected_chaps, parse_cancel, write_info, parse_progress)
@@ -153,6 +154,7 @@ async function parse_links(add: boolean) {
       parser.value!.doc,
       parser.value!.parser
   )
+  console.log(res.data!.chaps)
   write_info(res.message)
   if (add) {
     write_info("Adding links...")

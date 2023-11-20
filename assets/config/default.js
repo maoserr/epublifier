@@ -4,10 +4,6 @@ const main_def = {
         inputs: {}
     },
     links: {
-        'Novel Updates': {
-            func: nu_toc_parser,
-            inputs: {}
-        },
         'Chapter Links': {
             func: chap_name_search,
             inputs: {
@@ -15,18 +11,42 @@ const main_def = {
                 'Query Selector': {type: 'text', default: 'a'}
             }
         },
-    },
-    text: {
-        'Readability_Ex': {
-            func: readability_ex,
+        'Novel Updates': {
+            func: nu_toc_parser,
             inputs: {}
         },
+    },
+    text: {
         'Readability': {
             func: readability,
             inputs: {}
         },
+        'Readability_Ex': {
+            func: readability_ex,
+            inputs: {}
+        },
     }
 }
+
+/**
+ * Gets metadata from html metadata
+ * @param {string}url
+ * @param {HTMLElement}dom
+ * @returns {{
+ * author: string,
+ * description: string,
+ * publisher: string,
+ * title: string}}
+ */
+function meta_page(dom, url) {
+    return {
+        title: dom.title ?? "No Title",
+        description: dom.querySelector('meta[name="description"]')?.content,
+        author: "N/A",
+        publisher: new URL(url).hostname
+    }
+}
+
 
 /**
  * Gets metadata from Novel updates
@@ -55,24 +75,6 @@ function meta_nu(dom, url) {
     }
 }
 
-/**
- * Gets metadata from html metadata
- * @param {string}url
- * @param {HTMLElement}dom
- * @returns {{
- * author: string,
- * description: string,
- * publisher: string,
- * title: string}}
- */
-function meta_page(dom, url) {
-    return {
-        title: dom.title ?? "No Title",
-        description: dom.querySelector('meta[name="description"]')?.content,
-        author: "N/A",
-        publisher: new URL(url).hostname
-    }
-}
 
 /**
  * Auto detect function given url and source
@@ -101,7 +103,7 @@ function main_parser(inputs, url, source, helpers) {
         case "www.wuxiaworld.com":
             if (paths.length > 3 && paths[1] === 'novel') {
                 return {
-                    message: 'Detected Wuxia World.',
+                    message: 'Detected Wuxia World (use Add Page).',
                     webtype: 'spa',
                     meta: meta_page(dom, url),
                     parser_opt: {type: 'text', parser: 'Readability'},
@@ -164,6 +166,35 @@ function main_parser(inputs, url, source, helpers) {
     }
 }
 
+/**
+ * Search for chapter by link names
+ * @param {{'Query Selector':string,'Link Regex':string}} inputs
+ * @param {string} url
+ * @param {string} source
+ * @param {{}} helpers
+ * @returns {{chaps: *[], message: string}}
+ */
+function chap_name_search(inputs,
+                          url, source, helpers) {
+    let parser = new DOMParser();
+    let dom = parser.parseFromString(source, "text/html");
+    let ancs = dom.querySelectorAll(inputs['Query Selector']);
+    let chaps = []
+    const chap_reg = new RegExp(inputs['Link Regex'], 'i')
+    ancs.forEach((element) => {
+        if (chap_reg.test(element.innerText)) {
+            chaps.push({
+                url: element.href,
+                title: element.innerText
+            });
+        }
+    });
+    return {
+        chaps: chaps,
+        message: 'Parsing links with prefix chapter (' + chaps.length + ' chapters)'
+    };
+}
+
 
 /**
  * Parse novel update series
@@ -196,35 +227,6 @@ function nu_toc_parser(inputs, url, source, helpers) {
     }
     return {
         chaps: chaps, message: parser_msg
-    };
-}
-
-/**
- * Search for chapter by link names
- * @param {{'Query Selector':string,'Link Regex':string}} inputs
- * @param {string} url
- * @param {string} source
- * @param {{}} helpers
- * @returns {{chaps: *[], message: string}}
- */
-function chap_name_search(inputs,
-                          url, source, helpers) {
-    let parser = new DOMParser();
-    let dom = parser.parseFromString(source, "text/html");
-    let ancs = dom.querySelectorAll(inputs['Query Selector']);
-    let chaps = []
-    const chap_reg = new RegExp(inputs['Link Regex'], 'i')
-    ancs.forEach((element) => {
-        if (chap_reg.test(element.innerText)) {
-            chaps.push({
-                url: element.href,
-                title: element.innerText
-            });
-        }
-    });
-    return {
-        chaps: chaps,
-        message: 'Parsing links with prefix chapter (' + chaps.length + ' chapters)'
     };
 }
 

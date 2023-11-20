@@ -1,14 +1,13 @@
 import SandboxInput from ".././messaging/SandboxInput";
 import {
-  get_default_inputs,
+  get_default_inputs, ParserDetected,
   ParserLoadResult,
   ParserParams,
   ParserResultChap,
   ParserResultDetector,
-  ParserResultInit,
   ParserResultLinks
 } from "./parser_types";
-import {MsgCommand, MsgOut, MsgOutStatus, SbxInRunFunc, SbxInRunFuncRes} from "../messaging/msg_types";
+import {MsgCommand, MsgOut, SbxInRunFunc, SbxInRunFuncRes} from "../messaging/msg_types";
 import {Chapter} from "../novel/novel_data";
 import {Ref} from "vue";
 import OptionsManager from "../common/OptionsMan";
@@ -111,9 +110,7 @@ export default class ParserManager {
         }
       }, 2, 0))
     const det_data = det_res.data!
-    if (det_data.failed_message !== undefined) {
-      throw new Error(det_data.failed_message)
-    }
+
     if (det_data.meta !== undefined) {
       meta.value = det_data.meta
     }
@@ -123,7 +120,10 @@ export default class ParserManager {
     title_id.value = det_data.add_opt?.title_sel ?? ''
     scroll.value = det_data.add_opt?.scroll_end ?? false
 
-    let parser_opt = det_data.parser_opt!
+    let parser_opt: ParserDetected = det_data.parser_opt ?? {
+      type: 'links',
+      parser: Object.keys(this.parsers[parse_doc]['links'])[0]
+    }
 
     let det_inputs = parser_opt.parser_inputs ?? get_default_inputs(
       this.parsers[parse_doc][parser_opt.type][parser_opt.parser]['inputs'])
@@ -158,33 +158,26 @@ export default class ParserManager {
         .links[parser.value.parser]['inputs'])
     }
 
-    // Run detected parser
-    const parse_res = await this.sandbox
-      .run_in_sandbox<SbxInRunFuncRes, ParserResultLinks | ParserResultChap>({
-        command: MsgCommand.SbxRunFuncRes,
-        data: {
-          res_key: parse_doc,
-          inputs: [det_inputs, url, src],
-          subkeys: [parser_opt.type, parser_opt.parser, 'func']
-        }
-      }, 2, 0)
-    const msgs = det_res.message + "\n" + parse_res.message
-    let parse_chaps: Chapter[] = []
-    if (parser_opt.type == 'links') {
-      parse_chaps = (parse_res.data! as ParserResultLinks).chaps
-    } else {
-      const pchap = (parse_res.data! as ParserResultChap)
-      let res_sel = this.get_title_res(src)
-      parse_chaps.push({
-        url: url,
-        title: res_sel ?? pchap.title,
-        html: src,
-        html_parsed: pchap.html
-      })
+    if (det_data.failed_message !== undefined) {
+      throw new Error(det_data.failed_message)
     }
 
-    chaps.value = parse_chaps
-    write_info(msgs)
+    if (parser_opt.type == 'links') {
+      // Run detected parser
+      const parse_res = await this.sandbox
+        .run_in_sandbox<SbxInRunFuncRes, ParserResultLinks | ParserResultChap>({
+          command: MsgCommand.SbxRunFuncRes,
+          data: {
+            res_key: parse_doc,
+            inputs: [det_inputs, url, src],
+            subkeys: [parser_opt.type, parser_opt.parser, 'func']
+          }
+        }, 2, 0)
+      write_info(det_res.message + "\n" + parse_res.message)
+      chaps.value = (parse_res.data! as ParserResultLinks).chaps
+    } else {
+      write_info(det_res.message)
+    }
   }
 
   /**
