@@ -19,13 +19,13 @@ defineEmits<{
 
 const menu_bar = ref();
 const items = ref([
-  {
-    label: 'Editor',
-    icon: 'pi pi-file-edit',
-    command: () => {
-
-    }
-  },
+  // {
+  //   label: 'Editor',
+  //   icon: 'pi pi-file-edit',
+  //   command: () => {
+  //
+  //   }
+  // },
   {
     label: 'Help',
     icon: 'pi pi-question-circle',

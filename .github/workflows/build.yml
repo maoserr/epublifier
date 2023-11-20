@@ -5,7 +5,7 @@ on:
     branches: [ master, develop ]
 
 env:
-  MAJOR_VER: 2
+  MAJOR_VER: 3
   MINOR_VER: 0
 
 jobs:
