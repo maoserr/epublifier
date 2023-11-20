@@ -1,53 +1,80 @@
 const main_def = {
-    main: main_parser,
-    toc_parsers: {
-        'Novel Updates': {
-            func: nu_toc_parser, inputs: {}
-        },
+    detector: {
+        func: main_parser,
+        inputs: {}
+    },
+    links: {
         'Chapter Links': {
-            func: chap_name_search, inputs: {
+            func: chap_name_search,
+            inputs: {
                 'Link Regex': {type: 'text', default: '^c.*'},
                 'Query Selector': {type: 'text', default: 'a'}
             }
         },
-    }, chap_parsers: {
-        'Default': {func: readability_ex, inputs: {}},
-        'Simple': {func: readability, inputs: {}},
+        'Novel Updates': {
+            func: nu_toc_parser,
+            inputs: {}
+        },
+    },
+    text: {
+        'Readability': {
+            func: readability,
+            inputs: {}
+        },
+        'Readability_Ex': {
+            func: readability_ex,
+            inputs: {}
+        },
     }
-}
-
-
-/**
- * Initialization function
- * @returns
- */
-function load() {
-    console.debug("Parser loaded.")
-    return main_def
-}
-
-/**
- * Gets default value for a given parser
- * @param parser_def
- * @returns {{[p: string]: undefined}}
- */
-function get_default_vals(parser_def) {
-    return Object.fromEntries(Object.entries(parser_def.inputs)
-        .map(([k, v]) => [k, v.default]))
 }
 
 /**
  * Gets metadata from html metadata
- * @param url
- * @param dom
- * @returns {{author: string, description: *, publisher: string, title: string}}
+ * @param {string}url
+ * @param {HTMLElement}dom
+ * @returns {{
+ * author: string,
+ * description: string,
+ * publisher: string,
+ * title: string}}
  */
-function page_meta(url, dom) {
+function meta_page(dom, url) {
     return {
-        title: dom.title ?? "No Title", description: dom.querySelector('meta[name="description"]')?.content,
-        author: "N/A", publisher: new URL(url).hostname
+        title: dom.title ?? "No Title",
+        description: dom.querySelector('meta[name="description"]')?.content,
+        author: "N/A",
+        publisher: new URL(url).hostname
     }
 }
+
+
+/**
+ * Gets metadata from Novel updates
+ * @param {string}url
+ * @param {HTMLElement}dom
+ * @returns {{
+ * author: string,
+ * description: string,
+ * publisher: string,
+ * title: string}}
+ */
+function meta_nu(dom, url) {
+    let tit = dom.querySelector(".seriestitlenu").innerText;
+    let desc = dom.querySelector("#editdescription").innerHTML;
+    let auth = dom.querySelector("#authtag").innerText;
+    let img = dom.querySelector(".serieseditimg > img");
+    if (img == null) {
+        img = dom.querySelector(".seriesimg > img");
+    }
+    return {
+        title: tit,
+        description: desc,
+        author: auth,
+        cover: img.src,
+        publisher: "Novel Update"
+    }
+}
+
 
 /**
  * Auto detect function given url and source
@@ -67,16 +94,104 @@ function main_parser(inputs, url, source, helpers) {
         case "www.novelupdates.com":
             if (paths.length > 1 && paths[1] === "series") {
                 return {
-                    parser: "Novel Updates", type: "toc", result: nu_toc_parser(inputs, url, source, helpers)
+                    message: 'Detected novel update.',
+                    parser_opt: {type: 'links', parser: 'Novel Updates'},
+                    meta: meta_nu(dom, url)
                 }
             }
-            break;
+            return {failed_message: "Please load specific series before running."}
+        case "www.wuxiaworld.com":
+            if (paths.length > 3 && paths[1] === 'novel') {
+                return {
+                    message: 'Detected Wuxia World (use Add Page).',
+                    webtype: 'spa',
+                    meta: meta_page(dom, url),
+                    parser_opt: {type: 'text', parser: 'Readability'},
+                    add_opt: {
+                        next_sel: '.MuiButton-root:nth-child(2)',
+                        title_sel: '.font-set-b18', scroll_end: true
+                    }
+                }
+            }
+            return {failed_message: "Please load first chapter of novel"}
+        case "www.royalroad.com":
+            return {
+                message: 'Detected Royalroad.',
+                meta: {
+                    title: dom.title ?? "No Title",
+                    description: dom.querySelector('meta[name="description"]')?.content,
+                    author: dom.querySelector('span > .font-white').innerText ?? "No author",
+                    publisher: new URL(url).hostname,
+                    cover: dom.querySelector('.fic-header img')?.src,
+                },
+                parser_opt: {
+                    type: 'links', parser: 'Chapter Links',
+                    parser_inputs: {
+                        'Query Selector': '.chapter-row > td:nth-child(1) > a',
+                        'Link Regex': '.*'
+                    }
+                }
+            }
+        case "news.ycombinator.com":
+            // Just for some testing
+            if (link.pathname === '/' || (paths[1].startsWith("?p="))) {
+                return {
+                    message: 'Detected YCombinator.',
+                    meta: meta_page(dom, url),
+                    parser_opt: {
+                        type: 'links', parser: 'Chapter Links',
+                        parser_inputs: {
+                            'Query Selector': '.titleline > a',
+                            'Link Regex': '.*'
+                        }
+                    }
+                }
+            }
+            return {failed_message: "Please only load on front page(s)."}
+        case "www.reddit.com":
+            // Just for some testing
+            return {
+                message: 'Detected Reddit.',
+                meta: meta_page(dom, url),
+                parser_opt: {
+                    type: 'links', parser: 'Chapter Links',
+                    parser_inputs: {
+                        'Query Selector': '.SQnoC3ObvgnGjWt90zD9Z',
+                        'Link Regex': '.*'
+                    }
+                }
+            }
+        default:
+            return {failed_message: "No automatic parser available for: " + link.hostname}
     }
+}
+
+/**
+ * Search for chapter by link names
+ * @param {{'Query Selector':string,'Link Regex':string}} inputs
+ * @param {string} url
+ * @param {string} source
+ * @param {{}} helpers
+ * @returns {{chaps: *[], message: string}}
+ */
+function chap_name_search(inputs,
+                          url, source, helpers) {
+    let parser = new DOMParser();
+    let dom = parser.parseFromString(source, "text/html");
+    let ancs = dom.querySelectorAll(inputs['Query Selector']);
+    let chaps = []
+    const chap_reg = new RegExp(inputs['Link Regex'], 'i')
+    ancs.forEach((element) => {
+        if (chap_reg.test(element.innerText)) {
+            chaps.push({
+                url: element.href,
+                title: element.innerText
+            });
+        }
+    });
     return {
-        parser: "Chapter Links", type: "toc",
-        result: chap_name_search(
-            get_default_vals(main_def.toc_parsers["Chapter Links"]),
-            url, source, helpers)
+        chaps: chaps,
+        message: 'Parsing links with prefix chapter (' + chaps.length + ' chapters)'
     };
 }
 
@@ -92,13 +207,6 @@ function main_parser(inputs, url, source, helpers) {
 function nu_toc_parser(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
-    let tit = dom.querySelector(".seriestitlenu").innerText;
-    let desc = dom.querySelector("#editdescription").innerHTML;
-    let auth = dom.querySelector("#authtag").innerText;
-    let img = dom.querySelector(".serieseditimg > img");
-    if (img == null) {
-        img = dom.querySelector(".seriesimg > img");
-    }
     let chaps = [];
 
     let chap_popup = dom.querySelector("#my_popupreading");
@@ -108,45 +216,17 @@ function nu_toc_parser(inputs, url, source, helpers) {
         chap_lis.forEach((element) => {
             if (element.href.includes("extnu")) {
                 chaps.unshift({
-                    title: element.innerText.trim(),
-                    url: helpers["link_fixer"](element.href, url),
-                    parser: 'Default'
+                    url: element.href,
+                    title: element.innerText.trim()
                 });
             }
         });
-        if (chaps.length > 0) parser_msg = 'Page parsed as Novel Update Series (' + chaps.length + ' chapters)'
+        if (chaps.length > 0) {
+            parser_msg = 'Page parsed as Novel Update Series (' + chaps.length + ' chapters)'
+        }
     }
     return {
-        chaps: chaps, message: parser_msg, meta: {
-            title: tit, description: desc, author: auth, cover: img.src, publisher: "Novel Update"
-        }
-    };
-}
-
-/**
- * Search for chapter by link names
- * @param inputs
- * @param url
- * @param source
- * @param helpers
- * @returns {{meta: {title: string}, chaps: *[], message: string}}
- */
-function chap_name_search(inputs, url, source, helpers) {
-    let parser = new DOMParser();
-    let dom = parser.parseFromString(source, "text/html");
-    let ancs = dom.querySelectorAll(inputs['Query Selector']);
-    let chaps = []
-    const chap_reg = new RegExp(inputs['Link Regex'], 'i')
-    ancs.forEach((element) => {
-        if (chap_reg.test(element.innerText)) {
-            chaps.push({
-                title: element.innerText, url: helpers["link_fixer"](element.href, url), parser: 'Default'
-            });
-        }
-    });
-    return {
-        chaps: chaps, message: 'Parsing links with prefix chapter (' + chaps.length + ' chapters)',
-        meta: page_meta(url, dom)
+        chaps: chaps, message: parser_msg
     };
 }
 
@@ -164,8 +244,9 @@ function readability(inputs, url, source, helpers) {
     let out = helpers["readability"](dom);
     // Generic parser
     return {
-        title: out.title, html: out.content, message: "Parsed simple chapter",
-        meta: page_meta(url, dom)
+        title: out.title,
+        html: out.content,
+        message: "Parsed simple chapter"
     };
 }
 
@@ -176,12 +257,11 @@ function readability(inputs, url, source, helpers) {
  * @param url
  * @param source
  * @param helpers
- * @returns {Promise<{html: string, title: string, message: string}|{html: *, title: *, message: string}>}
+ * @returns {Promise<{html: string, title: string, message: string}>}
  */
 async function readability_ex(inputs, url, source, helpers) {
     let parser = new DOMParser();
     let dom = parser.parseFromString(source, "text/html");
-
     let new_link = null;
     let subchaps = [];
 
@@ -191,8 +271,9 @@ async function readability_ex(inputs, url, source, helpers) {
         console.log("Readable");
         let out = helpers["readability"](dom);
         return {
-            title: out.title, html: out.content, message: "Parsed normal chapter.",
-            meta: page_meta(url, dom)
+            title: out.title,
+            html: out.content,
+            message: "Parsed normal chapter.",
         };
     } else if (main_cont != null) {
         console.log("Checking for intro page/subchapt");
@@ -200,10 +281,10 @@ async function readability_ex(inputs, url, source, helpers) {
         ancs.forEach((element) => {
             if (RegExp(/click here to read|read here|continue reading/i).test(element.innerText)) {
                 console.log("Intro page found");
-                new_link = helpers["link_fixer"](element.href, url);
+                new_link = element.href;
             } else if (RegExp(/^chapter|^part/i).test(element.innerText)) {
                 console.log("Subchapters found");
-                subchaps.push(helpers["link_fixer"](element.href, url))
+                subchaps.push(element.href)
             }
         });
     }
@@ -213,8 +294,9 @@ async function readability_ex(inputs, url, source, helpers) {
         dom = parser.parseFromString(r_txt, "text/html");
         let out = helpers["readability"](dom);
         return {
-            title: out.title, html: out.content, message: "Parsed redirected chapter",
-            meta: page_meta(url, dom)
+            title: out.title,
+            html: out.content,
+            message: "Parsed redirected chapter",
         };
     } else if (subchaps.length > 0) {
         let html = "";
@@ -231,14 +313,16 @@ async function readability_ex(inputs, url, source, helpers) {
             html += "<h1>" + out.title + "</h1>" + out.content
         }
         return {
-            title: title, html: html, message: "Parsed sub chapters",
-            meta: page_meta(url, dom)
+            title: title,
+            html: html,
+            message: "Parsed sub chapters",
         };
     }
     let out = helpers["readability"](dom);
     return {
-        title: out.title, html: out.content, message: "Parsed short chapter",
-        meta: page_meta(url, dom)
+        title: out.title,
+        html: out.content,
+        message: "Parsed short chapter",
     };
 }
 

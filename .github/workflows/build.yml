@@ -5,16 +5,16 @@ on:
     branches: [ master, develop ]
 
 env:
-  MAJOR_VER: 2
+  MAJOR_VER: 3
   MINOR_VER: 0
 
 jobs:
   build_chrome:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '16.x'
       - run: npm ci
@@ -30,9 +30,9 @@ jobs:
   build_firefox:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '16.x'
       - run: npm ci
@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Zip source
         run: zip -qq -r src.zip *
       - name: Download extension

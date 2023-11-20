@@ -23,12 +23,11 @@ function modify_manifest(buffer, browser_type, version, mode) {
     manifest.host_permissions = ["<all_urls>"]
     manifest.action = {
         default_icon: icons,
-        default_title: manifest.name,
-        default_popup: "popup.html"
+        default_title: manifest.name
     }
     manifest.web_accessible_resources = [{
-        resources: ["js/*.js", "js/*.map",
-            "*.woff", "*.woff2", "*.ttf", "sidebar.html"],
+        resources: ["js/*.js", "js/*.map","css/*.css",
+            "*.woff", "*.woff2", "*.ttf", "sidebar.html", "sandbox.html"],
         matches: ["<all_urls>"]
     }]
 
@@ -126,16 +125,6 @@ module.exports = (env, argv) => {
         },
         plugins: [
             new VueLoaderPlugin(),
-            new HtmlWebpackPlugin({
-                chunks: ['popup'],
-                filename: 'popup.html',
-                template: 'templates/popup.html'
-            }),
-            new HtmlWebpackPlugin({
-                chunks: ['main'],
-                filename: 'main.html',
-                template: 'templates/main.html'
-            }),
             new HtmlWebpackPlugin({
                 chunks: ['sandbox'],
                 filename: 'sandbox.html',
