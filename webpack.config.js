@@ -76,6 +76,7 @@ module.exports = (env, argv) => {
             minimizer: [],
             splitChunks: {
                 minSize: 100000,
+                maxSize: 3500000,
                 chunks: 'all',
             }
         },
