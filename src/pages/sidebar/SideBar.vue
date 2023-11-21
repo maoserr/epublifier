@@ -43,9 +43,24 @@
               <Meta/>
             </TabPanel>
             <TabPanel header="Chapter Text">
-              <iframe title="Preview"
-                      :srcdoc="selected_chaps[selected_chaps.length-1]?.html_parsed || 'No data'"
-                      style="border-width: 1px;width: 100%;height: 30vh;overflow: auto;"></iframe>
+              <span v-if="selected_chaps.length==0">No chapter selected</span>
+              <div v-if="selected_chaps.length>0" class="grid mt-2">
+                <div class="col-6 p-float-label max-w-full">
+                  <InputText id="chap_title" style="width:100%" size="small"
+                             v-model="selected_chaps[selected_chaps.length-1].title"/>
+                  <label for="chap_title">Title:</label>
+                </div>
+                <div class="col-6 p-float-label max-w-full">
+                  <InputText id="chap_url" style="width:100%" size="small"
+                             v-model="selected_chaps[selected_chaps.length-1].url"/>
+                  <label for="chap_url">Url:</label>
+                </div>
+                <div class="col-12">
+                  <iframe title="Preview"
+                          :srcdoc="selected_chaps[selected_chaps.length-1].html_parsed || 'No data'"
+                          style="border-width: 1px;width: 100%;height: 30vh;overflow: auto;"></iframe>
+                </div>
+              </div>
             </TabPanel>
             <TabPanel header="Links Parser">
               <LinksParse @parse_links="parse_links"/>
@@ -115,6 +130,7 @@ import RadioButton from "primevue/radiobutton";
 import LinksParse from "./parserconfig/LinksParse.vue";
 import NextParse from "./parserconfig/AddPageParse.vue";
 import TextParse from "./parserconfig/TextParse.vue";
+import InputText from "primevue/inputtext";
 
 
 let parse_man: ParserManager
