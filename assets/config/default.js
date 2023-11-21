@@ -7,7 +7,7 @@ const main_def = {
         'Chapter Links': {
             func: chap_name_search,
             inputs: {
-                'Link Regex': {type: 'text', default: '^c.*'},
+                'Link Regex': {type: 'text', default: '^.*'},
                 'Query Selector': {type: 'text', default: 'a'}
             }
         },

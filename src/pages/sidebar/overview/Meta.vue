@@ -4,6 +4,8 @@ import Button from "primevue/button";
 
 import {meta} from "../../novel_state"
 import {write_info} from "../sidebar_utils"
+import {msg_sendwin} from "../../win_state";
+import {MsgCommand} from "../../../services/messaging/msg_types";
 
 
 async function paste_cover() {
@@ -25,6 +27,16 @@ async function paste_cover() {
     console.error(err.name, err.message);
   }
 }
+
+async function get_cover(){
+  const res = await msg_sendwin.send_message<{}, string>({
+    command: MsgCommand.ContSelCover,
+    data: {}
+  }, 1, 0)
+  if (res.data != "" ){
+    meta.value.cover = res.data
+  }
+}
 </script>
 
 <template>
@@ -41,9 +53,14 @@ async function paste_cover() {
   <div id="coverdiv">
     <img v-if="meta?.cover" id="cover" :src="meta?.cover" alt="cover"/><br/>
     <Button icon="pi pi-image"
+            class="mr-2"
             v-tooltip:a.right="'Paste image from clipboard'"
             size="small"
             @click="paste_cover"/>
+    <Button icon="pi pi-search"
+            v-tooltip:a.right="'Find from current page'"
+            size="small"
+            @click="get_cover"/>
   </div>
   <div v-html="meta?.description"></div>
 </template>

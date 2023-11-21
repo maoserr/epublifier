@@ -84,7 +84,7 @@ export default class SidebarContainer {
                   || (x.onclick != null))
               }
             )
-            if (next_res != undefined ) {
+            if (next_res != undefined) {
               const sel_next = finder(next_res)
               return msg_ok<string>("Got next", sel_next)
             } else {
@@ -97,17 +97,29 @@ export default class SidebarContainer {
                   ?? x.tagName.toUpperCase() === "EM")
               }
             )
-            if (title_res != undefined ) {
+            if (title_res != undefined) {
               const sel_title = finder(title_res)
               console.log(title_res)
               return msg_ok<string>("Got title", sel_title)
             } else {
               return msg_ok<string>("No title element selected", "")
             }
+          case MsgCommand.ContSelCover:
+            const cover_res = await this.sel_win.start_get(
+              (x: HTMLElement) => {
+                return (x.tagName.toUpperCase() === "IMG")
+              }
+            )
+            if (cover_res != undefined) {
+              return msg_ok<string>("Got cover",
+                (cover_res as HTMLImageElement).src)
+            } else {
+              return msg_ok<string>("No cover found", "")
+            }
           case MsgCommand.ContClickNext:
             const next_sel = data['selector']
             const el = document.querySelector(next_sel)
-            if (el){
+            if (el) {
               el.click()
               return msg_ok<boolean>("Clicked next element", true)
             } else {
