@@ -15,10 +15,11 @@ const emits = defineEmits<{
   epub: [],
   delete: [],
   export_csv: [],
-  import_csv: []
+  import_csv: [file:File]
 }>()
 
 const menu_bar = ref();
+const file_up = ref();
 const items = ref([
   {
     label: 'Export CSV',
@@ -31,7 +32,7 @@ const items = ref([
     label: 'Import CSV',
     icon: 'pi pi-file-edit',
     command: () => {
-      emits("import_csv")
+      file_up.value.click();
     }
   },
   {
@@ -54,14 +55,11 @@ const items = ref([
 ]);
 
 const chap_op_disable = computed<boolean>(() => {
-  if (selected_chaps.value.length == 0) {
-    return true
-  }
-  return false
+  return selected_chaps.value.length == 0;
 })
 
 const add_chap_disable = computed<boolean>(() => {
-  return selected_chaps.value.length == 0
+  return selected_chaps.value.length != 0
 })
 
 const epub_disable = computed<boolean>(() => {
@@ -79,6 +77,13 @@ const epub_disable = computed<boolean>(() => {
 const toggle = (event: any) => {
   menu_bar.value.toggle(event);
 };
+
+const sel_file = (event: any) =>{
+  if (file_up.value.files.length>0){
+    emits('import_csv', file_up.value.files[0])
+    file_up.value.value = ''
+  }
+}
 </script>
 
 <template>
@@ -89,6 +94,7 @@ const toggle = (event: any) => {
               @click="$emit('parse')"
               icon="pi pi-play" class="mr-2" size="small"/>
       <Button v-tooltip:a.bottom="'Add This Page \n& Next Chapter(s)'"
+              :disabled="add_chap_disable"
               @click="$emit('add')"
               icon="pi pi-plus-circle" class="mr-2" size="small"/>
       <Button v-tooltip:a.bottom="'Create Epub'"
@@ -106,6 +112,13 @@ const toggle = (event: any) => {
       <Button type="button" v-tooltip:a.bottom="'More'" icon="pi pi-ellipsis-v" @click="toggle"
               severity="secondary" size="small"
               aria-haspopup="true" aria-controls="overlay_menu"/>
+      <input
+          type="file"
+          id="csvUpload"
+          accept="text/csv"
+          ref="file_up"
+          @change="sel_file"
+          style="display:none"/>
       <Menu ref="menu_bar" id="overlay_menu" :model="items" :popup="true">
         <template #item="{ label, item, props }:any">
           <a v-bind="props.action">

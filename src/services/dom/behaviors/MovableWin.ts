@@ -23,9 +23,11 @@ export default class MovableWin {
   }
   enable() {
     this.draggable.addEventListener('mousedown', this.evt_handleDragStart)
+    this.draggable.addEventListener('touchstart', this.evt_handleDragStart)
   }
   disable() {
     this.draggable.removeEventListener('mousedown', this.evt_handleDragStart)
+    this.draggable.removeEventListener('touchstart', this.evt_handleDragStart)
   }
 
   handleDragStart(evt: any) {
@@ -33,12 +35,20 @@ export default class MovableWin {
     this.baseMouseY = evt.offsetY
 
     this.doc.addEventListener('mouseup', this.evt_handleDragEnd)
+    this.doc.addEventListener('touchend', this.evt_handleDragEnd)
+    this.doc.addEventListener('touchcancel', this.evt_handleDragEnd)
+
     this.doc.addEventListener('mousemove', this.evt_handleMouseMove)
+    this.doc.addEventListener('touchmove', this.evt_handleMouseMove)
   }
 
   handleDragEnd() {
     this.doc.removeEventListener('mouseup', this.evt_handleDragEnd)
+    this.doc.removeEventListener('touchend', this.evt_handleDragEnd)
+    this.doc.removeEventListener('touchcancel', this.evt_handleDragEnd)
+
     this.doc.removeEventListener('mousemove', this.evt_handleMouseMove)
+    this.doc.removeEventListener('touchmove', this.evt_handleMouseMove)
   }
 
   handleMouseMove(evt: any) {

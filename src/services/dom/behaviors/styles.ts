@@ -11,8 +11,18 @@ export function set_float_win_style(cont:HTMLDivElement) {
   cont.style.padding = "0";
   cont.style.resize = "both";
   cont.style.overflow = "hidden";
-  cont.style.height = "600px";
-  cont.style.width = "600px";
+  if (window.innerWidth < 550){
+    cont.style.width = (window.innerWidth-50).toString() + "px"
+  } else {
+    cont.style.width = "600px";
+  }
+
+  if (window.innerHeight < 550){
+    cont.style.height = (window.innerHeight-50).toString() + "px"
+  } else {
+    cont.style.height = "600px";
+  }
+
   cont.style.position = "fixed";
   cont.style.top = "20px";
   cont.style.left = "20px";

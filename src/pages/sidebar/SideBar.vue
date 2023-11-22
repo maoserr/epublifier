@@ -99,6 +99,7 @@ import Column from "primevue/column";
 
 import {onMounted, Ref, ref} from "vue";
 import {watchDebounced} from "@vueuse/core";
+import Papa from 'papaparse';
 
 import 'primeflex/primeflex.css';
 import 'primevue/resources/primevue.min.css';
@@ -148,12 +149,27 @@ function reorder(reordered_chaps: Ref<Chapter[]>) {
   chaps.value = reordered_chaps.value
 }
 
-function export_csv(){
+function export_csv() {
   dt.value.exportCSV()
 }
 
-function import_csv(){
-
+async function import_csv(file: File) {
+  const txt = await file.text()
+  const csv_res = Papa.parse(txt.trimEnd(), {header: true})
+  for (let i = 0; i < csv_res.data.length; i++) {
+    const curr_row = csv_res.data[i] as Record<string,string>
+    if (chaps.value.length > i){
+      chaps.value[i].title = curr_row['Title']
+      chaps.value[i].url = curr_row['URL']
+    } else {
+      chaps.value.push({
+        title: curr_row['Title'],
+        url: curr_row['URL'],
+        html: '',
+        html_parsed: ''
+      })
+    }
+  }
 }
 
 async function add_chap() {
