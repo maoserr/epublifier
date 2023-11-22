@@ -8,24 +8,32 @@ import browser from "webextension-polyfill";
 import {computed, ref} from "vue";
 import {get_origin} from "../../../services/dom/SidebarContainer";
 import {selected_chaps} from "../../novel_state";
-import {parse} from "@vue/compiler-sfc";
 
-defineEmits<{
+const emits = defineEmits<{
   add: [],
   parse: [],
   epub: [],
-  delete: []
+  delete: [],
+  export_csv: [],
+  import_csv: []
 }>()
 
 const menu_bar = ref();
 const items = ref([
-  // {
-  //   label: 'Editor',
-  //   icon: 'pi pi-file-edit',
-  //   command: () => {
-  //
-  //   }
-  // },
+  {
+    label: 'Export CSV',
+    icon: 'pi pi-file-edit',
+    command: () => {
+      emits("export_csv")
+    }
+  },
+  {
+    label: 'Import CSV',
+    icon: 'pi pi-file-edit',
+    command: () => {
+      emits("import_csv")
+    }
+  },
   {
     label: 'Help',
     icon: 'pi pi-question-circle',
@@ -45,23 +53,23 @@ const items = ref([
   }
 ]);
 
-const chap_op_disable = computed<boolean>(()=>{
-  if (selected_chaps.value.length == 0){
+const chap_op_disable = computed<boolean>(() => {
+  if (selected_chaps.value.length == 0) {
     return true
   }
   return false
 })
 
-const add_chap_disable = computed<boolean>(()=>{
-  return selected_chaps.value.length  == 0
+const add_chap_disable = computed<boolean>(() => {
+  return selected_chaps.value.length == 0
 })
 
-const epub_disable = computed<boolean>(()=>{
-  if (selected_chaps.value.length == 0){
+const epub_disable = computed<boolean>(() => {
+  if (selected_chaps.value.length == 0) {
     return true
   }
-  for (let chap of selected_chaps.value){
-    if (!chap.html_parsed){
+  for (let chap of selected_chaps.value) {
+    if (!chap.html_parsed) {
       return true
     }
   }

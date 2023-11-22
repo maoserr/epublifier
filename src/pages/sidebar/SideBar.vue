@@ -20,8 +20,10 @@
       <TabView>
         <TabPanel header="Overview">
           <ChapToolbar @add="add_chap" @parse="parse"
-                       @epub="gen_epub" @delete="delete_chap"/>
+                       @epub="gen_epub" @delete="delete_chap"
+                       @export_csv="export_csv" @import_csv="import_csv"/>
           <DataTable :value="chaps"
+                     ref="dt"
                      v-model:selection="selected_chaps"
                      @rowReorder="reorder($event)"
                      selectionMode="multiple"
@@ -31,12 +33,13 @@
                      responsiveLayout="scroll">
             <Column :rowReorder="true" headerStyle="width: 2rem" :reorderableColumn="false"/>
             <Column selectionMode="multiple" style="width: 2rem" :exportable="false"></Column>
-            <Column field="html_parsed" header="Parsed">
+            <Column field="html_parsed" header="Parsed" :exportable="false">
               <template #body="{data}:any">
                 <i class="pi" :class="(!(data as any).html_parsed)?'pi-circle':'pi-check'"></i>
               </template>
             </Column>
             <Column field="title" header="Title"></Column>
+            <Column field="url" header="URL"></Column>
           </DataTable>
           <TabView>
             <TabPanel header="Meta">
@@ -108,7 +111,7 @@ import ParserDef from "./parserconfig/ParserDef.vue";
 
 import ParserManager from "../../services/scraping/ParserMan";
 import SandboxInput from "../../services/messaging/SandboxInput";
-import {MsgCommand, MsgOut} from "../../services/messaging/msg_types";
+import {MsgCommand} from "../../services/messaging/msg_types";
 import {Chapter} from "../../services/novel/novel_data";
 
 
@@ -135,12 +138,22 @@ import InputText from "primevue/inputtext";
 
 let parse_man: ParserManager
 
+const dt = ref()
+
 // Status tracking
 const parse_cancel = ref<boolean>(false)
 const parse_progress = ref<number>(0)
 
 function reorder(reordered_chaps: Ref<Chapter[]>) {
   chaps.value = reordered_chaps.value
+}
+
+function export_csv(){
+  dt.value.exportCSV()
+}
+
+function import_csv(){
+
 }
 
 async function add_chap() {
