@@ -32,7 +32,11 @@ export default class SelectorWin {
     }
     this.create_overlay()
     this.doc.addEventListener('mousemove', this.evt_get_move)
+    this.doc.addEventListener('touchmove', this.evt_get_move)
+
     this.doc.addEventListener('mousedown', this.evt_stop_get)
+    this.doc.addEventListener('touchend', this.evt_stop_get)
+    this.doc.addEventListener('touchcancel', this.evt_stop_get)
     this.curr_filt_func = filt_fn
     return await new Promise(
       (resolve, reject) => {
@@ -60,7 +64,10 @@ export default class SelectorWin {
       this.overlay.remove()
     }
     this.doc.removeEventListener('mousemove', this.evt_get_move)
+    this.doc.removeEventListener('touchmove', this.evt_get_move)
     this.doc.removeEventListener('mousedown', this.evt_stop_get)
+    this.doc.removeEventListener('touchend', this.evt_stop_get)
+    this.doc.removeEventListener('touchcancel', this.evt_stop_get)
     if (this.curr_candidate != undefined){
       this.curr_candidate.style.border = this.old_style
     }
