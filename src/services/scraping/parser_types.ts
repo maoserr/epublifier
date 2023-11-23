@@ -23,6 +23,8 @@ export interface ParserParams {
 export interface ParserInputDef {
   type: string
   default: string
+  filters?: string[]
+  postfix?: string
 }
 
 export interface ParserLoadResult {

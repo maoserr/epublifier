@@ -6,11 +6,15 @@ import Listbox from "primevue/listbox";
 import Button from "primevue/button";
 import {computed, ComputedRef, watch} from "vue";
 
-import {ParseOpt, ParserInputDef, get_default_inputs} from "../../../services/scraping/parser_types";
-import {parser, parsers, curr_parse_doc, p_inputs_val_link} from "../../parser_state";
+import {get_default_inputs, ParseOpt, ParserInputDef} from "../../../services/scraping/parser_types";
+import {curr_parse_doc, p_inputs_val_link, parser, parsers} from "../../parser_state";
+import InputGroup from "primevue/inputgroup";
+import {msg_sendwin} from "../../win_state";
+import {MsgCommand} from "../../../services/messaging/msg_types";
+import {write_info} from "../sidebar_utils";
 
 defineEmits<{
-  parse_links: [add:boolean]
+  parse_links: [add: boolean]
 }>()
 
 const parser_ops: ComputedRef<ParseOpt[]> = computed(() => {
@@ -32,6 +36,17 @@ const p_inputs = computed<Record<string, ParserInputDef>>(() => {
   }
   return {}
 })
+
+async function set_sel(id: string, tags: string[], postfix: string) {
+  const res = await msg_sendwin.send_message<{}, string>({
+    command: MsgCommand.ContSelUser,
+    data: {tags: tags}
+  }, 1, 0)
+  write_info(res.message)
+  if (res.data != ''){
+    p_inputs_val_link.value[id] = res.data! + postfix
+  }
+}
 
 watch(parser, () => {
   if (parser.value != undefined) {
@@ -62,11 +77,18 @@ watch(parser, () => {
       <Panel header="Parser Options">
         <div class="grid">
           <div class="field col-12" v-for="(inp, k) in p_inputs">
-                  <span class="p-float-label">
-                      <InputText v-if="inp.type=='text'" :id="k.toString()" type="text"
-                                 v-model="p_inputs_val_link[k]"/>
-                      <label v-if="inp.type=='text'" :for="k">{{ k }}</label>
-                  </span>
+            <span v-if="inp.type=='text'" class="p-float-label">
+                <InputText :id="k" type="text"
+                           v-model="p_inputs_val_link[k]"/>
+                <label :for="k">{{ k }}</label>
+            </span>
+            <InputGroup v-if="inp.type=='selector'">
+              <span class="p-float-label max-w-full">
+                <InputText :id="k" type="text" v-model="p_inputs_val_link[k]"/>
+                <label :for="k">{{ k }}</label>
+              </span>
+              <Button icon="pi pi-search" @click="set_sel(k, inp.filters!, inp.postfix!)"/>
+            </InputGroup>
           </div>
         </div>
       </Panel>

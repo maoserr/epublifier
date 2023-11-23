@@ -68,7 +68,6 @@ async function sel_title() {
         </div>
         <Button icon="pi pi-search" @click="sel_title"/>
       </InputGroup>
-
     </div>
     <div class="col-6" v-if="page_type=='spa'">
       <Checkbox inputId="scroll_chk" v-model="scroll" :binary="true"/>
