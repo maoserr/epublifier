@@ -7,8 +7,8 @@ const main_def = {
         'Chapter Links': {
             func: chap_name_search,
             inputs: {
-                'Link Regex': {type: 'text', default: '^.*'},
-                'Query Selector': {type: 'text', default: 'a'}
+                'Link Regex': {type: 'text', default: '^\\s*\\S+'},
+                'Query Selector': {type: 'selector', default: 'a', filters: ['UL','OL'], postfix: ' a'}
             }
         },
         'Novel Updates': {

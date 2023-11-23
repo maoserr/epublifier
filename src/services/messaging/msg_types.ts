@@ -26,6 +26,7 @@ export enum MsgCommand {
   ContSelNext,
   ContSelTitle,
   ContSelCover,
+  ContSelUser,
   ContClickNext
 }
 

@@ -116,6 +116,24 @@ export default class SidebarContainer {
             } else {
               return msg_ok<string>("No cover found", "")
             }
+          case MsgCommand.ContSelUser:
+            const tags = data['tags']
+            const user_res = await this.sel_win.start_get(
+              (x: HTMLElement) =>{
+                const chk_tag = x.tagName.toUpperCase()
+                for (let t of tags){
+                  if ( chk_tag === t){
+                    return true
+                  }
+                }
+                return false
+              }
+            )
+            if (user_res != undefined){
+              return msg_ok<string>("Got user selector", finder(user_res))
+            } else {
+              return msg_ok<string>("No user selector", "")
+            }
           case MsgCommand.ContClickNext:
             const next_sel = data['selector']
             const el = document.querySelector(next_sel)
