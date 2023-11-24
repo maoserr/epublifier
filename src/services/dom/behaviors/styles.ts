@@ -6,6 +6,7 @@ export function set_float_win_style(cont:HTMLDivElement) {
   } else {
     cont.style.display = "flex";
   }
+  cont.style.touchAction = "none";
   cont.style.flexDirection = "column";
   cont.style.margin = "0";
   cont.style.padding = "0";

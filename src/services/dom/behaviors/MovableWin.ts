@@ -30,9 +30,15 @@ export default class MovableWin {
     this.draggable.removeEventListener('touchstart', this.evt_handleDragStart)
   }
 
-  handleDragStart(evt: any) {
-    this.baseMouseX = evt.offsetX
-    this.baseMouseY = evt.offsetY
+  handleDragStart(evt: TouchEvent | MouseEvent) {
+    if (evt instanceof TouchEvent){
+      const cont_r = this.cont.getBoundingClientRect()
+      this.baseMouseX = evt.touches[0].clientX  - cont_r.x
+      this.baseMouseY = evt.touches[0].clientY  - cont_r.y
+    } else {
+      this.baseMouseX = evt.offsetX
+      this.baseMouseY = evt.offsetY
+    }
 
     this.doc.addEventListener('mouseup', this.evt_handleDragEnd)
     this.doc.addEventListener('touchend', this.evt_handleDragEnd)
@@ -51,9 +57,17 @@ export default class MovableWin {
     this.doc.removeEventListener('touchmove', this.evt_handleMouseMove)
   }
 
-  handleMouseMove(evt: any) {
-    const frameTop = evt.clientY - this.baseMouseY
-    const frameLeft = evt.clientX - this.baseMouseX
+  handleMouseMove(evt: TouchEvent | MouseEvent) {
+    let frameTop
+    let frameLeft
+    if (evt instanceof  TouchEvent){
+      frameTop = evt.touches[0]?.clientY - this.baseMouseY
+      frameLeft = evt.touches[0]?.clientX - this.baseMouseX
+    } else {
+      frameTop = evt.clientY - this.baseMouseY
+      frameLeft = evt.clientX - this.baseMouseX
+    }
+
     this.cont.style.top = frameTop + 'px'
     this.cont.style.left = frameLeft + 'px'
   }
