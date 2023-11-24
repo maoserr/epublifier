@@ -17,6 +17,7 @@ export default class SelectorWin {
   private create_overlay() {
     this.overlay = this.doc.createElement('div')
     this.overlay.style.backgroundColor = 'rgba(1, 1, 1, 0.7)'
+    this.overlay.style.touchAction = "none"
     this.overlay.style.bottom = "0"
     this.overlay.style.left = "0"
     this.overlay.style.position = "fixed"
