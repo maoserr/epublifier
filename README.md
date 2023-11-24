@@ -1,11 +1,15 @@
 # Epublifier #
 Converts websites into epub.
 
-A tool that allows you to extract a list of html pages from a table of content page and compile them into an ePub book to be imported into your eReader of choice.
+A tool that allows you to extract a list of html pages from a website and compile them into an ePub book to be imported into your eReader of choice.
 
 For advanced users who can write javascript, you can add additional parser definition to customize parsing of any site.
 
 Check out the [wiki](https://github.com/maoserr/epublifier/wiki) for usage.
+
+## Installation ##
+  - Firefox: https://addons.mozilla.org/en-US/firefox/addon/epublifier/
+  - Chrome: https://chrome.google.com/webstore/detail/epublifier/eopjnahefjhnhfanplcjpbbdkpbagikk
 
 ## Example Usage ##
 
