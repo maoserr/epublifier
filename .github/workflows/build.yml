@@ -51,7 +51,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Download extension
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: chrome
       - name: Publish Chrome
@@ -72,7 +72,7 @@ jobs:
       - name: Zip source
         run: zip -qq -r src.zip *
       - name: Download extension
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: firefox
       - name: Publish Firefox
@@ -90,7 +90,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Download extension
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
