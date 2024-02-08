@@ -24,7 +24,7 @@
     "@types/papaparse": "^5.3.14",
     "@types/prismjs": "^1.26.3",
     "@types/webextension-polyfill": "^0.10.7",
-    "@vue/compiler-sfc": "^3.4.14",
+    "@vue/compiler-sfc": "^3.4.16",
     "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^6.10.0",
     "html-webpack-plugin": "^5.6.0",
