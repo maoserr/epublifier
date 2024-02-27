@@ -51,7 +51,7 @@
     "primevue": "^3.49.1",
     "prismjs": "^1.29.0",
     "tsepub": "^1.1.19",
-    "vue": "^3.4.19",
+    "vue": "^3.4.20",
     "vue-codemirror": "^6.1.1",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "webextension-polyfill": "^0.10.0"
