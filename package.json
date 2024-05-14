@@ -54,6 +54,6 @@
     "vue": "^3.4.27",
     "vue-codemirror": "^6.1.1",
     "vue-prism-editor": "^2.0.0-alpha.2",
-    "webextension-polyfill": "^0.11.0"
+    "webextension-polyfill": "^0.12.0"
   }
 }
