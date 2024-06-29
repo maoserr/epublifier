@@ -14,6 +14,8 @@ const emits = defineEmits<{
   parse: [],
   epub: [],
   delete: [],
+  cache: [],
+  load: [],
   export_csv: [],
   import_csv: [file:File]
 }>()
@@ -105,10 +107,18 @@ const sel_file = (event: any) =>{
       <Button v-tooltip:a.bottom="'Delete selected chapters'"
               :disabled="chap_op_disable"
               @click="$emit('delete')"
-              icon="pi pi-trash" severity="warning"
+              icon="pi pi-trash" severity="warning" class="mr-2"
               size="small"/>
     </template>
     <template #end>
+      <Button v-tooltip:a.bottom="'Cache current data'"
+              @click="$emit('cache')"
+              icon="pi pi-save" class="mr-2"
+              size="small"/>
+      <Button v-tooltip:a.bottom="'Load cache'"
+              @click="$emit('load')"
+              icon="pi pi-folder-open" class="mr-2"
+              size="small"/>
       <Button type="button" v-tooltip:a.bottom="'More'" icon="pi pi-ellipsis-v" @click="toggle"
               severity="secondary" size="small"
               aria-haspopup="true" aria-controls="overlay_menu"/>

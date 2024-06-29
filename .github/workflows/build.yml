@@ -22,7 +22,7 @@ jobs:
       - name: Zip chrome
         run: zip -qq -r chrome.zip *
         working-directory: dist/chrome_prod
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: chrome
           path: dist/chrome_prod/chrome.zip
@@ -40,7 +40,7 @@ jobs:
       - name: Zip firefox
         run: zip -qq -r firefox.zip *
         working-directory: dist/firefox_prod
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: firefox
           path: dist/firefox_prod/firefox.zip
@@ -51,7 +51,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Download extension
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: chrome
       - name: Publish Chrome
@@ -72,7 +72,7 @@ jobs:
       - name: Zip source
         run: zip -qq -r src.zip *
       - name: Download extension
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: firefox
       - name: Publish Firefox
@@ -90,9 +90,9 @@ jobs:
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Download extension
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.MAJOR_VER }}.${{ env.MINOR_VER }}.${{ github.run_number }}
           files: |

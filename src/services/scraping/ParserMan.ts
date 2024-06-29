@@ -223,6 +223,8 @@ export default class ParserManager {
   async parser_chaps(parse_doc: string,
                      parser: string,
                      chaps_ref: Ref<Chapter[]>,
+                     threads: number,
+                     wait_s: number,
                      cancel: Ref<boolean>,
                      status_cb: Function,
                      progress_val: Ref<number>) {
@@ -258,11 +260,12 @@ export default class ParserManager {
         chaps_ref.value[id].title = chap_res.data?.title ?? ""
       }
       progress_val.value += cnt_slice;
+      await new Promise(f => setTimeout(f, wait_s * 1000));
     }
     try {
       await Parallel.each(Array.from(Array(chaps_ref.value.length).keys()),
         extract_chap,
-        await this.options.get_option("max_sync_fetch"));
+        threads);
       progress_val.value = 0
     } catch (e: any) {
       status_cb(e)

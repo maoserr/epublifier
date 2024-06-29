@@ -1,4 +1,5 @@
 import browser from "webextension-polyfill";
+import {Chapter, NovelMetaData} from "../novel/novel_data";
 
 interface Options {
   load_saved: boolean
@@ -13,13 +14,13 @@ export default class OptionsManager {
   }
 
   static get Instance() {
-    if (!this._instance){
+    if (!this._instance) {
       this._instance = new this()
     }
     return this._instance;
   }
 
-  async get_option<T>(name:keyof Options):Promise<T>{
+  async get_option<T>(name: keyof Options): Promise<T> {
     if (this.options === undefined) {
       this.options = (await browser.storage.sync.get("options")) as Options
     }
@@ -50,5 +51,25 @@ export default class OptionsManager {
     } else {
       return {"main": await this.get_initial()};
     }
+  }
+
+  /**
+   * Caches current parsed state
+   * @param chaps Chapters
+   * @param meta Metadata
+   */
+  async cache_state(chaps: Chapter[], meta: NovelMetaData) {
+    await browser.storage.local.set(
+      {
+        chapter: JSON.stringify(chaps),
+        meta: JSON.stringify(meta)
+      })
+  }
+
+  async load_state():Promise<[Chapter[],NovelMetaData]>{
+    const chapsStr = await browser.storage.local.get(['chapter','meta'])
+    const chaps= JSON.parse(chapsStr['chapter']) as Chapter[]
+    const meta = JSON.parse(chapsStr['meta']) as NovelMetaData
+    return [chaps, meta]
   }
 }
