@@ -21,6 +21,7 @@
         <TabPanel header="Overview">
           <ChapToolbar @add="add_chap" @parse="parse"
                        @epub="gen_epub" @delete="delete_chap"
+                       @cache="cache" @load="load"
                        @export_csv="export_csv" @import_csv="import_csv"/>
           <DataTable :value="chaps"
                      ref="dt"
@@ -135,6 +136,7 @@ import LinksParse from "./parserconfig/LinksParse.vue";
 import NextParse from "./parserconfig/AddPageParse.vue";
 import TextParse from "./parserconfig/TextParse.vue";
 import InputText from "primevue/inputtext";
+import OptionsManager from "../../services/common/OptionsMan";
 
 
 let parse_man: ParserManager
@@ -218,6 +220,15 @@ async function gen_epub() {
 function delete_chap() {
   chaps.value = chaps.value.filter(val => !selected_chaps.value.includes(val));
   selected_chaps.value = [];
+}
+
+async function cache(){
+  await OptionsManager.Instance.cache_state(chaps.value, meta.value)
+  write_info("Cached chapters & meta data")
+}
+
+function load(){
+
 }
 
 onMounted(async () => {
