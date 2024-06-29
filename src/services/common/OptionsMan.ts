@@ -67,6 +67,9 @@ export default class OptionsManager {
   }
 
   async load_state():Promise<[Chapter[],NovelMetaData]>{
-    const chaps= JSON.parse(browser.storage.local.get("chapter"))
+    const chapsStr = await browser.storage.local.get(['chapter','meta'])
+    const chaps= JSON.parse(chapsStr['chapter']) as Chapter[]
+    const meta = JSON.parse(chapsStr['meta']) as NovelMetaData
+    return [chaps, meta]
   }
 }

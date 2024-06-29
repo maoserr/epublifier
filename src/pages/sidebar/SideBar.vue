@@ -227,8 +227,11 @@ async function cache(){
   write_info("Cached chapters & meta data")
 }
 
-function load(){
-
+async function load(){
+  const [chap, metares] = await OptionsManager.Instance.load_state()
+  chaps.value = chap
+  meta.value = metares
+  write_info("Loaded cache")
 }
 
 onMounted(async () => {
