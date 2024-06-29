@@ -126,7 +126,7 @@ import {
   p_inputs_val_link,
   p_inputs_val_text,
   parser,
-  parser_chap
+  parser_chap, threads, wait_s
 } from "../parser_state"
 import {meta, chaps, selected_chaps} from "../novel_state"
 import {msg_sendwin, init_sidebarwin} from "../win_state"
@@ -159,8 +159,8 @@ async function import_csv(file: File) {
   const txt = await file.text()
   const csv_res = Papa.parse(txt.trimEnd(), {header: true})
   for (let i = 0; i < csv_res.data.length; i++) {
-    const curr_row = csv_res.data[i] as Record<string,string>
-    if (chaps.value.length > i){
+    const curr_row = csv_res.data[i] as Record<string, string>
+    if (chaps.value.length > i) {
       chaps.value[i].title = curr_row['Title']
       chaps.value[i].url = curr_row['URL']
     } else {
@@ -183,7 +183,8 @@ async function parse() {
   console.log(parser_chap.value)
   await parse_man.parser_chaps(
       parser_chap.value!.doc, parser_chap.value!.parser,
-      selected_chaps, parse_cancel, write_info, parse_progress)
+      selected_chaps, threads.value, wait_s.value,
+      parse_cancel, write_info, parse_progress)
 }
 
 async function parse_links(add: boolean) {
@@ -222,12 +223,12 @@ function delete_chap() {
   selected_chaps.value = [];
 }
 
-async function cache(){
+async function cache() {
   await OptionsManager.Instance.cache_state(chaps.value, meta.value)
   write_info("Cached chapters & meta data")
 }
 
-async function load(){
+async function load() {
   const [chap, metares] = await OptionsManager.Instance.load_state()
   chaps.value = chap
   meta.value = metares

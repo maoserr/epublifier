@@ -6,7 +6,8 @@ import {ref, computed, ComputedRef, watch} from "vue";
 
 import {get_default_inputs, ParseOpt, ParserInputDef} from "../../../services/scraping/parser_types";
 import InputText from "primevue/inputtext";
-import {curr_parse_doc, parsers, parser_chap, p_inputs_val_text} from "../../parser_state";
+import {curr_parse_doc, parsers, parser_chap, p_inputs_val_text, wait_s, max_chaps, threads} from "../../parser_state";
+import InputNumber from "primevue/inputnumber";
 
 const parser_ops: ComputedRef<ParseOpt[]> = computed(() => {
   let parse_op: ParseOpt[] = []
@@ -62,6 +63,17 @@ watch(parser_chap, () => {
           </div>
         </div>
       </Panel>
+    </div>
+    <div class="col-6 mt-2">
+      <InputNumber v-model="wait_s" id="wait_s" input-class="mr-2"
+                   :maxFractionDigits="2"
+                   :input-style="{width: '4rem'}" suffix="s" :min="0.01"/>
+      <label for="wait_s">Per parse wait</label>
+    </div>
+    <div class="col-6">
+      <InputNumber v-model="threads" id="threads" input-class="mr-2"
+                   :input-style="{width: '4rem'}" :min="1"/>
+      <label for="threads"># Connections</label>
     </div>
   </div>
 </template>

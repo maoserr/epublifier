@@ -21,8 +21,9 @@ export const page_type =
   ref<string>("regular")
 
 // Add page options
+export const threads = ref<number>(3)
 export const scroll = ref<boolean>(false)
 export const max_chaps = ref<number>(5)
-export const wait_s = ref<number>(2)
+export const wait_s = ref<number>(0.5)
 export const next_id = ref<string>('')
 export const title_id = ref<string>('')
