@@ -39,8 +39,9 @@
                 <i class="pi" :class="(!(data as any).html_parsed)?'pi-circle':'pi-check'"></i>
               </template>
             </Column>
-            <Column field="title" header="Title"></Column>
-            <Column field="url" header="URL"></Column>
+            <Column field="id" header="#" sortable></Column>
+            <Column field="title" header="Title" sortable></Column>
+            <Column field="url" header="URL" sortable></Column>
           </DataTable>
           <TabView>
             <TabPanel header="Meta">
@@ -165,6 +166,7 @@ async function import_csv(file: File) {
       chaps.value[i].url = curr_row['URL']
     } else {
       chaps.value.push({
+        id: i,
         title: curr_row['Title'],
         url: curr_row['URL'],
         html: '',

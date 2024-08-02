@@ -33,6 +33,7 @@ export async function add(parse_man: ParserManager,
     write_info(res.message)
     let res_sel = parse_man.get_title_res(doc_info.data!.src)
     let curr_chap = {
+      id: i,
       url: doc_info.data!.url,
       title: res_sel ?? res.data!.title,
       html: doc_info.data!.src,

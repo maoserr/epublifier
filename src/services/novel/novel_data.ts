@@ -7,6 +7,7 @@ export interface NovelMetaData {
 }
 
 export interface Chapter {
+    id: number
     url: string;
     title: string;
     html: string;
