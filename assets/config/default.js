@@ -181,9 +181,11 @@ function chap_name_search(inputs,
     let ancs = dom.querySelectorAll(inputs['Query Selector']);
     let chaps = []
     const chap_reg = new RegExp(inputs['Link Regex'], 'i')
+    let i = 0
     ancs.forEach((element) => {
         if (chap_reg.test(element.innerText)) {
             chaps.push({
+                id: i++,
                 url: element.href,
                 title: element.innerText
             });
@@ -213,9 +215,11 @@ function nu_toc_parser(inputs, url, source, helpers) {
     let parser_msg = "Please expand all chapters!"
     if (chap_popup != null) {
         let chap_lis = chap_popup.querySelectorAll("a");
+        let i = 0
         chap_lis.forEach((element) => {
             if (element.href.includes("extnu")) {
                 chaps.unshift({
+                    id: i++,
                     url: element.href,
                     title: element.innerText.trim()
                 });

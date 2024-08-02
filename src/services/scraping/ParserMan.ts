@@ -219,6 +219,17 @@ export default class ParserManager {
       }, 1, 0)
   }
 
+  async fix_html(html: string, url: string): Promise<string> {
+    let parser = new DOMParser();
+    let s = new XMLSerializer();
+    let html_node = parser.parseFromString(html, "text/html");
+    if (html_node.head.getElementsByTagName('base').length == 0) {
+      let baseEl = html_node.createElement('base');
+      baseEl.setAttribute('href', url);
+      html_node.head.appendChild(baseEl)
+    }
+    return s.serializeToString(html_node);
+  }
 
   async parser_chaps(parse_doc: string,
                      parser: string,
@@ -248,13 +259,14 @@ export default class ParserManager {
             + "-> permission -> Access your data for all websites")
           return
         }
-        chaps_ref.value[id].html = f_txt;
+        const fixed_html = await parse_man.fix_html(f_txt, f_res.url);
+        chaps_ref.value[id].html = fixed_html
         status_cb("Parsing chapter content: " + id)
         const chap_res =
           await parse_man.run_chap_parser({
             inputs: {},
             url: chaps_ref.value[id].url,
-            src: f_txt
+            src: fixed_html
           }, parse_doc, parser)
         chaps_ref.value[id].html_parsed = chap_res.data?.html ?? ""
         chaps_ref.value[id].title = chap_res.data?.title ?? ""
