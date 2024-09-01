@@ -23,7 +23,7 @@
     "@mozilla/readability": "^0.5.0",
     "@types/papaparse": "^5.3.14",
     "@types/prismjs": "^1.26.4",
-    "@types/webextension-polyfill": "^0.10.7",
+    "@types/webextension-polyfill": "^0.12.1",
     "@vue/compiler-sfc": "^3.4.30",
     "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^7.1.2",
@@ -40,7 +40,7 @@
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.2",
     "@medv/finder": "^3.2.0",
-    "@vueuse/core": "^10.11.0",
+    "@vueuse/core": "^10.11.1",
     "async-parallel": "^1.2.3",
     "buffer": "^6.0.3",
     "codemirror": "^6.0.1",
@@ -51,7 +51,7 @@
     "primevue": "^3.53.0",
     "prismjs": "^1.29.0",
     "tsepub": "^1.1.19",
-    "vue": "^3.4.35",
+    "vue": "^3.4.38",
     "vue-codemirror": "^6.1.1",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "webextension-polyfill": "^0.12.0"
