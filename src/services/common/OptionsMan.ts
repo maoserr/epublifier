@@ -22,7 +22,7 @@ export default class OptionsManager {
 
   async get_option<T>(name: keyof Options): Promise<T> {
     if (this.options === undefined) {
-      this.options = (await browser.storage.sync.get("options")) as Options
+      this.options = (await browser.storage.sync.get("options") as unknown) as Options
     }
     return (this.options[name] as T)
   }
@@ -47,7 +47,7 @@ export default class OptionsManager {
     if (load_saved
       && config.hasOwnProperty('parsers')
       && (config["parsers"] != null)) {
-      return JSON.parse(config["parsers"]);
+      return JSON.parse(config["parsers"] as string);
     } else {
       return {"main": await this.get_initial()};
     }
@@ -68,8 +68,8 @@ export default class OptionsManager {
 
   async load_state():Promise<[Chapter[],NovelMetaData]>{
     const chapsStr = await browser.storage.local.get(['chapter','meta'])
-    const chaps= JSON.parse(chapsStr['chapter']) as Chapter[]
-    const meta = JSON.parse(chapsStr['meta']) as NovelMetaData
+    const chaps= JSON.parse(chapsStr['chapter'] as string) as Chapter[]
+    const meta = JSON.parse(chapsStr['meta'] as string) as NovelMetaData
     return [chaps, meta]
   }
 }
