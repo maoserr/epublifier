@@ -1,3 +1,4 @@
+import {parse} from "content-type"
 import SandboxInput from ".././messaging/SandboxInput";
 import {
   get_default_inputs, ParserDetected,
@@ -219,10 +220,65 @@ export default class ParserManager {
       }, 1, 0)
   }
 
-  async fix_html(html: string, url: string): Promise<string> {
+  parseContentType(contentType: string):string|undefined {
+    try {
+      return parse(contentType).parameters.charset;
+    } catch {
+      return undefined;
+    }
+  }
+
+  getCharset(content: ArrayBuffer, headers?: Headers):string {
+    // See http://www.w3.org/TR/2011/WD-html5-20110113/parsing.html#determining-the-character-encoding
+    const decoder = new TextDecoder('utf-8');
+
+    // Try to extract content-type header
+    const contentType = headers?.get('content-type');
+    if (contentType) {
+      const hdr_charset = this.parseContentType(contentType);
+      if (hdr_charset) {
+        return hdr_charset;
+      }
+    }
+
+    // No charset in content type, peek at response body for at most 1024 bytes
+    const data = decoder.decode(content.slice(0, 1024))
+
+    // HTML5, HTML4 and XML
+    if (data) {
+
+      const rawdom = new DOMParser().parseFromString(data, "text/html")
+      const html5_cs = rawdom.querySelector('meta[charset]')
+        ?.getAttribute('charset') ?? null
+      if (html5_cs !== null){
+        const res = this.parseContentType(html5_cs)
+        if (res)
+          return res
+      }
+
+      const html4_cs = rawdom.querySelector('meta[http-equiv=Content-Type]')
+        ?.getAttribute('content') ?? null
+      if (html4_cs !== null){
+        const res = this.parseContentType(html4_cs)
+        if (res)
+          return res
+      }
+    }
+
+    return 'utf-8'
+  }
+
+
+  async fix_html(htmlRaw:ArrayBuffer,cs:string, url: string): Promise<string> {
+    console.log(cs)
+    const decoder = new TextDecoder(cs);
+    const html = decoder.decode(htmlRaw);
+    console.log(html)
     let parser = new DOMParser();
     let s = new XMLSerializer();
     let html_node = parser.parseFromString(html, "text/html");
+
+
     if (html_node.head.getElementsByTagName('base').length == 0) {
       let baseEl = html_node.createElement('base');
       baseEl.setAttribute('href', url);
@@ -249,17 +305,18 @@ export default class ParserManager {
         throw new Error('User cancelled')
       }
       if (chaps_ref.value[id].url !== undefined) {
-        let f_res
-        let f_txt = ''
+        let f_res: Response
+        let f_raw: ArrayBuffer
         try {
           f_res = await fetch(chaps_ref.value[id].url);
-          f_txt = await f_res.text();
+          f_raw = await f_res.arrayBuffer();
         } catch (e) {
           status_cb("Can't download. Please check permissions in extension page "
             + "-> permission -> Access your data for all websites")
           return
         }
-        const fixed_html = await parse_man.fix_html(f_txt, f_res.url);
+        const chars = parse_man.getCharset(f_raw,f_res.headers)
+        const fixed_html = await parse_man.fix_html(f_raw,chars, f_res.url);
         chaps_ref.value[id].html = fixed_html
         status_cb("Parsing chapter content: " + id)
         const chap_res =

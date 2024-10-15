@@ -21,6 +21,7 @@
   "homepage": "https://github.com/maoserr/epublifier#readme",
   "devDependencies": {
     "@mozilla/readability": "^0.5.0",
+    "@types/content-type": "^1.1.8",
     "@types/papaparse": "^5.3.14",
     "@types/prismjs": "^1.26.4",
     "@types/webextension-polyfill": "^0.10.7",
@@ -44,6 +45,7 @@
     "async-parallel": "^1.2.3",
     "buffer": "^6.0.3",
     "codemirror": "^6.0.1",
+    "content-type": "^1.0.5",
     "papaparse": "^5.4.1",
     "path-browserify": "^1.0.1",
     "primeflex": "^3.3.1",
