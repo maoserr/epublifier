@@ -161,9 +161,34 @@ function main_parser(inputs, url, source, helpers) {
                     }
                 }
             }
-        default:
-            return {failed_message: "No automatic parser available for: " + link.hostname}
     }
+    if (dom.querySelector('.md-nav--primary>.md-nav__list>.md-nav__item--active > .md-nav')){
+        return {
+            message: 'Detected Material for Mkdoc Doc.',
+            meta: meta_page(dom, url),
+            parser_opt: {
+                type: 'links', parser: 'Chapter Links',
+                parser_inputs: {
+                    'Query Selector': '.md-nav--primary>.md-nav__list>.md-nav__item--active > .md-nav > .md-nav__list > .md-nav__item > a',
+                    'Link Regex': '.*'
+                }
+            }
+        }
+    } else if (dom.head.querySelector("meta[name='readthedocs-project-slug']") !== null ){
+        // Tries to detect vanilla readthedocs
+        return {
+            message: 'Detected Readthedocs.',
+            meta: meta_page(dom, url),
+            parser_opt: {
+                type: 'links', parser: 'Chapter Links',
+                parser_inputs: {
+                    'Query Selector': '.wy-menu a',
+                    'Link Regex': '.*'
+                }
+            }
+        }
+    }
+    return {failed_message: "No automatic parser available for: " + link.hostname}
 }
 
 /**
