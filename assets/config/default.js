@@ -8,7 +8,7 @@ const main_def = {
             func: chap_name_search,
             inputs: {
                 'Link Regex': {type: 'text', default: '^\\s*\\S+'},
-                'Query Selector': {type: 'selector', default: 'a', filters: ['UL','OL'], postfix: ' a'}
+                'Query Selector': {type: 'selector', default: 'a', filters: ['UL', 'OL'], postfix: ' a'}
             }
         },
         'Novel Updates': {
@@ -161,9 +161,39 @@ function main_parser(inputs, url, source, helpers) {
                     }
                 }
             }
-        default:
-            return {failed_message: "No automatic parser available for: " + link.hostname}
     }
+    if (dom.querySelector('.md-nav--primary>.md-nav__list>.md-nav__item--active > .md-nav')) {
+        return {
+            message: 'Detected Material for Mkdoc Doc.',
+            meta: meta_page(dom, url),
+            parser_opt: {
+                type: 'links', parser: 'Chapter Links',
+                parser_inputs: {
+                    'Query Selector': '.md-nav--primary>.md-nav__list>.md-nav__item--active > .md-nav > .md-nav__list > .md-nav__item > a',
+                    'Link Regex': '.*'
+                }
+            }
+        }
+    }
+    // Look for common nav items
+    for (let n of ['.wy-menu','.bd-sidenav', '.current .toctree-l1','.toctree-l1', '.nav-list']) {
+        console.debug(" Check", n)
+        if (dom.querySelector(n) !== null) {
+            // Tries to detect vanilla readthedocs
+            return {
+                message: 'Detected nav menu (' + n + ').',
+                meta: meta_page(dom, url),
+                parser_opt: {
+                    type: 'links', parser: 'Chapter Links',
+                    parser_inputs: {
+                        'Query Selector': n + ' a',
+                        'Link Regex': '.*'
+                    }
+                }
+            }
+        }
+    }
+    return {failed_message: "No automatic parser available for: " + link.hostname}
 }
 
 /**
