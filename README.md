@@ -29,6 +29,24 @@ Currently supporting following sites:
 ### Extracting other documentation
 ![FastAPI](docs/fastapi.gif?raw=true "Documentations")
 
+# Why build a scraper as an extension? instead of command line, calibre plugin, etc...
+
+This is for ad hoc generation of EPub from websites that don't have scrape well using traditional scrapers (think standard request based command line scripts or some other chrome extensions that scrape based on open tabs/window) for some reasons:
+
+1. Usually command line scrapers and other extensions have predefined sites they work for, this one's outside of those sites
+
+2. Or they requires nontrivial configuration and/or code
+
+3. Some sites use javascript to dynamically generates/retrieve the text, in which case you need the browser to run the JS - This was the biggest gap for me.
+
+4. This one runs in the browser, so maybe less likely to be detected and blocked
+
+I also don't intend this scraper to be robust or used in a repeated fashion as a background scheduled job, that's why there's a UI for selecting key elements for scraping. It's meant to be more generalized so that you don't have to have a configuration for a site to still be able to scrape it relatively easily with just some mouse clicks.
+
+If the site you're scraping is already handled by the other programs/extensions, then this wouldn't perform better since the other ones are specifically configured for those sites. Otherwise, this extension gives you the tool to scrape something once or twice without spending too much time coding/configuring.
+
+I don't find myself sticking to the same site a lot, so wrote this.
+
 # Building ##
 Build Environment
 - Windows 10
