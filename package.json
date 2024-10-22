@@ -52,7 +52,7 @@
     "primeicons": "^7.0.0",
     "primevue": "^3.53.0",
     "prismjs": "^1.29.0",
-    "tsepub": "^1.1.19",
+    "tsepub": "^1.1.23",
     "vue": "^3.5.10",
     "vue-codemirror": "^6.1.1",
     "vue-prism-editor": "^2.0.0-alpha.2",
