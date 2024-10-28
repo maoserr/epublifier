@@ -62,3 +62,7 @@ CI/CD
 
 # Acknowledgements ##
 1. [jEpub](https://lelinhtinh.github.io/jEpub/)
+
+
+# Donate #
+[Donate](https://www.paypal.com/donate/?business=T4MWDBYTZBPJ4&no_recurring=0&currency_code=USD)
