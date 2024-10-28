@@ -53,6 +53,13 @@ const items = ref([
         origin: get_origin()
       })
     }
+  },
+  {
+    label: 'Donate (Paypal)',
+    icon: 'pi pi-dollar',
+    command: () => {
+      window.open('https://www.paypal.com/donate/?business=T4MWDBYTZBPJ4&no_recurring=0&currency_code=USD')
+    }
   }
 ]);
 
