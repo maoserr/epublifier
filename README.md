@@ -65,4 +65,4 @@ CI/CD
 
 
 # Donate #
-[Donate](https://www.paypal.com/donate/?business=T4MWDBYTZBPJ4&no_recurring=0&currency_code=USD)
+[Paypal](https://www.paypal.com/donate/?business=T4MWDBYTZBPJ4&no_recurring=0&currency_code=USD)
