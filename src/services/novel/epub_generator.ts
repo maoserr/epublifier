@@ -29,9 +29,10 @@ export async function generate_epub(nov_data: NovelData, update_cb: CallableFunc
                     let img_resp = await fetch(img.src)
                     if (img_resp.ok) {
                         let img_dat = await img_resp.blob();
-                        tsepub.image(img_dat, img_id.toString(), img.alt)
+                        let curr_id = img_id.toString()+"-"+Date.now().toString()
+                        tsepub.image(img_dat, curr_id, img.alt)
                         let sp = html_node.createElement("span")
-                        sp.innerText = `{{{ image[${img_id.toString()}] }}}`
+                        sp.innerText = `{{{ image[${curr_id}] }}}`
                         img.replaceWith(sp)
                         img_id++;
                     }

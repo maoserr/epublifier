@@ -67,7 +67,7 @@ export async function run_epub(chaps: Ref<Chapter[]>,
   let nov_data: NovelData = {
     meta: meta.value,
     chapters: epub_chaps,
-    filename: meta.value.title.toLowerCase().replace(/[\W_]+/g, "_") + ".epub"
+    filename: meta.value.title.toLowerCase().replace(/[/\\?%*:|"<>]/gi, "-") + ".epub"
   }
   if (meta.value.cover != null) {
     let response = await fetch(meta.value.cover);
