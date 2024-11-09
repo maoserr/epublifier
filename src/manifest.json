@@ -4,7 +4,9 @@
     "downloads",
     "storage",
     "clipboardRead",
-    "unlimitedStorage"],
+    "unlimitedStorage",
+    "declarativeNetRequestWithHostAccess",
+    "declarativeNetRequestFeedback"],
   "options_ui": {
     "page": "options.html"
   }

@@ -1,4 +1,5 @@
-import browser, {Tabs} from "webextension-polyfill";
+import browser, {DeclarativeNetRequest, Tabs} from "webextension-polyfill";
+import Rule = DeclarativeNetRequest.Rule;
 
 function set_badge() {
   const man = browser.runtime.getManifest()
@@ -7,6 +8,27 @@ function set_badge() {
     browser.action.setBadgeText({text: "d"}).then().catch(() => {
     });
   }
+  const rules: Rule[] = [{
+    id: 1,
+    condition: {
+      initiatorDomains: [browser.runtime.id],
+      resourceTypes: ['xmlhttprequest', 'image'],
+    },
+    action: {
+      type: 'modifyHeaders',
+      requestHeaders: [{
+        header: 'Referer',
+        operation: 'set',
+        value: 'https://sspai.com',
+      }],
+    },
+  }];
+  browser.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: rules.map(r => r.id),
+    addRules: rules,
+  }).then(r=>console.log(`Rule successfully added: ${browser.runtime.getURL("")}`)).catch(
+    e => console.error("Failed to add rule")
+  );
 }
 
 browser.runtime.onStartup.addListener(set_badge)
