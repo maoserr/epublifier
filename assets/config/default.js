@@ -25,6 +25,10 @@ const main_def = {
             func: readability_ex,
             inputs: {}
         },
+        'RawHTML':{
+            func: rawChapter,
+            inputs: {}
+        }
     }
 }
 
@@ -274,8 +278,23 @@ function nu_toc_parser(inputs, url, source, helpers) {
  */
 function readability(inputs, url, source, helpers) {
     let parser = new DOMParser();
+    console.log(source)
     let dom = parser.parseFromString(source, "text/html");
     let out = helpers["readability"](dom);
+    // Generic parser
+    return {
+        title: out.title,
+        html: out.content,
+        message: "Parsed simple chapter"
+    };
+}
+
+function rawChapter(inputs, url, source, helpers) {
+    let parser = new DOMParser();
+    let dom = parser.parseFromString(source, "text/html");
+    dom.querySelectorAll("img[src]").forEach(
+        e=>console.log(e.getAttribute('src')))
+    let out = dom.body.outerHTML;
     // Generic parser
     return {
         title: out.title,
