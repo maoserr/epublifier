@@ -140,7 +140,7 @@ export default class ParserManager {
 
       parser_chap.value = {
         doc: parse_doc,
-        parser: Object.keys(this.parsers[parse_doc].text)[0]
+        parser: parser_opt.chap_parser || Object.keys(this.parsers[parse_doc].text)[0]
       }
       p_inputs_val_text.value = get_default_inputs(this.parsers[parse_doc]
         .text[parser_chap.value.parser]['inputs'])
@@ -251,9 +251,8 @@ export default class ParserManager {
       const html5_cs = rawdom.querySelector('meta[charset]')
         ?.getAttribute('charset') ?? null
       if (html5_cs !== null){
-        const res = this.parseContentType(html5_cs)
-        if (res)
-          return res
+        // <meta charset="gbk"> gives a bare charset value, use it directly
+        return html5_cs.toLowerCase()
       }
 
       const html4_cs = rawdom.querySelector('meta[http-equiv=Content-Type]')

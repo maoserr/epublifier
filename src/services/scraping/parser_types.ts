@@ -44,6 +44,7 @@ export interface AddDetected {
 export interface ParserDetected {
   type: 'links' | 'text'
   parser: string
+  chap_parser?: string
   parser_inputs?: Record<string, any>
 }
 

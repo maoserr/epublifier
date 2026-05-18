@@ -28,6 +28,10 @@ const main_def = {
         'RawHTML':{
             func: rawChapter,
             inputs: {}
+        },
+        '69shuba': {
+            func: shuba69_chapter,
+            inputs: {}
         }
     }
 }
@@ -62,6 +66,31 @@ function meta_page(dom, url) {
  * publisher: string,
  * title: string}}
  */
+/**
+ * Gets metadata from 69shuba book pages
+ * @param {HTMLElement} dom
+ * @param {string} url
+ * @returns {{title:string, description:string, author:string, cover:string, publisher:string}}
+ */
+function meta_69shuba(dom, url) {
+    let scriptText = Array.from(dom.querySelectorAll('script'))
+        .map(s => s.textContent).join('\n')
+    let title = (scriptText.match(/articlename[n]?\s*:\s*'([^']+)'/) || [])[1]
+    let author = (scriptText.match(/author\s*:\s*'([^']+)'/) || [])[1]
+    let cover = dom.querySelector('.pic img')?.src ||
+                dom.querySelector('.bookimg img')?.src
+    let desc = dom.querySelector('.intro')?.innerHTML ||
+               dom.querySelector('.describe')?.innerHTML
+    return {
+        title: title || dom.title,
+        description: desc,
+        author: author || 'N/A',
+        cover: cover,
+        publisher: '69书吧'
+    }
+}
+
+
 function meta_nu(dom, url) {
     let tit = dom.querySelector(".seriestitlenu").innerText;
     let desc = dom.querySelector("#editdescription").innerHTML;
@@ -165,6 +194,27 @@ function main_parser(inputs, url, source, helpers) {
                     }
                 }
             }
+        case "www.69shuba.com":
+            if (paths.length > 1 && paths[1] === 'book') {
+                let isDetailPage = paths[2] && paths[2].includes('.htm')
+                let msg = isDetailPage
+                    ? 'Detected 69shuba (book detail page). Click "Complete TOC" to get all chapters. Select "69shuba" as text parser.'
+                    : 'Detected 69shuba TOC page. Select "69shuba" as text parser.'
+                return {
+                    message: msg,
+                    meta: meta_69shuba(dom, url),
+                    parser_opt: {
+                        type: 'links',
+                        parser: 'Chapter Links',
+                        chap_parser: '69shuba',
+                        parser_inputs: {
+                            'Query Selector': 'a[href*="/txt/"]',
+                            'Link Regex': '\\S'
+                        }
+                    }
+                }
+            }
+            return {failed_message: 'Please navigate to a 69shuba book page (/book/XXXXX.htm or /book/XXXXX/).'}
     }
     if (dom.querySelector('.md-nav--primary>.md-nav__list>.md-nav__item--active > .md-nav')) {
         return {
@@ -300,6 +350,52 @@ function rawChapter(inputs, url, source, helpers) {
         title: out.title,
         html: out.content,
         message: "Parsed simple chapter"
+    };
+}
+
+
+/**
+ * Parse 69shuba chapter page
+ * Chapter content is inside <div class="txtnav"> after stripping nav/ad elements
+ * @param inputs
+ * @param url
+ * @param source
+ * @param helpers
+ * @returns {{html:string, title:string, message:string}}
+ */
+function shuba69_chapter(inputs, url, source, helpers) {
+    let parser = new DOMParser();
+    let dom = parser.parseFromString(source, 'text/html');
+    // JS chaptername is always clean (no site suffix); fall back to h1, then page title
+    let scriptText = Array.from(dom.querySelectorAll('script'))
+        .map(s => s.textContent).join('\n');
+    let title = (scriptText.match(/chaptername\s*:\s*'([^']+)'/) || [])[1]?.trim()
+        || dom.querySelector('.txtnav h1')?.textContent?.trim()
+        || dom.title.replace(/[-_\s]*69书吧\s*$/i, '').trim();
+
+    let txtnav = dom.querySelector('.txtnav');
+    if (!txtnav) {
+        let out = helpers['readability'](dom);
+        if (!out) return {title: title || url, html: '<div>Chapter load failed (may be blocked by Cloudflare)</div>', message: '403 or page parse failed'};
+        return {title: out.title || title || url, html: out.content, message: 'Parsed 69shuba chapter (readability)'};
+    }
+
+    // Remove non-content elements: ads, nav, title, date info
+    txtnav.querySelectorAll(
+        'h1, .txtinfo, #txtright, .tools, .yueduad1, script, .bottom_page, .pagebox, .bottom_ad'
+    ).forEach(el => el.remove());
+
+    // 69shuba puts &emsp;&emsp; indent at START of each paragraph (before text, not after <br>).
+    // Split on <br>, strip leading whitespace/nbsp from each segment, then rejoin.
+    let html = txtnav.innerHTML
+        .split(/<br\s*\/?>/i)
+        .map(seg => seg.replace(/^(?:\s|&nbsp;|&#160;|&emsp;|&#8195;|&#12288;|[\u00a0\u2003\u3000])+/, ''))
+        .join('<br/>');
+
+    return {
+        title: title,
+        html: '<div>' + html + '</div>',
+        message: 'Parsed 69shuba chapter'
     };
 }
 
