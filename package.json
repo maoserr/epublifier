@@ -36,7 +36,7 @@
     "vue-loader": "^17.4.2",
     "webpack": "^5.108.3",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.2.5"
+    "webpack-dev-server": "^5.2.6"
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.5",
