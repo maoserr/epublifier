@@ -12,17 +12,17 @@ jobs:
   build_chrome:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '16.x'
+          node-version: '20.x'
       - run: npm ci
       - run: npm run build -- --env=version=$MAJOR_VER.$MINOR_VER.${{ github.run_number }}
       - name: Zip chrome
         run: zip -qq -r chrome.zip *
         working-directory: dist/chrome_prod
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: chrome
           path: dist/chrome_prod/chrome.zip
@@ -30,17 +30,17 @@ jobs:
   build_firefox:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '16.x'
+          node-version: '20.x'
       - run: npm ci
       - run: npm run build_ff -- --env=version=$MAJOR_VER.$MINOR_VER.${{ github.run_number }}
       - name: Zip firefox
         run: zip -qq -r firefox.zip *
         working-directory: dist/firefox_prod
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: firefox
           path: dist/firefox_prod/firefox.zip
@@ -51,7 +51,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Download extension
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: chrome
       - name: Publish Chrome
@@ -68,11 +68,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Zip source
         run: zip -qq -r src.zip *
       - name: Download extension
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: firefox
       - name: Publish Firefox
@@ -90,9 +90,9 @@ jobs:
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Download extension
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ env.MAJOR_VER }}.${{ env.MINOR_VER }}.${{ github.run_number }}
           files: |
