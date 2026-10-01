@@ -24,7 +24,7 @@
     "@types/content-type": "^1.1.9",
     "@types/papaparse": "^5.5.2",
     "@types/prismjs": "^1.26.6",
-    "@types/webextension-polyfill": "^0.12.5",
+    "@types/webextension-polyfill": "^0.12.6",
     "@vue/compiler-sfc": "^3.4.30",
     "copy-webpack-plugin": "^14.0.0",
     "css-loader": "^7.1.5",
@@ -34,7 +34,7 @@
     "ts-loader": "^9.6.2",
     "typescript": "^5.9.3",
     "vue-loader": "^17.4.2",
-    "webpack": "^5.110.1",
+    "webpack": "^5.111.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.2.6"
   },
@@ -53,7 +53,7 @@
     "primevue": "^3.53.1",
     "prismjs": "^1.30.0",
     "tsepub": "^1.1.31",
-    "vue": "^3.5.42",
+    "vue": "^3.5.43",
     "vue-codemirror": "^6.1.1",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "webextension-polyfill": "^0.12.0"
