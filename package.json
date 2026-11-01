@@ -34,9 +34,9 @@
     "ts-loader": "^9.6.2",
     "typescript": "^5.9.3",
     "vue-loader": "^17.4.2",
-    "webpack": "^5.111.1",
+    "webpack": "^5.112.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.2.6"
+    "webpack-dev-server": "^5.2.7"
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.5",
@@ -53,7 +53,7 @@
     "primevue": "^3.53.1",
     "prismjs": "^1.30.0",
     "tsepub": "^1.1.31",
-    "vue": "^3.5.43",
+    "vue": "^3.5.44",
     "vue-codemirror": "^6.1.1",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "webextension-polyfill": "^0.12.0"
